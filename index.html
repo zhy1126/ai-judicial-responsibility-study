@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="人机协同裁判司法责任研究：交互式调查原型"
+    />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'" />
+    <meta name="theme-color" content="#12233f" />
+    <title>衡度研究室 · 人机协同裁判调查</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app-shell">
+      <section id="researcher-view" class="view researcher-view hidden" aria-labelledby="researcher-title">
+        <aside class="researcher-sidebar">
+          <a class="brand brand-light" href="./?view=researcher" aria-label="衡度研究室首页">
+            <span class="brand-seal" aria-hidden="true">衡</span>
+            <span><strong>衡度研究室</strong><small>实验设计台</small></span>
+          </a>
+          <nav class="sidebar-nav" aria-label="研究者页面导航">
+            <button class="nav-link active" data-scroll="research-overview"><span>01</span>研究问题</button>
+            <button class="nav-link" data-scroll="design-panel"><span>02</span>实验矩阵</button>
+            <button class="nav-link" data-scroll="preview-panel"><span>03</span>条件预览</button>
+            <button class="nav-link" data-scroll="data-panel"><span>04</span>原型数据</button>
+          </nav>
+          <div class="sidebar-note">
+            <span class="live-dot"></span>
+            <div><strong>交互原型</strong><small>数据仅保存在当前浏览器</small></div>
+          </div>
+        </aside>
+
+        <main class="researcher-main">
+          <header class="page-header">
+            <div>
+              <p class="eyebrow">AI × 法律判断 · STUDY PROTOTYPE</p>
+              <h1 id="researcher-title">人机协同裁判司法责任研究</h1>
+              <p class="header-copy">把“AI 参与过”变成一段可以亲自观看、逐步理解并作出评价的裁判过程。</p>
+            </div>
+            <button id="quick-preview" class="button button-primary" type="button">进入参与者预览 <span>↗</span></button>
+          </header>
+
+          <section id="research-overview" class="dashboard-section">
+            <div class="section-heading">
+              <div><p class="eyebrow">RESEARCH QUESTIONS</p><h2>三条问题，对应三层实验操纵</h2></div>
+              <span class="status-pill">修订版 RQ</span>
+            </div>
+            <div class="rq-grid">
+              <article class="rq-card rq-card-large">
+                <span class="rq-index">RQ1</span>
+                <div><strong>背景群体</strong><p>律师、当事人与普通民众在评价 AI 参与的法律活动时，其责任分配和主观感受有何差异？</p></div>
+              </article>
+              <article class="rq-card">
+                <span class="rq-index">RQ2</span>
+                <div><strong>AI 参与方式</strong><p>AI 以程序性、实质性或决定性方式参与法律活动，如何影响责任分配和主观感受？</p></div>
+              </article>
+              <article class="rq-card">
+                <span class="rq-index">RQ3</span>
+                <div><strong>任务差异</strong><p>法定犯和自然犯的任务差异是否会影响人们对于 AI 责任划分的看法？</p></div>
+              </article>
+            </div>
+          </section>
+
+          <section id="design-panel" class="dashboard-section panel">
+            <div class="panel-head">
+              <div><p class="eyebrow">FACTORIAL DESIGN</p><h2>3 × 4 × 2 组间实验矩阵</h2></div>
+              <span class="matrix-total">24 个实验单元</span>
+            </div>
+            <div class="factor-grid">
+              <article class="factor-card"><span class="factor-number">3</span><div><strong>背景群体</strong><p>律师 · 诉讼当事人 · 普通公众</p></div></article>
+              <span class="factor-sign">×</span>
+              <article class="factor-card"><span class="factor-number">4</span><div><strong>AI 条件</strong><p>无 AI 对照 · 程序性 · 实质性 · 决定性</p></div></article>
+              <span class="factor-sign">×</span>
+              <article class="factor-card"><span class="factor-number">2</span><div><strong>任务类型</strong><p>自然犯 · 法定犯</p></div></article>
+            </div>
+            <div class="design-notes">
+              <div class="design-note"><span>✓</span><p><strong>为什么保留无 AI 对照？</strong>截图中的三个概念是处理条件；额外加入无 AI 基线，才能估计“出现 AI”本身带来的变化。</p></div>
+              <div class="design-note"><span>✓</span><p><strong>为什么用对话回放而不是视频？</strong>逐步消息可精确控制文字、停留顺序和阅读记录，也能让参与者随时回看关键节点。</p></div>
+              <div class="design-note"><span>✓</span><p><strong>如何隔离 AI 参与方式？</strong>同一案件类型内保持最终裁判结果与核心事实不变，只改变 AI 在形成过程中的权限和产出。</p></div>
+            </div>
+          </section>
+
+          <section id="preview-panel" class="dashboard-grid">
+            <div class="panel preview-config-panel">
+              <div class="panel-head compact"><div><p class="eyebrow">CONDITION PREVIEW</p><h2>生成一条预览路径</h2></div><span class="prototype-badge">研究者可见</span></div>
+              <form id="preview-config" class="preview-config">
+                <fieldset>
+                  <legend>参与者背景</legend>
+                  <div class="segmented" data-field="role">
+                    <button type="button" data-value="lawyer">律师</button>
+                    <button type="button" data-value="litigant">当事人</button>
+                    <button type="button" data-value="public" class="selected">普通公众</button>
+                  </div>
+                </fieldset>
+                <fieldset>
+                  <legend>AI 参与方式</legend>
+                  <div class="choice-list" data-field="condition">
+                    <label><input type="radio" name="preview-condition" value="none" /><span><b>无 AI 对照</b><small>全部步骤由法官与书记员完成</small></span></label>
+                    <label><input type="radio" name="preview-condition" value="procedural" checked /><span><b>程序性参与</b><small>管理材料、节点与流程，不分析结论</small></span></label>
+                    <label><input type="radio" name="preview-condition" value="substantive" /><span><b>实质性参与</b><small>分析证据与规范，不推荐裁判结果</small></span></label>
+                    <label><input type="radio" name="preview-condition" value="decisional" /><span><b>决定性参与</b><small>推荐结论并生成裁判主文草案</small></span></label>
+                  </div>
+                </fieldset>
+                <fieldset>
+                  <legend>任务类型</legend>
+                  <div class="case-options">
+                    <label><input type="radio" name="preview-case" value="natural" checked /><span><b>自然犯</b><small>故意伤害情境</small></span></label>
+                    <label><input type="radio" name="preview-case" value="statutory" /><span><b>法定犯</b><small>受监管数据处置情境</small></span></label>
+                  </div>
+                </fieldset>
+                <button id="launch-configured-preview" type="submit" class="button button-primary button-wide">按此条件打开预览 <span>↗</span></button>
+              </form>
+            </div>
+
+            <aside class="panel flow-panel">
+              <div class="panel-head compact"><div><p class="eyebrow">PARTICIPANT FLOW</p><h2>约 8–10 分钟</h2></div></div>
+              <ol class="flow-list">
+                <li><span>01</span><div><strong>同意与身份</strong><small>背景群体筛查</small></div></li>
+                <li><span>02</span><div><strong>阅读案卷</strong><small>事实、证据、法律任务</small></div></li>
+                <li><span>03</span><div><strong>过程回放</strong><small>逐条查看 AI 如何介入</small></div></li>
+                <li><span>04</span><div><strong>裁判结果</strong><small>查看人类复核与签署</small></div></li>
+                <li><span>05</span><div><strong>责任与感受</strong><small>排序、量表、开放回答</small></div></li>
+                <li><span>06</span><div><strong>事后说明</strong><small>解释随机条件并再次确认</small></div></li>
+              </ol>
+              <div class="flow-callout"><span aria-hidden="true">▶</span><p>“过程回放”既保留视频的叙事感，也允许逐步阅读、暂停和记录每个节点。</p></div>
+            </aside>
+          </section>
+
+          <section id="data-panel" class="dashboard-section panel data-panel">
+            <div class="panel-head"><div><p class="eyebrow">PROTOTYPE DATA</p><h2>当前浏览器中的测试记录</h2></div><div class="data-actions"><button id="export-csv" class="button button-secondary" type="button">导出 CSV</button><button id="clear-data" class="text-button danger" type="button">清空测试记录</button></div></div>
+            <div class="metrics-row">
+              <article><span>已完成</span><strong id="metric-complete">0</strong></article>
+              <article><span>平均程序公正</span><strong id="metric-fairness">—</strong></article>
+              <article><span>法官责任首位</span><strong id="metric-judge-first">—</strong></article>
+              <article><span>最近提交</span><strong id="metric-latest">—</strong></article>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>会话</th><th>背景</th><th>AI 条件</th><th>任务</th><th>程序公正</th><th>提交时间</th></tr></thead><tbody id="records-body"></tbody></table>
+            </div>
+          </section>
+
+          <footer class="researcher-footer"><span>衡度研究室 · 交互原型 v0.1</span><span>正式收集前需接入服务器、伦理同意与安全存储</span></footer>
+        </main>
+      </section>
+
+      <section id="participant-view" class="view participant-view hidden" aria-labelledby="participant-title">
+        <header class="participant-topbar">
+          <a class="brand" href="./?view=participant" aria-label="衡度研究室参与者首页"><span class="brand-seal">衡</span><span><strong>衡度研究室</strong><small>司法判断体验研究</small></span></a>
+          <div class="topbar-right">
+            <span id="session-code" class="session-code">体验编号：待分配</span>
+            <a id="researcher-return" class="researcher-return hidden" href="./?view=researcher">返回设计台</a>
+          </div>
+        </header>
+
+        <div id="preview-banner" class="preview-banner hidden" role="note">
+          <strong>研究者预览模式</strong><span id="preview-condition-label"></span><span>正式实验中参与条件不会显示给参与者。</span>
+        </div>
+
+        <div class="participant-frame">
+          <aside class="study-progress" aria-label="研究进度">
+            <p class="eyebrow">YOUR PROGRESS</p>
+            <ol>
+              <li class="active" data-step="intro"><span>1</span><div><strong>研究说明</strong><small>同意与身份</small></div></li>
+              <li data-step="dossier"><span>2</span><div><strong>阅读案卷</strong><small>事实与证据</small></div></li>
+              <li data-step="replay"><span>3</span><div><strong>形成过程</strong><small>协同记录回放</small></div></li>
+              <li data-step="decision"><span>4</span><div><strong>裁判结果</strong><small>复核与签署</small></div></li>
+              <li data-step="survey"><span>5</span><div><strong>您的评价</strong><small>责任与感受</small></div></li>
+              <li data-step="debrief"><span>6</span><div><strong>事后说明</strong><small>完成研究</small></div></li>
+            </ol>
+            <div class="progress-privacy"><span>⌁</span><p>这是虚构案件。请勿填写真实姓名、案号或个人经历细节。</p></div>
+          </aside>
+
+          <main class="study-main">
+            <section id="screen-intro" class="study-screen active">
+              <p class="eyebrow">WELCOME</p>
+              <h1 id="participant-title">观察一份裁判如何形成</h1>
+              <p class="lead">您将阅读一宗虚构案件，观看一段裁判形成过程，并就其中各主体的责任及您的感受作出评价。</p>
+              <div class="study-facts">
+                <article><span>◷</span><div><strong>约 8–10 分钟</strong><small>可按自己的速度阅读</small></div></article>
+                <article><span>▤</span><div><strong>一宗虚构案件</strong><small>不考查法律知识</small></div></article>
+                <article><span>◎</span><div><strong>匿名研究编号</strong><small>原型数据仅存本机</small></div></article>
+              </div>
+              <div class="consent-card">
+                <h2>开始前，请确认</h2>
+                <ul><li>我已年满 18 周岁并能够阅读中文；</li><li>我理解参与完全自愿，可在提交前随时退出；</li><li>我不会在开放题中填写可识别个人身份的信息。</li></ul>
+                <label class="check-row"><input id="consent-checkbox" type="checkbox" /><span>我已阅读以上说明，并同意参加本次体验。</span></label>
+              </div>
+              <fieldset class="role-fieldset">
+                <legend>哪一项最符合您的背景？</legend>
+                <p>该选择只用于比较不同社会角色的看法。</p>
+                <div class="role-grid">
+                  <label><input type="radio" name="participant-role" value="lawyer" /><span class="role-icon">法</span><b>执业律师</b><small>近两年代理过民事或刑事案件</small></label>
+                  <label><input type="radio" name="participant-role" value="litigant" /><span class="role-icon">当</span><b>诉讼当事人</b><small>近五年曾作为当事人参加诉讼</small></label>
+                  <label><input type="radio" name="participant-role" value="public" /><span class="role-icon">众</span><b>普通公众</b><small>无法律职业或近期诉讼经历</small></label>
+                </div>
+              </fieldset>
+              <div class="screen-actions"><span id="intro-error" class="form-error" role="alert"></span><button id="start-study" class="button button-primary" type="button">同意并开始 <span>→</span></button></div>
+            </section>
+
+            <section id="screen-dossier" class="study-screen">
+              <div class="screen-kicker"><span class="stage-badge">第 1 部分</span><span id="case-category-badge" class="category-badge"></span></div>
+              <h1>请先阅读案件材料</h1>
+              <p class="lead">以下内容为研究用途而虚构。您无需判断“标准答案”，只需理解争议与证据。</p>
+              <div class="dossier-shell">
+                <div class="dossier-tabs" role="tablist" aria-label="案卷栏目">
+                  <button role="tab" aria-selected="true" data-tab="overview">案件总览</button>
+                  <button role="tab" aria-selected="false" data-tab="evidence">主要证据</button>
+                  <button role="tab" aria-selected="false" data-tab="task">裁判任务</button>
+                </div>
+                <div id="dossier-content" class="dossier-content"></div>
+              </div>
+              <label class="check-row read-confirm"><input id="dossier-confirm" type="checkbox" /><span>我已阅读案件总览、主要证据与裁判任务。</span></label>
+              <div class="screen-actions"><span id="dossier-error" class="form-error" role="alert"></span><button id="to-replay" class="button button-primary" type="button">观看形成过程 <span>→</span></button></div>
+            </section>
+
+            <section id="screen-replay" class="study-screen replay-screen">
+              <div class="screen-kicker"><span class="stage-badge">第 2 部分</span><span class="category-badge">过程记录</span></div>
+              <h1>裁判形成过程回放</h1>
+              <p class="lead">材料卡、分析痕迹与文本修改将按实际工作顺序自动展开，约需 1 分钟。请完整观看全部 8 个工作节点。</p>
+              <div class="replay-layout">
+                <div class="chat-window">
+                  <header class="chat-header"><div><span class="chat-seal">审</span><div><strong>第 7 审判团队 · 协同记录</strong><small><span class="online-dot"></span> <span id="chat-status">等待回放</span></small></div></div><button id="replay-transcript" class="icon-button" type="button" title="回放说明" aria-label="查看回放说明">⋯</button></header>
+                  <div id="chat-stream" class="chat-stream" aria-live="polite"></div>
+                  <div class="chat-controls">
+                    <div class="replay-status"><span id="replay-step">0 / 0</span><div class="mini-progress"><span id="replay-progress-bar"></span></div></div>
+                    <button id="replay-auto" class="button button-secondary" type="button" disabled>● 自动播放</button>
+                    <button id="replay-next" class="button button-primary" type="button" disabled>请完整观看</button>
+                  </div>
+                </div>
+                <aside class="activity-ledger">
+                  <p class="eyebrow">ACTIVITY LEDGER</p><h2>参与边界</h2>
+                  <div id="activity-ledger-content"></div>
+                  <div class="ledger-note"><span>i</span><p>所有条件下，法官均可返回原始材料，并对最终裁判承担核对与签署责任。</p></div>
+                </aside>
+              </div>
+              <div id="replay-complete-actions" class="screen-actions hidden"><button id="to-decision" class="button button-primary" type="button">查看最终裁判 <span>→</span></button></div>
+            </section>
+
+            <section id="screen-decision" class="study-screen">
+              <div class="screen-kicker"><span class="stage-badge">第 3 部分</span><span class="category-badge">最终裁判</span></div>
+              <h1>法官复核并签署了以下裁判</h1>
+              <p class="lead">请将这一结果与刚才看到的形成过程一并考虑。</p>
+              <article class="judgment-card">
+                <header><div><span class="document-mark">判</span><div><strong>海州市中级人民法院（虚构）</strong><small id="judgment-case-number"></small></div></div><span class="signed-chip">已由法官签署</span></header>
+                <div id="judgment-content" class="judgment-content"></div>
+                <footer><span>审判员：研究编号 J-07</span><span>本页面不构成真实法律意见</span></footer>
+              </article>
+              <div class="review-strip"><div><span>✓</span><p><strong>原始材料复核</strong><small>法官重新查看了关键证据</small></p></div><div><span>✓</span><p><strong>内容修改记录</strong><small id="decision-modification"></small></p></div><div><span>✓</span><p><strong>最终签署</strong><small>由承办法官确认并提交</small></p></div></div>
+              <div class="screen-actions"><button id="to-survey" class="button button-primary" type="button">开始评价 <span>→</span></button></div>
+            </section>
+
+            <section id="screen-survey" class="study-screen">
+              <div class="screen-kicker"><span class="stage-badge">第 4 部分</span><span class="category-badge">您的评价</span></div>
+              <h1>谁应当对这份裁判负责？</h1>
+              <p class="lead">这里没有标准答案。请依据您看到的形成过程作答。</p>
+              <form id="survey-form">
+                <section class="survey-block">
+                  <div class="question-number">A</div><div class="question-content"><h2>材料理解</h2><p>以下两题用于确认页面是否表达清楚。</p>
+                    <label class="form-label">根据刚才的记录，AI 参与达到哪一层？
+                      <select name="manipulationCheck" required><option value="">请选择</option><option value="none">未使用 AI</option><option value="procedural">仅参与程序与材料管理</option><option value="substantive">分析证据与规范，但未建议结果</option><option value="decisional">提出裁判建议或生成主文草案</option><option value="unsure">无法判断</option></select>
+                    </label>
+                    <label class="form-label">最终对裁判进行核对、修改和签署的是谁？
+                      <select name="finalSigner" required><option value="">请选择</option><option value="judge">承办法官</option><option value="ai">AI 系统</option><option value="vendor">系统供应商</option><option value="unsure">无法判断</option></select>
+                    </label>
+                  </div>
+                </section>
+                <section class="survey-block">
+                  <div class="question-number">B</div><div class="question-content"><h2>责任主体排序</h2><p>请按“对裁判的形成、说明、复核与制度后果应承担责任的优先程度”排序。第 1 位最高。</p><div id="ranking-list" class="ranking-list"></div></div>
+                </section>
+                <section class="survey-block">
+                  <div class="question-number">C</div><div class="question-content"><h2>主观感受</h2><p>1 表示“完全不同意”，7 表示“完全同意”。</p><div id="rating-list" class="rating-list"></div></div>
+                </section>
+                <section class="survey-block">
+                  <div class="question-number">D</div><div class="question-content"><h2>最后一个问题</h2><label class="form-label">刚才形成过程中，哪一个节点最影响您对责任的判断？（选填）<textarea name="openResponse" maxlength="800" rows="5" placeholder="请勿填写真实姓名、单位或案号"></textarea><span class="char-count"><b id="char-count">0</b> / 800</span></label></div>
+                </section>
+                <div class="survey-submit"><label class="check-row"><input name="honestConfirm" type="checkbox" required /><span>我已根据自己的真实感受完成作答。</span></label><span id="survey-error" class="form-error" role="alert"></span><button class="button button-primary" type="submit">提交评价 <span>→</span></button></div>
+              </form>
+            </section>
+
+            <section id="screen-debrief" class="study-screen debrief-screen">
+              <div class="completion-mark">✓</div><p class="eyebrow">COMPLETED</p><h1>感谢您的参与</h1><p class="lead">您的原型回答已经保存在当前浏览器中。</p>
+              <div class="debrief-card"><h2>关于本研究的完整说明</h2><p>本研究随机改变了 <strong>AI 的参与方式</strong> 与 <strong>案件任务类型</strong>。您看到的过程记录是研究情境，不代表现实法院或任何真实法官的工作记录。研究关注：在最终裁判结果保持一致时，仅改变 AI 的参与边界，是否会改变不同社会角色对责任、程序公正、控制感、信任与裁判正当性的判断。</p><p>所有姓名、法院、案号和案件材料均为虚构。正式研究中，研究者还需在伦理审查通过后再次询问您是否同意保留数据。</p></div>
+              <div class="retain-card"><div><strong>是否同意研究者继续匿名保存并分析您的回答？</strong><small>原型按钮只更新本机记录。</small></div><div><button id="delete-response" class="button button-secondary" type="button">不同意，删除回答</button><button id="retain-response" class="button button-primary" type="button">同意保留</button></div></div>
+              <p id="retain-status" class="retain-status" role="status"></p>
+              <div class="completion-actions"><button id="download-response" class="button button-secondary" type="button">下载本次回答 JSON</button><a id="finish-link" class="button button-primary hidden" href="./?view=researcher">返回研究设计台</a></div>
+            </section>
+          </main>
+        </div>
+      </section>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+    <script defer src="./app.js"></script>
+  </body>
+</html>
+
