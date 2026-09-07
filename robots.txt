@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /ai-judicial-responsibility-study/
+
+Sitemap: https://zhy1126.github.io/ai-judicial-responsibility-study/sitemap.xml
+
