@@ -173,3 +173,42 @@ h2 { font-family: var(--font-serif); font-size: 24px; line-height: 1.28; }
 .error-page h1 { font-size: 48px; }
 .error-page p { margin-bottom: 22px; color: var(--muted); line-height: 1.8; }
 
+
+/* Version 2: readable screening, a common document surface, and explicit scales. */
+.screening-section { margin-top:30px; }
+.screening-section > p,.helper-text { color:var(--muted); font-size:13px; line-height:1.75; }
+.screening-question { margin:0; padding:20px 0; border:0; border-bottom:1px solid var(--line); min-width:0; }
+.screening-question legend { padding-top:18px; font-size:15px; font-weight:650; }
+.yes-no { display:flex; gap:12px; margin-top:10px; }
+.yes-no label { display:flex; align-items:center; justify-content:center; gap:10px; min-width:104px; min-height:48px; padding:9px 20px; border:1px solid #c4cbd1; border-radius:8px; background:#fff; cursor:pointer; }
+.yes-no label:has(input:checked),.likert-options label:has(input:checked) { background:#e5f3f0; border-color:var(--teal); box-shadow:inset 0 0 0 1px var(--teal); }
+.yes-no input,.likert-question input { accent-color:var(--teal); width:18px; height:18px; flex-shrink:0; }
+.role-perspective { padding:17px 20px; border-left:3px solid var(--navy-700); background:#fff; font-size:14px; line-height:1.8; }
+.transcript-document { margin-top:26px; padding:32px 38px; border:1px solid #d9dddf; border-radius:8px; background:#fff; box-shadow:var(--shadow-sm); }
+.transcript-document header { border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:18px; }
+.transcript-document h2 { font-size:24px; }.transcript-document h3 { margin:24px 0 10px; font-size:16px; }
+.transcript-document section p { font-family:var(--font-serif); font-size:16px; line-height:2; margin:0 0 16px; }
+.recording-area { padding-bottom:14px; border-bottom:1px solid var(--line); }
+.recording-area p { color:var(--muted); font-size:13px; line-height:1.75; }
+.recording-area audio { display:block; width:100%; margin:12px 0; }
+.ranking-item { padding:14px; grid-template-columns:34px minmax(0,1fr) auto; }
+.ranking-item strong { font-size:14px; }.ranking-item p { margin:3px 0 0; font-size:12px; line-height:1.7; color:var(--muted); }
+.rank-actions button { min-width:42px; min-height:44px; }
+.likert-question { min-width:0; margin:0; padding:0 0 22px; border:0; border-bottom:1px solid var(--line); }
+.likert-question legend { width:100%; margin-bottom:14px; font-size:16px; line-height:1.7; font-family:var(--font-serif); }
+.likert-options { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
+.likert-options label { display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px 5px; border:1px solid #c8ced4; border-radius:8px; background:#fff; cursor:pointer; font-size:12px; text-align:center; line-height:1.5; min-height:116px; }
+.likert-score { font-size:20px; font-weight:700; line-height:1; }.unsure-option { display:flex; align-items:center; gap:9px; width:fit-content; min-height:44px; margin-top:12px; font-size:13px; cursor:pointer; }
+.rating-feedback { margin:3px 0 0; color:#34645e; font-size:12px; min-height:22px; }
+.not-applicable { font-size:14px; color:var(--muted); padding:14px 0; }
+.speech-actions { display:flex; flex-wrap:wrap; gap:10px; }.speech-interim { color:var(--muted); font-size:14px; line-height:1.7; min-height:22px; }
+.records-body small,td small { display:block; font-size:10px; color:var(--muted); }
+input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible { outline:3px solid #187b72; outline-offset:3px; }
+@media(max-width:1020px){.likert-options{grid-template-columns:repeat(4,minmax(0,1fr));}}
+@media(max-width:760px){
+  .transcript-document { padding:22px 20px; }.transcript-document h2 { font-size:21px; }.transcript-document section p { font-size:16px; }
+  .likert-options { grid-template-columns:1fr; gap:8px; }.likert-options label { min-height:48px; flex-direction:row; gap:12px; padding:12px 14px; text-align:left; }.likert-score { min-width:22px; font-size:17px; }
+  .ranking-item { grid-template-columns:28px minmax(0,1fr); gap:10px; }.rank-actions { grid-column:2; }.rank-actions button { min-width:60px; }
+  .speech-actions .button { flex:1; }.screening-question legend { font-size:15px; }.recording-area audio { max-width:100%; }
+}
+.hidden { display:none !important; }
