@@ -4,7 +4,7 @@ import path from 'node:path';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const output=path.join(root,'_site');
 await rm(output,{recursive:true,force:true});await mkdir(output,{recursive:true});
-for(const name of ['index.html','styles.css','app.js','study-core.js','study-content.js','speech-input.js','audio-config.js','404.html','robots.txt','sitemap.xml','.nojekyll']){
+for(const name of ['index.html','styles.css','app.js','study-core.js','study-content.js','study-stream.js','speech-input.js','audio-config.js','404.html','robots.txt','sitemap.xml','.nojekyll']){
  await copyFile(path.join(root,name),path.join(output,name));
 }
 // Only recordings are public assets; scripts and internal study notes stay out of the site artifact.

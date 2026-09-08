@@ -6,12 +6,20 @@ const base=process.env.STUDY_TEST_URL||'http://127.0.0.1:8765';
 const storageKey='judicial_ai_responsibility_prototype_records_v1', draftKey='judicial_ai_responsibility_draft_v2';
 const ratings=['fairness','control','clarity','judgeOwnership','aiTrust','legitimacy','acceptance','unease'];
 async function readCase(page){
- await page.locator('[data-tab="evidence"]').click();await page.locator('[data-tab="task"]').click();
- await page.locator('#dossier-confirm').check();await page.locator('#to-replay').click();
+ for(const tab of ['overview','evidence','task']){
+  await page.locator(`[data-tab="${tab}"]`).click();
+  await page.locator('#dossier-content').evaluate(el=>{el.scrollTop=el.scrollHeight;el.dispatchEvent(new Event('scroll'));});
+  await page.locator('#dossier-confirm').check();
+ }
+ assert.equal(await page.locator('#reading-progress').innerText(),'已完成 3 / 3 栏');
+ await page.locator('#to-replay').click();
  assert.equal(await page.locator('#screen-replay').evaluate(x=>x.classList.contains('active')),true);
  assert.equal(await page.locator('.chat-message').count(),0);
- assert.ok((await page.locator('#judgment-transcript').innerText()).length>400);
+ assert.equal(await page.locator('#judgment-transcript').count(),0);
+ assert.equal(await page.locator('#to-decision').isDisabled(),true);
+ await page.locator('#playback-toggle').click();await page.clock.runFor(90000);
  await page.locator('#transcript-confirm').check();await page.locator('#to-decision').click();
+ assert.equal(await page.locator('#stream-text').innerText(),'','completed text is cleared');
  await page.locator('#to-survey').click();
 }
 async function fillSurvey(page,condition){
@@ -33,7 +41,7 @@ async function fillSurvey(page,condition){
  let completed=0;
  for(const role of ['lawyer','litigant','public'])for(const condition of ['none','procedural','substantive','decisional'])for(const caseType of ['natural','statutory']){
   const context=await browser.newContext({viewport:role==='public'?{width:390,height:844}:{width:1280,height:900}});
-  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const page=await context.newPage();await page.clock.install();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(`${base}/?view=participant&preview=1&role=${role}&condition=${condition}&case=${caseType}`);
   assert.equal(await page.locator('input[name="practicingLawyer"]').count(),2);
   await page.locator('#consent-checkbox').check();await page.locator('#start-study').click();
@@ -72,13 +80,13 @@ async function fillSurvey(page,condition){
   }
   assert.deepEqual(errors,[]);await context.close();completed++;
  }
- const context=await browser.newContext();const page=await context.newPage();
+ const context=await browser.newContext();const page=await context.newPage();await page.clock.install();
  await page.addInitScript(()=>{window.SpeechRecognition=undefined;window.webkitSpeechRecognition=undefined;});
  await page.goto(`${base}/?view=participant`);
  const legacy={sessionId:'OLD-1',role:'public',condition:'none',caseType:'statutory',ratings:{fairness:7},ranking:['本案承办法官'],openResponse:'旧数据',submittedAt:'2026-09-01T00:00:00.000Z'};
  await page.evaluate(({key,value})=>localStorage.setItem(key,JSON.stringify([value])),{key:storageKey,value:legacy});
  await page.locator('#consent-checkbox').check();
- for(const name of ['practicingLawyer','legalEducation','litigationExperience'])await page.locator(`[name="${name}"][value="${name==='litigationExperience'?'yes':'no'}"]`).check();
+ for(const name of ['practicingLawyer','legalDegree','litigationExperience'])await page.locator(`[name="${name}"][value="${name==='litigationExperience'?'yes':'no'}"]`).check();
  await page.locator('#start-study').click();
  const first=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)).assignment,draftKey);
  assert.ok(['litigant','public'].includes(first.role));assert.equal(first.background.litigationExperience,'yes');
@@ -87,7 +95,7 @@ async function fillSurvey(page,condition){
  assert.equal(await page.locator('#speech-start').isDisabled(),true,'unsupported browser still permits typed completion');
  await page.locator('#survey-form button[type="submit"]').click();await page.locator('#screen-debrief.active').waitFor();
  const saved=await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),storageKey);assert.equal(saved.length,2);assert.deepEqual(saved[0],legacy);
- const jsonPromise=page.waitForEvent('download');await page.locator('#download-response').click();const jsonDownload=await jsonPromise;assert.equal(JSON.parse(await fs.readFile(await jsonDownload.path(),'utf8')).version,'2.0.0');
+ const jsonPromise=page.waitForEvent('download');await page.locator('#download-response').click();const jsonDownload=await jsonPromise;assert.equal(JSON.parse(await fs.readFile(await jsonDownload.path(),'utf8')).version,'2.1.0');
  await page.goto(base+'/?view=researcher');
  const downloadPromise=page.waitForEvent('download');await page.locator('#export-csv').click();const download=await downloadPromise;
  const csv=await fs.readFile(await download.path(),'utf8');assert.ok(csv.includes('旧数据'));assert.ok(csv.includes('判决形成中的复核最影响我的判断。'));assert.ok(csv.includes('ranking_ids'));assert.ok(csv.includes('clarity_status'));

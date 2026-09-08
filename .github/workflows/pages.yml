@@ -28,7 +28,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Verify study rules and speech handling
-        run: node --test tests/study-core.test.cjs tests/speech-input.test.cjs
+        run: node --test tests/study-core.test.cjs tests/speech-input.test.cjs tests/study-stream.test.cjs
 
       - name: Prepare static artifact
         run: node scripts/build.mjs

@@ -20,7 +20,8 @@ const RATINGS = [
 const STEPS = ['intro','dossier','replay','decision','survey','debrief'];
 const qs = (selector,root=document)=>root.querySelector(selector);
 const qsa = (selector,root=document)=>[...root.querySelectorAll(selector)];
-const state = {preview:false,role:'public',condition:'procedural',caseType:'natural',assignment:null,step:'intro',ranking:[],rankingInitial:[],readTabs:[],formValues:{},replayExposureMs:0,replayEnteredAt:null,response:null,deleted:false,audio:{status:'not_supplied',started:false,completed:false,maxPositionSeconds:0},speechMetadata:null};
+const state = {preview:false,role:'public',condition:'procedural',caseType:'natural',assignment:null,step:'intro',ranking:[],rankingInitial:[],reading:{},activeDossierTab:"overview",formValues:{},replayExposureMs:0,replayEnteredAt:null,response:null,deleted:false,audio:{status:'not_supplied',started:false,completed:false,maxPositionSeconds:0},speechMetadata:null,replay:{mode:null,stream:null,completed:false}};
+let streamPlayer=null,streamView=null,lastStreamSave=0,initializingUI=false,pendingAudioPosition=null;
 let speech, toastTimer, draftBlocked=false, speechChanged=false;
 let storageEpoch='';
 try{storageEpoch=localStorage.getItem(EPOCH_KEY)||'';}catch{}
@@ -75,7 +76,7 @@ function setupParticipant(){
   if(state.preview){
     qs('#preview-banner').classList.remove('hidden');qs('#researcher-return').classList.remove('hidden');qs('#finish-link').classList.remove('hidden');
     qs('#preview-condition-label').textContent=`${LABELS.roles[state.role]} · ${LABELS.conditions[state.condition]} · ${LABELS.cases[state.caseType]}`;
-    for(const [name,value] of Object.entries({practicingLawyer:state.role==='lawyer'?'yes':'no',licenseActive:state.role==='lawyer'?'yes':'no',legalEducation:state.role==='lawyer'?'yes':'no',litigationExperience:state.role==='litigant'?'yes':'no'}))qs(`input[name="${name}"][value="${value}"]`).checked=true;
+    for(const [name,value] of Object.entries({practicingLawyer:state.role==='lawyer'?'yes':'no',licenseActive:state.role==='lawyer'?'yes':'no',legalDegree:state.role==='lawyer'?'yes':'no',litigationExperience:state.role==='litigant'?'yes':'no'}))qs(`input[name="${name}"][value="${value}"]`).checked=true;
     qs('#screening-note').textContent='预览使用示例背景，按设计台选定的视角和条件呈现，不代表真实参与者。';
   }
   qsa('input[name="practicingLawyer"],input[name="licenseActive"]').forEach(el=>el.addEventListener('change',updateScreening));updateScreening();
@@ -83,7 +84,7 @@ function setupParticipant(){
   qsa('.dossier-tabs button').forEach(button=>button.addEventListener('click',()=>showDossierTab(button.dataset.tab)));
   qs('#to-replay').addEventListener('click',beginReplay);
   qs('#to-decision').addEventListener('click',()=>{
-    if(!qs('#transcript-confirm').checked){qs('#transcript-error').textContent='请确认已阅读完整裁判说明。';return;}
+    if(!state.replay.completed||!qs('#transcript-confirm').checked){qs('#transcript-error').textContent='请完整播放裁判过程，并勾选确认。';return;}
     renderDecision();setStep('decision');
   });
   qs('#to-survey').addEventListener('click',()=>setStep('survey'));
@@ -92,8 +93,16 @@ function setupParticipant(){
   qs('#survey-form').addEventListener('submit',submitSurvey);
   qs('#survey-form').addEventListener('input',()=>{captureForm();saveDraft();updateRatingFeedback();});
   qs('#survey-form').addEventListener('change',()=>{captureForm();saveDraft();updateRatingFeedback();});
-  qs('#dossier-confirm').addEventListener('change',()=>saveDraft());
-  qs('#transcript-confirm').addEventListener('change',()=>saveDraft());
+  qs('#dossier-confirm').addEventListener('change',()=>{
+    const progress=state.reading[state.activeDossierTab];
+    if(progress?.reachedEnd)progress.confirmed=qs('#dossier-confirm').checked;
+    updateReadingUI();saveDraft();
+  });
+  qs('#dossier-content').addEventListener('scroll',checkReadingEnd);
+  window.addEventListener('resize',checkReadingEnd);
+  qs('#transcript-confirm').addEventListener('change',()=>{updatePlaybackGate();saveDraft();});
+  qs('#playback-toggle').addEventListener('click',togglePlayback);
+  qs('#playback-restart').addEventListener('click',restartPlayback);
   qs('#delete-response').addEventListener('click',deleteResponse);
   qs('#retain-response').addEventListener('click',retainResponse);
   qs('#download-response').addEventListener('click',downloadResponse);
@@ -101,25 +110,30 @@ function setupParticipant(){
     speechChanged=true;qs('#open-response-confirm').checked=false;updateOpenResponse();captureForm();saveDraft();
   }});
   const audio=qs('#judgment-audio');
-  audio.addEventListener('play',()=>{state.audio.started=true;state.audio.status='available';saveDraft();});
-  audio.addEventListener('timeupdate',()=>{state.audio.maxPositionSeconds=Math.max(state.audio.maxPositionSeconds||0,audio.currentTime||0);});
-  audio.addEventListener('ended',()=>{state.audio.completed=true;saveDraft();});
-  audio.addEventListener('error',()=>{state.audio.status='error';audio.classList.add('hidden');qs('#audio-status').textContent='录音暂时无法播放。完整文字仍可阅读，您可以继续作答。';saveDraft();});
-  window.addEventListener('pagehide',()=>{stopExposure();captureForm();saveDraft();});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopExposure();else if(state.step==='replay')state.replayEnteredAt=Date.now();saveDraft();});
+  audio.addEventListener('play',()=>{state.audio.started=true;state.audio.status='available';updateAudioUI();saveDraft();});
+  audio.addEventListener('pause',()=>{captureAudioPosition();updateAudioUI();saveDraft();});
+  audio.addEventListener('timeupdate',()=>{if(state.replay.mode!=='audio'||pendingAudioPosition!==null)return;state.audio.positionSeconds=audio.currentTime||0;state.audio.maxPositionSeconds=Math.max(state.audio.maxPositionSeconds||0,audio.currentTime||0);updateAudioUI();});
+  for(const event of ['loadedmetadata','loadeddata','canplay','progress'])audio.addEventListener(event,()=>{restoreAudioPosition();updateAudioUI();});
+  audio.addEventListener('ended',()=>{state.audio.completed=true;state.replay.completed=true;updateAudioUI();saveDraft();});
+  audio.addEventListener('error',()=>{if(state.replay.mode!=='audio')return;state.audio.status='error';updateAudioUI();saveDraft();});
+  window.addEventListener('pagehide',()=>{pausePlayback();stopExposure();captureForm();saveDraft();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){pausePlayback();stopExposure();}else if(state.step==='replay')state.replayEnteredAt=Date.now();saveDraft();});
   restoreDraft();
 }
 function updateScreening(){
   const practicing=qs('input[name="practicingLawyer"]:checked')?.value==='yes';
   qs('#license-question').classList.toggle('hidden',!practicing);
-  qsa('input[name="licenseActive"]').forEach(el=>el.disabled=!practicing);
+  qsa('input[name="licenseActive"]').forEach(el=>{el.disabled=!practicing;if(!practicing)el.checked=false;});
+  const nonLawyer=qs('input[name="practicingLawyer"]:checked')?.value==='no';
+  qs('#litigation-question').classList.toggle('hidden',!nonLawyer);
+  qsa('input[name="litigationExperience"]').forEach(el=>{el.disabled=!nonLawyer;if(!nonLawyer)el.checked=false;});
   if(!state.preview)qs('#screening-note').textContent=practicing&&qs('input[name="licenseActive"]:checked')?.value==='no'?'请核对您的回答：当前未有效执业时，后续将分配模拟观察视角。':'';
 }
 function startStudy(){
   qs('#intro-error').textContent='';
   if(draftBlocked){qs('#intro-error').textContent='已有进度无法读取，请联系研究者处理后再继续。';return;}
   if(!qs('#consent-checkbox').checked){qs('#intro-error').textContent='请先确认同意参加。';return;}
-  const background=Object.fromEntries(['practicingLawyer','licenseActive','legalEducation','litigationExperience'].map(name=>[name,qs(`input[name="${name}"]:checked`)?.value||null]));
+  const background=Object.fromEntries(['practicingLawyer','licenseActive','legalDegree','litigationExperience'].map(name=>[name,qs(`input[name="${name}"]:checked`)?.value||null]));
   try{
     if(!currentEpoch()){qs('#intro-error').textContent='研究者已清空测试数据，请刷新页面后开始新的体验。';return;}
     // Re-read before assigning so another tab's existing assignment is not rerandomized.
@@ -136,9 +150,12 @@ function startStudy(){
   }catch(error){state.step='intro';qs('#intro-error').textContent=error.message==='请完成所有背景是非题。'?error.message:'无法保存本次分组，请允许浏览器保存本机数据后再试。';}
 }
 function initializeAssignedUI(){
+  initializingUI=true;
+  try{
   qs('#session-code').textContent=`体验编号：${state.assignment.sessionId}`;
   qs('#role-perspective').textContent={lawyer:'请结合您的律师专业经验评价以下裁判过程。',litigant:'本次请采用模拟的诉讼当事人视角：设想您是受到这份裁判影响的当事人。此视角不表示您的真实经历。',public:'本次请采用普通公众的观察视角：作为关注司法活动的社会成员，评价以下裁判过程。'}[state.role];
   renderDossier();renderTranscript();renderDecision();renderRanking();renderRatings();restoreForm();updateRankingMode();updateOpenResponse();
+  }finally{initializingUI=false;}
 }
 function restoreDraft(){
   try{
@@ -146,12 +163,17 @@ function restoreDraft(){
     const draft=JSON.parse(raw);
     if(draft.epoch!==storageEpoch){draftStorage().removeItem(draftKey);return;}
     if(draft.deleted||isDeleted(draft.assignment?.sessionId)){draftStorage().setItem(draftKey,JSON.stringify(deletionMarker(draft.sessionId||draft.assignment.sessionId)));state.deleted=true;state.response=null;state.formValues={};qs('#session-code').textContent='本次回答已删除';markDeleted();setStep('debrief',false);return;}
-    if(draft.version!==CORE.VERSION||!CORE.validAssignment(draft.assignment)||!STEPS.includes(draft.step))throw Error('invalid draft');
-    Object.assign(state,{assignment:draft.assignment,role:draft.assignment.role,condition:draft.assignment.condition,caseType:draft.assignment.caseType,step:draft.step,ranking:draft.ranking,rankingInitial:draft.rankingInitial,readTabs:draft.readTabs||[],formValues:draft.formValues||{},replayExposureMs:draft.replayExposureMs||0,response:draft.response||null,deleted:Boolean(draft.deleted),audio:draft.audio||state.audio,speechMetadata:draft.speechMetadata||null});
+    if(![CORE.VERSION,'2.0.0'].includes(draft.version)||!CORE.validAssignment(draft.assignment)||!STEPS.includes(draft.step))throw Error('invalid draft');
+    Object.assign(state,{assignment:draft.assignment,role:draft.assignment.role,condition:draft.assignment.condition,caseType:draft.assignment.caseType,step:draft.step,ranking:draft.ranking,rankingInitial:draft.rankingInitial,reading:draft.version===CORE.VERSION?(draft.reading||{}):{},activeDossierTab:draft.activeDossierTab||'overview',formValues:draft.formValues||{},replayExposureMs:draft.replayExposureMs||0,response:draft.response||null,deleted:Boolean(draft.deleted),audio:draft.audio||state.audio,speechMetadata:draft.speechMetadata||null,replay:draft.replay||{mode:null,stream:null,completed:false}});
     if(state.deleted)state.ranking=CORE.subjectsFor(state.condition).map(x=>x.id);
     else if(!CORE.validRanking(state.ranking,state.condition))throw Error('invalid ranking');
-    initializeAssignedUI();qs('#dossier-confirm').checked=Boolean(draft.dossierConfirmed);qs('#transcript-confirm').checked=Boolean(draft.transcriptConfirmed);
-    if(state.deleted)markDeleted();setStep(state.step,false);
+    if(draft.version!==CORE.VERSION&&!state.response){state.step='dossier';state.audio={status:'not_supplied',started:false,completed:false,maxPositionSeconds:0};}
+    initializeAssignedUI();qs('#transcript-confirm').checked=state.replay.completed&&Boolean(draft.transcriptConfirmed);updatePlaybackGate();
+    if(!state.response){
+      if(!CORE.readingComplete(state.reading))state.step='dossier';
+      else if((!state.replay.completed||!qs('#transcript-confirm').checked)&&['decision','survey'].includes(state.step))state.step='replay';
+    }
+    if(state.deleted)markDeleted();setStep(state.step,false);saveDraft();
   }catch{draftBlocked=true;qs('#intro-error').textContent='已有进度无法读取，请联系研究者处理后再继续。';}
 }
 function exposure(){return state.replayExposureMs+(state.replayEnteredAt?Math.max(0,Date.now()-state.replayEnteredAt):0);}
@@ -166,9 +188,9 @@ function deletionMarker(sessionId){return {version:CORE.VERSION,epoch:storageEpo
 function deletedSessions(){const raw=localStorage.getItem(DELETED_KEY);const ids=raw?JSON.parse(raw):[];if(!Array.isArray(ids))throw Error('删除状态无法读取。');return ids;}
 function isDeleted(id){return Boolean(id&&deletedSessions().includes(id));}
 function currentEpoch(){return (localStorage.getItem(EPOCH_KEY)||'')===storageEpoch;}
-function snapshot(){if(state.deleted)return deletionMarker(state.assignment?.sessionId);return {epoch:storageEpoch,version:CORE.VERSION,assignment:state.assignment,step:state.step,ranking:state.ranking,rankingInitial:state.rankingInitial,readTabs:state.readTabs,formValues:state.formValues,replayExposureMs:exposure(),dossierConfirmed:qs('#dossier-confirm').checked,transcriptConfirmed:qs('#transcript-confirm').checked,response:state.response,deleted:state.deleted,audio:state.audio,speechMetadata:mergedSpeechMetadata()};}
+function snapshot(){if(state.deleted)return deletionMarker(state.assignment?.sessionId);return {epoch:storageEpoch,version:CORE.VERSION,assignment:state.assignment,step:state.step,ranking:state.ranking,rankingInitial:state.rankingInitial,reading:state.reading,activeDossierTab:state.activeDossierTab,formValues:state.formValues,replayExposureMs:exposure(),transcriptConfirmed:qs('#transcript-confirm').checked,response:state.response,deleted:state.deleted,audio:state.audio,replay:{...state.replay,stream:streamPlayer?.getSnapshot()||state.replay.stream},speechMetadata:mergedSpeechMetadata()};}
 function saveDraft(){
-  if(!state.assignment||draftBlocked)return;
+  if(!state.assignment||draftBlocked||initializingUI)return;
   try{
     if(!currentEpoch())return;
     if(isDeleted(state.assignment.sessionId)){draftStorage().setItem(draftKey,JSON.stringify(deletionMarker(state.assignment.sessionId)));return;}
@@ -186,34 +208,118 @@ function restoreForm(){
     else el.value=state.formValues[el.name];
   }updateRatingFeedback();
 }
-function renderDossier(){qs('#case-category-badge').textContent=CASES[state.caseType].category;showDossierTab('overview',false);}
+function renderDossier(){qs('#case-category-badge').textContent=CASES[state.caseType].category;showDossierTab(state.activeDossierTab,false);}
 function showDossierTab(tab,persist=true){
-  if(!['overview','evidence','task'].includes(tab))return;
-  if(!state.readTabs.includes(tab))state.readTabs.push(tab);
+  if(!CORE.DOSSIER_TABS.includes(tab))return;
+  state.activeDossierTab=tab;
+  state.reading[tab]||={reachedEnd:false,confirmed:false};
   qsa('.dossier-tabs button').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.tab===tab)));
   const data=CASES[state.caseType];
   if(tab==='overview')qs('#dossier-content').innerHTML=`<div class="dossier-title"><div><h2>${data.category}</h2><p>${data.number}</p></div><span class="dossier-tag">${data.tag}</span></div><div class="fact-grid">${data.overview.facts.map(([k,v])=>`<div class="fact-box"><span>${k}</span><strong>${v}</strong></div>`).join('')}</div><p class="dossier-summary">${data.overview.summary}</p>`;
   else if(tab==='evidence')qs('#dossier-content').innerHTML=`<div class="dossier-title"><div><h2>材料与证据摘要</h2><p>${data.evidenceNote}</p></div></div><div class="evidence-list">${data.evidence.map(([id,title,detail,status])=>`<div class="evidence-item"><span>${id}</span><div><strong>${title}</strong><small>${detail}</small></div><em class="evidence-status">${status}</em></div>`).join('')}</div>`;
   else qs('#dossier-content').innerHTML=`<div class="dossier-title"><div><h2>裁判任务</h2><p>请理解裁判需要回应的问题</p></div></div><div class="task-prompt"><p>${data.task}</p></div><div class="issue-list">${data.issues.map((issue,index)=>`<div><span>0${index+1}</span><p>${issue}</p></div>`).join('')}</div>`;
+  const panel=qs('#dossier-content');panel.scrollTop=0;panel.setAttribute('aria-labelledby',`tab-${tab}`);
+  updateReadingUI();requestAnimationFrame(checkReadingEnd);
   if(persist)saveDraft();
 }
+function checkReadingEnd(){
+  const panel=qs('#dossier-content');
+  if(state.step!=='dossier'||!panel.clientHeight)return;
+  const progress=state.reading[state.activeDossierTab];
+  if(progress&&!progress.reachedEnd&&panel.scrollTop+panel.clientHeight>=panel.scrollHeight-3){progress.reachedEnd=true;updateReadingUI();saveDraft();}
+}
+function updateReadingUI(){
+  const labels={overview:'案件总览',evidence:'主要证据',task:'裁判任务'};
+  const progress=state.reading[state.activeDossierTab]||{};
+  qs('#dossier-confirm').disabled=!progress.reachedEnd;qs('#dossier-confirm').checked=Boolean(progress.confirmed);
+  qs('#dossier-confirm-label').textContent=`我已完整阅读${labels[state.activeDossierTab]}。`;
+  qs('#reading-hint').textContent=progress.confirmed?'本栏已确认，可切换到其他栏目阅读。':progress.reachedEnd?'已到本栏末尾，请勾选下方确认。':'请在材料框内向下滚动，阅读至本栏末尾后确认。';
+  const count=CORE.DOSSIER_TABS.filter(tab=>state.reading[tab]?.reachedEnd&&state.reading[tab]?.confirmed).length;
+  qs('#reading-progress').textContent=`已完成 ${count} / 3 栏`;
+  qs('#to-replay').disabled=!CORE.readingComplete(state.reading);
+  qsa('.dossier-tabs button').forEach(button=>{const done=state.reading[button.dataset.tab]?.confirmed;button.textContent=labels[button.dataset.tab]+(done?' ✓':'');});
+}
 function beginReplay(){
-  if(!qs('#dossier-confirm').checked||state.readTabs.length<3){qs('#dossier-error').textContent='请依次阅读三个案卷栏目，并确认已阅读。';return;}
+  if(!CORE.readingComplete(state.reading)){qs('#dossier-error').textContent='请依次阅读三个案卷栏目，并确认已阅读。';return;}
   qs('#dossier-error').textContent='';setStep('replay');
 }
 function renderTranscript(){
+  streamPlayer?.pause();streamPlayer=null;streamView=null;
   const data=CASES[state.caseType],condition=CONDITIONS[state.condition];
-  qs('#process-description').textContent=condition.intro;
-  qs('#judgment-transcript').innerHTML=data.narrative.map(p=>`<p>${escapeHtml(p)}</p>`).join('');
-  qs('#review-description').textContent=condition.review;
-  const audio=qs('#judgment-audio'),source=window.STUDY_AUDIO?.[state.caseType]?.[state.condition];
+  const source=window.STUDY_AUDIO?.[state.caseType]?.[state.condition];
   const completeAudio=CORE.CASE_TYPES.every(k=>CORE.CONDITIONS.every(c=>{try{const value=window.STUDY_AUDIO?.[k]?.[c];return Boolean(value)&&new URL(value,location.href).origin===location.origin;}catch{return false;}}));
-  if(source&&completeAudio){
-    const url=new URL(source,location.href);
-    if(url.origin===location.origin){audio.src=url.href;audio.classList.remove('hidden');state.audio.status=state.audio.status==='error'?'configured':state.audio.status==='not_supplied'?'configured':state.audio.status;qs('#audio-status').textContent='可收听、暂停或重播；下方为同一份完整文字。';return;}
+  const mode=completeAudio?'audio':'stream';
+  if(state.replay.mode!==mode){state.replay={mode,stream:null,completed:false};state.audio={status:'not_supplied',started:false,completed:false,maxPositionSeconds:0,positionSeconds:0};qs('#transcript-confirm').checked=false;}
+  qs('#stream-panel').classList.toggle('hidden',mode==='audio');
+  qs('#audio-visual').classList.toggle('hidden',mode!=='audio');
+  qs('#stream-text').textContent='';
+  qs('#playback-confirm-label').textContent=`我已完整${mode==='audio'?'收听':'观看'}裁判过程，包括工作分工、裁判理由和最终核对。`;
+  if(mode==='audio'){
+    qs('#playback-source').textContent='本记录采用统一合成配音，不是真实法官的原声录音。播放时不提供文字记录。';
+    pendingAudioPosition=state.audio.positionSeconds||0;
+    qs('#judgment-audio').src=new URL(source,location.href).href;
+    state.audio.status='configured';state.replay.completed=Boolean(state.audio.completed);updateAudioUI();
+  }else{
+    pendingAudioPosition=null;qs('#judgment-audio').removeAttribute('src');state.audio.status='not_supplied';
+    qs('#playback-source').textContent='录音准备期间，暂以流式文字顺序呈现。仅显示当前段落，播放完毕后不保留文字记录。';
+    const paragraphs=[condition.intro,...data.narrative,condition.review];
+    streamPlayer=window.StudyStream.create({paragraphs,initial:state.replay.stream,onUpdate:view=>{
+      streamView=view;state.replay.completed=view.completed;
+      qs('#stream-text').textContent=view.text;
+      qs('#playback-phase').textContent=view.completed?'裁判过程播放完毕':`${view.index+1} / ${paragraphs.length} · ${view.index===0?'工作分工说明':view.index===paragraphs.length-1?'最终核对':'裁判理由'}`;
+      qs('#playback-progress').value=Math.round(view.progress*100);
+      qs('#playback-toggle').textContent=view.completed?'已完整播放':view.running?'暂停播放':'继续播放';
+      qs('#playback-toggle').disabled=view.completed;
+      qs('#audio-status').textContent=view.completed?'已完整播放，请确认后查看最终裁判。':view.running?'正在按顺序呈现当前段落…':view.progress?'播放已暂停，点击继续。':'点击开始，按顺序观看裁判过程。';
+      if(!view.progress)qs('#playback-toggle').textContent='开始播放';
+      updatePlaybackGate();
+      if((view.running||view.completed)&&Date.now()-lastStreamSave>1000){lastStreamSave=Date.now();saveDraft();}
+    }});
   }
-  audio.removeAttribute('src');audio.classList.add('hidden');state.audio.status='not_supplied';
-  qs('#audio-status').textContent='本案例暂未提供录音，您可以阅读全文继续。';
+  updatePlaybackGate();
+}
+function updatePlaybackGate(){
+  qs('#transcript-confirm').disabled=!state.replay.completed;
+  if(!state.replay.completed)qs('#transcript-confirm').checked=false;
+  qs('#to-decision').disabled=!(state.replay.completed&&qs('#transcript-confirm').checked);
+}
+function updateAudioUI(){
+  if(state.replay.mode!=='audio')return;
+  const audio=qs('#judgment-audio'),duration=Number.isFinite(audio.duration)?audio.duration:0;
+  qs('#playback-phase').textContent=state.audio.completed?'裁判过程播放完毕':'裁判形成记录 · 语音回放';
+  qs('#playback-progress').value=duration?Math.round(audio.currentTime/duration*100):0;
+  qs('#playback-toggle').disabled=Boolean(audio.ended);
+  qs('#playback-toggle').textContent=state.audio.status==='error'?'重试播放':audio.ended?'已完整播放':audio.paused?(state.audio.started?'继续播放':'开始播放'):'暂停播放';
+  const seconds=value=>`${Math.floor(value/60)}:${String(Math.floor(value%60)).padStart(2,'0')}`;
+  qs('#audio-status').textContent=state.audio.status==='error'?'录音暂时无法播放，请重试。完整收听后才能继续。':audio.ended?'已完整收听，请确认后查看最终裁判。':`${seconds(audio.currentTime||0)} / ${duration?seconds(duration):'等待载入'} · ${audio.paused?'点击播放，按顺序收听。':'正在播放…'}`;
+  updatePlaybackGate();
+}
+function captureAudioPosition(){
+  const audio=qs('#judgment-audio');
+  if(state.replay.mode==='audio'&&pendingAudioPosition===null&&audio.readyState>0){state.audio.positionSeconds=audio.currentTime||0;state.audio.maxPositionSeconds=Math.max(state.audio.maxPositionSeconds||0,state.audio.positionSeconds);}
+}
+function restoreAudioPosition(){
+  const audio=qs('#judgment-audio');
+  if(pendingAudioPosition===null||!Number.isFinite(audio.duration))return;
+  const target=Math.min(pendingAudioPosition,audio.duration);
+  // Metadata may arrive before any part of the recording is seekable.
+  const seekable=target===0||Array.from({length:audio.seekable.length},(_,i)=>i).some(i=>audio.seekable.start(i)<=target&&audio.seekable.end(i)>=target);
+  if(!seekable)return;
+  audio.currentTime=target;state.audio.positionSeconds=target;pendingAudioPosition=null;
+}
+function pausePlayback(){streamPlayer?.pause();qs('#judgment-audio').pause();captureAudioPosition();}
+async function togglePlayback(){
+  if(state.replay.mode==='stream'){if(streamView?.running)streamPlayer.pause();else streamPlayer.start();saveDraft();return;}
+  const audio=qs('#judgment-audio');
+  if(!audio.paused){audio.pause();captureAudioPosition();saveDraft();return;}
+  try{if(state.audio.status==='error'){pendingAudioPosition=state.audio.positionSeconds||0;audio.load();state.audio.status='configured';}restoreAudioPosition();await audio.play();}
+  catch{state.audio.status='error';updateAudioUI();saveDraft();}
+}
+function restartPlayback(){
+  pausePlayback();state.replay.completed=false;qs('#transcript-confirm').checked=false;
+  if(state.replay.mode==='stream'){streamPlayer.reset();streamPlayer.start();}
+  else{state.audio.completed=false;state.audio.positionSeconds=0;pendingAudioPosition=0;qs('#judgment-audio').currentTime=0;togglePlayback();}
+  updatePlaybackGate();saveDraft();
 }
 function renderDecision(){
   const data=CASES[state.caseType];qs('#judgment-case-number').textContent=data.number;qs('#judgment-court').textContent=data.court;
@@ -248,6 +354,7 @@ function submitSurvey(event){
   event.preventDefault();qs('#survey-error').textContent='';
   if(speech.isBusy()){qs('#survey-error').textContent='请先停止语音输入，等待识别结束并核对文字后提交。';return;}
   if(state.response||state.deleted)return;
+  if(!CORE.readingComplete(state.reading)||!state.replay.completed||!qs('#transcript-confirm').checked){qs('#survey-error').textContent='请先完成三栏材料阅读和裁判过程回放。';return;}
   const form=event.currentTarget;if(!form.reportValidity()){qs('#survey-error').textContent='请完成所有必答题和确认项。';return;}
   try{
     const data=new FormData(form),ratings={},ratingStatus={};
@@ -255,7 +362,7 @@ function submitSurvey(event){
     const rankingMode=data.get('rankingMode');
     if(rankingMode==='rank'&&!CORE.validRanking(state.ranking,state.condition))throw Error('排序无法保存，请联系研究者。');
     stopExposure();captureForm();
-    const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,sessionId:state.assignment.sessionId,role:state.role,background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:'static_transcript_optional_audio',audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),rankingStatus:rankingMode,ranking:rankingMode==='rank'?state.ranking.map(id=>CORE.SUBJECTS.find(s=>s.id===id).label):[],rankingIds:rankingMode==='rank'?[...state.ranking]:[],rankingInitial:[...state.rankingInitial],ratings,ratingStatus,openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:null,submittedAt:new Date().toISOString(),prototype:true};
+    const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.version,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'sequential_audio_only':'sequential_stream_temporary',playback:{...state.replay,stream:streamPlayer?.getSnapshot()||state.replay.stream},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),rankingStatus:rankingMode,ranking:rankingMode==='rank'?state.ranking.map(id=>CORE.SUBJECTS.find(s=>s.id===id).label):[],rankingIds:rankingMode==='rank'?[...state.ranking]:[],rankingInitial:[...state.rankingInitial],ratings,ratingStatus,openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:null,submittedAt:new Date().toISOString(),prototype:true};
     updateSavedResponse(response);state.response=response;setStep('debrief');
   }catch(error){qs('#survey-error').textContent=`未提交：${error.message}`;}
 }
@@ -285,12 +392,12 @@ function downloadResponse(){if(!state.response||state.deleted)return;try{if(!cur
 function setStep(step,persist=true){
   if(!STEPS.includes(step))return;
   if(state.step==='replay')stopExposure();
-  if(step!=='replay')qs('#judgment-audio').pause();
+  if(step!=='replay')pausePlayback();
   if(step!=='survey'&&speech?.isBusy())speech.stop();
   state.step=step;if(step==='replay'&&!document.hidden)state.replayEnteredAt=Date.now();
   qsa('.study-screen').forEach(screen=>screen.classList.toggle('active',screen.id===`screen-${step}`));
   const current=STEPS.indexOf(step);qsa('.study-progress li').forEach((item,i)=>{item.classList.toggle('active',i===current);item.classList.toggle('done',i<current);});
-  window.scrollTo({top:0,behavior:'instant'});if(persist)saveDraft();
+  window.scrollTo({top:0,behavior:'instant'});if(step==='dossier')requestAnimationFrame(checkReadingEnd);if(persist)saveDraft();
 }
 function readRecords(){const raw=localStorage.getItem(STORAGE_KEY);const records=raw?JSON.parse(raw):[];if(!Array.isArray(records))throw Error('已有记录无法读取，不能覆盖。');return records;}
 function updateSavedResponse(response){if(!currentEpoch()||isDeleted(response.sessionId))throw Error('本次数据已被删除或清空，不能再次保存。');const records=readRecords();const index=records.findIndex(x=>x.sessionId===response.sessionId);if(index<0)records.push(response);else records[index]=response;localStorage.setItem(STORAGE_KEY,JSON.stringify(records));}
@@ -305,8 +412,8 @@ function renderRecords(){
 }
 function exportCsv(){
   let records;try{records=readRecords();}catch{return toast('已有记录无法读取，未作覆盖。');}if(!records.length)return toast('当前没有可导出的记录');
-  const header=['session_id','version','case_version','preview','role','role_assignment','practicing_lawyer','license_active','legal_education','litigation_experience','condition','case_type','replay_completed','replay_exposure_ms','ranking_status','ranking_ids','ranking_labels','ranking_initial',...RATINGS.flatMap(([k])=>[k,k+'_status']),'manipulation_check','final_signer','open_response','speech_metadata','audio_metadata','retained','submitted_at'];
-  const rows=records.map(r=>[r.sessionId,r.version||'1',r.caseVersion||'legacy',r.preview,r.role,r.roleAssignment||'self_selected',r.background?.practicingLawyer,r.background?.licenseActive,r.background?.legalEducation,r.background?.litigationExperience,r.condition,r.caseType,r.replayCompleted,r.replayExposureMs,r.rankingStatus||'legacy',JSON.stringify(r.rankingIds||[]),JSON.stringify(r.ranking||[]),JSON.stringify(r.rankingInitial||[]),...RATINGS.flatMap(([k])=>[r.ratings?.[k],r.ratingStatus?.[k]||'legacy']),r.manipulationCheck,r.finalSigner,r.openResponse,JSON.stringify(r.speech||null),JSON.stringify(r.audio||null),r.retained,r.submittedAt]);
+  const header=['session_id','version','case_version','preview','role','role_assignment','practicing_lawyer','license_active','legal_education','legal_degree','litigation_experience','litigation_experience_status','screening_version','reading_progress','condition','case_type','presentation','replay_completed','replay_exposure_ms','ranking_status','ranking_ids','ranking_labels','ranking_initial',...RATINGS.flatMap(([k])=>[k,k+'_status']),'manipulation_check','final_signer','open_response','speech_metadata','audio_metadata','retained','submitted_at'];
+  const rows=records.map(r=>[r.sessionId,r.version||'1',r.caseVersion||'legacy',r.preview,r.role,r.roleAssignment||'self_selected',r.background?.practicingLawyer,r.background?.licenseActive,r.background?.legalEducation,r.background?.legalDegree,r.background?.litigationExperience,r.background?.litigationExperienceStatus,r.screeningVersion||r.assignment?.version,JSON.stringify(r.reading||null),r.condition,r.caseType,r.presentation,r.replayCompleted,r.replayExposureMs,r.rankingStatus||'legacy',JSON.stringify(r.rankingIds||[]),JSON.stringify(r.ranking||[]),JSON.stringify(r.rankingInitial||[]),...RATINGS.flatMap(([k])=>[r.ratings?.[k],r.ratingStatus?.[k]||'legacy']),r.manipulationCheck,r.finalSigner,r.openResponse,JSON.stringify(r.speech||null),JSON.stringify(r.audio||null),r.retained,r.submittedAt]);
   downloadBlob([header,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n'),'judicial-ai-prototype.csv','text/csv;charset=utf-8');
 }
 function valid(value,choices,fallback){return choices.includes(value)?value:fallback;}

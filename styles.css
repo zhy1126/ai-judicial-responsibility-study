@@ -212,3 +212,19 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
   .speech-actions .button { flex:1; }.screening-question legend { font-size:15px; }.recording-area audio { max-width:100%; }
 }
 .hidden { display:none !important; }
+
+/* Each dossier section has its own reading and confirmation gate. */
+#dossier-content { height:clamp(280px,55vh,520px); min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
+.reading-progress { margin:18px 0 4px; color:var(--teal); font-weight:700; font-size:14px; }
+.button:disabled { opacity:.45; cursor:not-allowed; box-shadow:none; }
+.check-row:has(input:disabled) { color:var(--muted); cursor:not-allowed; }
+
+.playback-card { margin-top:26px; padding:30px; border:1px solid #d9dddf; border-radius:12px; background:#fff; box-shadow:var(--shadow-sm); }
+.playback-card h2 { font-size:24px; }
+.playback-phase { margin:24px 0 14px; color:var(--teal); font-size:14px; font-weight:700; }
+.stream-panel { min-height:210px; padding:20px; background:#f7f7f3; border-left:3px solid var(--teal); }
+#stream-text { font-size:17px; line-height:2; margin:0; font-family:var(--font-serif); }
+#playback-progress { width:100%; height:8px; margin-top:26px; accent-color:var(--teal); }
+.playback-controls { display:flex; flex-wrap:wrap; gap:12px; margin-top:18px; }
+.audio-visual { padding:35px 0; text-align:center; font-size:50px; letter-spacing:8px; color:var(--teal); }
+@media(max-width:760px){.playback-card{padding:22px 18px;}.stream-panel{padding:16px;}.playback-controls .button{flex:1;}.audio-visual{font-size:34px;letter-spacing:4px;}}
