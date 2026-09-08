@@ -11,7 +11,7 @@ const key='judicial_ai_responsibility_draft_v2',recordsKey='judicial_ai_responsi
     const assignment=StudyCore.assignParticipant({practicingLawyer:'no',legalDegree:'yes',litigationExperience:'no'},{choose:x=>x[0],sessionId:'MIGRATION-KEEP'});
     const response=completed?{version:'2.1.0',sessionId:assignment.sessionId,role:assignment.role,condition:assignment.condition,caseType:assignment.caseType,openResponse:'旧材料的已提交回答',ratings:{fairness:7},submittedAt:'2026-09-08T00:00:00Z'}:null;
     localStorage.setItem(recordsKey,JSON.stringify(response?[response]:[]));
-    localStorage.setItem(key,JSON.stringify({version,epoch:'',assignment,step:completed?'debrief':'survey',ranking:['court','judge'],rankingInitial:['judge','court'],reading:Object.fromEntries(['overview','evidence','task'].map(k=>[k,{reachedEnd:true,confirmed:true}])),formValues:{openResponse:'旧材料的未提交评价',fairness:'7'},transcriptConfirmed:true,replayExposureMs:88888,speechMetadata:{inputMethod:'speech',attempts:2},replay:version==='2.1.0'?{mode:'stream',completed:true,stream:{elapsedMs:120000,completed:true}}:undefined,response}));return {assignment,response};
+    localStorage.setItem(key,JSON.stringify({version,epoch:localStorage.getItem('judicial_ai_responsibility_reset_epoch_v2')||'',assignment,step:completed?'debrief':'survey',ranking:['court','judge'],rankingInitial:['judge','court'],reading:Object.fromEntries(['overview','evidence','task'].map(k=>[k,{reachedEnd:true,confirmed:true}])),formValues:{openResponse:'旧材料的未提交评价',fairness:'7'},transcriptConfirmed:true,replayExposureMs:88888,speechMetadata:{inputMethod:'speech',attempts:2},replay:version==='2.1.0'?{mode:'stream',completed:true,stream:{elapsedMs:120000,completed:true}}:undefined,response}));return {assignment,response};
    },{key,recordsKey,completed,version});
    await page.reload();
    assert.deepEqual(await page.evaluate(()=>state.assignment),seeded.assignment);
@@ -23,9 +23,9 @@ const key='judicial_ai_responsibility_draft_v2',recordsKey='judicial_ai_responsi
     assert.deepEqual(draft.formValues,{});assert.deepEqual(draft.ranking,['judge','court']);assert.ok(draft.replayExposureMs<1000);
     assert.equal(await page.locator('#open-response').inputValue(),'');assert.equal(await page.locator('#dialogue-update-note').evaluate(el=>el.classList.contains('hidden')),false);assert.equal(draft.speechMetadata.attempts,0);
    }else{
-    assert.equal(await page.locator('#screen-debrief.active').count(),1);
+    assert.equal(await page.locator('#screen-between.active').count(),1);assert.deepEqual(await page.evaluate(()=>state.session.responses),[seeded.response]);
     assert.deepEqual(await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),recordsKey),[seeded.response]);
-    await page.locator('#delete-response').click();assert.deepEqual(await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),recordsKey),[]);
+    await page.locator('#delete-partial').click();assert.deepEqual(await page.evaluate(k=>JSON.parse(localStorage.getItem(k)),recordsKey),[]);
     assert.ok(!(await page.evaluate(k=>localStorage.getItem(k),key)).includes('旧材料'));
    }
    await context.close();

@@ -63,15 +63,15 @@
 
           <section id="design-panel" class="dashboard-section panel">
             <div class="panel-head">
-              <div><p class="eyebrow">FACTORIAL DESIGN</p><h2>3 类视角 × 4 种参与方式 × 2 个案例</h2></div>
-              <span class="matrix-total">24 条预览路径</span>
+              <div><p class="eyebrow">FACTORIAL DESIGN</p><h2>3 类视角 × 4 种参与方式 · 每人完成 2 案</h2></div>
+              <span class="matrix-total">24 条视角／条件／顺序预览路径</span>
             </div>
             <div class="factor-grid">
               <article class="factor-card"><span class="factor-number">3</span><div><strong>背景与观察视角</strong><p>律师专业视角 · 当事人视角 · 公众视角</p></div></article>
               <span class="factor-sign">×</span>
               <article class="factor-card"><span class="factor-number">4</span><div><strong>AI 条件</strong><p>无 AI 对照 · 程序性 · 实质性 · 决定性</p></div></article>
               <span class="factor-sign">×</span>
-              <article class="factor-card"><span class="factor-number">2</span><div><strong>任务类型</strong><p>自然犯 · 法定犯</p></div></article>
+              <article class="factor-card"><span class="factor-number">2</span><div><strong>每人两个案件</strong><p>自然犯与法定犯均作答 · 顺序随机</p></div></article>
             </div>
             <div class="design-notes">
               <div class="design-note"><span>✓</span><p><strong>为什么保留无 AI 对照？</strong>保留全部由人工处理的基线，与三种AI辅助程度进行比较。</p></div>
@@ -102,7 +102,7 @@
                   </div>
                 </fieldset>
                 <fieldset>
-                  <legend>任务类型</legend>
+                  <legend>先做哪个案件（之后自动进入另一案）</legend>
                   <div class="case-options">
                     <label><input type="radio" name="preview-case" value="natural" checked /><span><b>自然犯</b><small>故意伤害情境</small></span></label>
                     <label><input type="radio" name="preview-case" value="statutory" /><span><b>法定犯</b><small>侵犯著作权情境</small></span></label>
@@ -113,7 +113,7 @@
             </div>
 
             <aside class="panel flow-panel">
-              <div class="panel-head compact"><div><p class="eyebrow">PARTICIPANT FLOW</p><h2>约 8–10 分钟</h2></div></div>
+              <div class="panel-head compact"><div><p class="eyebrow">PARTICIPANT FLOW</p><h2>两个案件，分别作答</h2></div></div>
               <ol class="flow-list">
                 <li><span>01</span><div><strong>同意与身份</strong><small>背景群体筛查</small></div></li>
                 <li><span>02</span><div><strong>阅读案卷</strong><small>事实、证据、法律任务</small></div></li>
@@ -122,18 +122,19 @@
                 <li><span>05</span><div><strong>责任与感受</strong><small>排序、量表、开放回答</small></div></li>
                 <li><span>06</span><div><strong>事后说明</strong><small>解释随机条件并再次确认</small></div></li>
               </ol>
-              <div class="flow-callout"><span aria-hidden="true">▶</span><p>非律师随机进入当事人或公众视角；各视角内随机分配审阅条件及案例。真实背景单独记录。</p></div>
+              <div class="flow-callout"><span aria-hidden="true">▶</span><p>非律师随机进入当事人或公众视角；各视角内随机分配审阅条件和两案顺序，同一人完成两案，视角与 AI 条件保持一致。真实背景单独记录。</p></div>
             </aside>
           </section>
 
           <section id="data-panel" class="dashboard-section panel data-panel">
             <div class="panel-head"><div><p class="eyebrow">PROTOTYPE DATA</p><h2>当前浏览器中的测试记录</h2></div><div class="data-actions"><button id="export-csv" class="button button-secondary" type="button">导出 CSV</button><button id="clear-data" class="text-button danger" type="button">清空测试记录</button></div></div>
             <div class="metrics-row">
-              <article><span>已完成</span><strong id="metric-complete">0</strong></article>
+              <article><span>两案均完成的人数</span><strong id="metric-complete">0</strong></article>
               <article><span>平均程序公正</span><strong id="metric-fairness">—</strong></article>
               <article><span>法官责任首位</span><strong id="metric-judge-first">—</strong></article>
               <article><span>最近提交</span><strong id="metric-latest">—</strong></article>
             </div>
+            <p class="helper-text">每个案件单独一行，同一个体验编号关联两案。评分统计按已保存的案件回答计算，包含未完成两案的记录；两案完成人数单独统计。</p>
             <div class="table-wrap">
               <table><thead><tr><th>会话</th><th>视角／版本</th><th>AI 条件</th><th>任务</th><th>程序公正</th><th>提交时间</th></tr></thead><tbody id="records-body"></tbody></table>
             </div>
@@ -171,18 +172,19 @@
           </aside>
 
           <main class="study-main">
+            <div id="case-progress" class="case-progress hidden" role="status"><strong id="case-progress-label"></strong><span id="case-progress-detail"></span></div>
             <section id="screen-intro" class="study-screen active">
               <p class="eyebrow">WELCOME</p>
-              <h1 id="participant-title">观察一份裁判如何形成</h1>
-              <p class="lead">您将阅读一宗去标识化案例，并观看或收听一份模拟裁判过程记录，并就其中各主体的责任及您的感受作出评价。</p>
+              <h1 id="participant-title">观察两个案件的裁判如何形成</h1>
+              <p class="lead">您需要依次完成故意伤害和侵犯著作权两个案件。每案分别阅读材料、观看或收听裁判对话，并评价责任与感受。背景问题只需回答一次，两案均完成后结束。</p>
               <div class="study-facts">
-                <article><span>◷</span><div><strong>约 8–10 分钟</strong><small>可按自己的速度阅读</small></div></article>
-                <article><span>▤</span><div><strong>一宗改编案例</strong><small>不考查法律知识</small></div></article>
+                <article><span>◷</span><div><strong>两个案件，分别作答</strong><small>可按自己的速度阅读</small></div></article>
+                <article><span>▤</span><div><strong>两宗改编案例</strong><small>不考查法律知识</small></div></article>
                 <article><span>◎</span><div><strong>匿名研究编号</strong><small>原型数据仅存本机</small></div></article>
               </div>
               <div class="consent-card">
                 <h2>开始前，请确认</h2>
-                <ul><li>我已年满 18 周岁并能够阅读中文；</li><li>我理解参与完全自愿，可在提交前随时退出；</li><li>我不会在开放题中填写可识别个人身份的信息。</li></ul>
+                <ul><li>我已年满 18 周岁并能够阅读中文；</li><li>我理解参与完全自愿，可以随时退出；本机进度会保存，第一案完成后可选择删除两案进度并退出；</li><li>我不会在开放题中填写可识别个人身份的信息。</li></ul>
                 <label class="check-row"><input id="consent-checkbox" type="checkbox" /><span>我已阅读以上说明，并同意参加本次体验。</span></label>
               </div>
               <section class="screening-section" aria-labelledby="screening-title">
@@ -278,13 +280,21 @@
                     <p id="speech-status" class="helper-text" role="status"></p><p id="speech-interim" class="speech-interim" aria-live="polite"></p>
                     <label id="open-response-confirm-row" class="check-row hidden"><input id="open-response-confirm" name="openResponseConfirm" type="checkbox"><span>我已检查，文本框中的文字准确表达了我的回答。</span></label></div>
                 </section>
-                <button class="text-button" type="button" data-back="decision">返回裁判结果</button><div class="survey-submit"><label class="check-row"><input name="honestConfirm" type="checkbox" required /><span>我已根据自己的真实感受完成作答。</span></label><span id="survey-error" class="form-error" role="alert"></span><button class="button button-primary" type="submit">提交评价 <span>→</span></button></div>
+                <button class="text-button" type="button" data-back="decision">返回裁判结果</button><div class="survey-submit"><label class="check-row"><input name="honestConfirm" type="checkbox" required /><span>我已根据自己的真实感受完成作答。</span></label><span id="survey-error" class="form-error" role="alert"></span><button id="submit-evaluation" class="button button-primary" type="submit">提交本案评价，继续第二案 <span>→</span></button></div>
               </form>
             </section>
 
+            <section id="screen-between" class="study-screen">
+              <p class="eyebrow">1 / 2 COMPLETED</p><h1>第一案已完成</h1>
+              <p class="lead">本案评价已保存。接下来请完成第二案：<strong id="next-case-name"></strong>。</p>
+              <div class="debrief-card"><h2>继续第二个案件</h2><p>您无需再次回答背景问题。请继续采用相同的观察视角，独立阅读下一案的材料并评价。</p><p>第二案完成后，才会结束本次研究并显示完整说明。您也可以稍作休息，刷新页面会保留进度。</p></div>
+              <p id="between-error" class="form-error" role="alert"></p>
+              <div class="screen-actions"><button id="delete-partial" class="text-button danger" type="button">删除本次进度并退出</button><button id="next-case" class="button button-primary" type="button">开始第二案 →</button></div>
+            </section>
+
             <section id="screen-debrief" class="study-screen debrief-screen">
-              <div class="completion-mark">✓</div><p class="eyebrow">COMPLETED</p><h1>感谢您的参与</h1><p class="lead">您的原型回答已经保存在当前浏览器中。</p>
-              <div class="debrief-card"><h2>关于本研究的完整说明</h2><p>本研究随机改变了 <strong>AI 的参与方式</strong> 与 <strong>案例</strong>；非律师另被随机分配到当事人或公众观察视角。律师身份来自背景筛选，并未随机赋予。您看到的对话是预先编写的研究情境，不代表现实法院或任何真实法官的工作记录。研究关注：在同一案例的最终裁判结果保持一致时，仅改变 AI 的参与边界，是否会改变不同社会角色对责任、程序公正、控制感、信任与裁判正当性的判断。</p><p>案件依据研究者提供的材料去标识化改编，法官与 AI 的对话为模拟编写；无 AI 对照为法官与书记员对话。不同案例的刑期与损害后果并不相同；同一案例在四种参与条件下保留相同裁判结果。合成配音用于统一呈现，不代表真实法官声音。</p></div>
+              <div class="completion-mark">✓</div><p class="eyebrow">COMPLETED</p><h1>感谢您的参与</h1><p class="lead">您已完成两个案件，全部原型回答已经保存在当前浏览器中。</p>
+              <div class="debrief-card"><h2>关于本研究的完整说明</h2><p>本研究随机改变了 <strong>AI 的参与方式</strong> 与 <strong>两案呈现顺序</strong>；非律师另被随机分配到当事人或公众观察视角。律师身份来自背景筛选，并未随机赋予。同一参与者依次完成两个案件，保持相同观察视角与 AI 参与条件。您看到的对话是预先编写的研究情境，不代表现实法院或任何真实法官的工作记录。研究关注：在同一案例的最终裁判结果保持一致时，仅改变 AI 的参与边界，是否会改变不同社会角色对责任、程序公正、控制感、信任与裁判正当性的判断。</p><p>案件依据研究者提供的材料去标识化改编，法官与 AI 的对话为模拟编写；无 AI 对照为法官与书记员对话。不同案例的刑期与损害后果并不相同；同一案例在四种参与条件下保留相同裁判结果。合成配音用于统一呈现，不代表真实法官声音。</p></div>
               <div class="retain-card"><div><strong>是否同意研究者继续匿名保存并分析您的回答？</strong><small>原型按钮只更新本机记录。</small></div><div><button id="delete-response" class="button button-secondary" type="button">不同意，删除回答</button><button id="retain-response" class="button button-primary" type="button">同意保留</button></div></div>
               <p id="retain-status" class="retain-status" role="status"></p>
               <div class="completion-actions"><button id="download-response" class="button button-secondary" type="button">下载本次回答 JSON</button><a id="finish-link" class="button button-primary hidden" href="./?view=researcher">返回研究设计台</a></div>
@@ -296,6 +306,7 @@
 
     <div id="toast" class="toast hidden" role="status"></div>
     <script defer src="./study-core.js"></script>
+    <script defer src="./study-session.js"></script>
     <script defer src="./study-content.js"></script>
     <script defer src="./study-dialogue.js"></script>
     <script defer src="./audio-config.js"></script>

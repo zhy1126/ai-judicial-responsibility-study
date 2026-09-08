@@ -3,9 +3,11 @@ const STORAGE_KEY = 'judicial_ai_responsibility_prototype_records_v1';
 const DRAFT_KEY = 'judicial_ai_responsibility_draft_v2';
 const DELETED_KEY = 'judicial_ai_responsibility_deleted_sessions_v2';
 const EPOCH_KEY = 'judicial_ai_responsibility_reset_epoch_v2';
+const PROTOCOL_KEY = 'judicial_ai_responsibility_protocol_v1';
 const CORE = window.StudyCore;
 const CASES = window.StudyContent.cases;
 const DIALOGUE = window.StudyDialogue;
+const SESSION = window.StudySession;
 const CONDITIONS = window.StudyContent.conditions;
 const LABELS = {
   roles: {lawyer:'律师专业视角',litigant:'当事人视角',public:'公众视角'},
@@ -18,10 +20,10 @@ const RATINGS = [
   ['aiTrust','我愿意信任本案中对 AI 的使用方式。'], ['legitimacy','我认为这份裁判具有正当性。'],
   ['acceptance','如果该裁判对我具有约束力，我愿意遵从。'], ['unease','AI 以这种方式参与使我感到不安。'],
 ];
-const STEPS = ['intro','dossier','replay','decision','survey','debrief'];
+const STEPS = ['intro','dossier','replay','decision','survey','debrief','between'];
 const qs = (selector,root=document)=>root.querySelector(selector);
 const qsa = (selector,root=document)=>[...root.querySelectorAll(selector)];
-const state = {preview:false,role:'public',condition:'procedural',caseType:'natural',assignment:null,step:'intro',ranking:[],rankingInitial:[],reading:{},activeDossierTab:"overview",formValues:{},replayExposureMs:0,replayEnteredAt:null,response:null,deleted:false,audio:{status:'not_supplied',started:false,completed:false,maxPositionSeconds:0},speechMetadata:null,replay:{mode:null,stream:null,completed:false}};
+const state = {preview:false,role:'public',condition:'procedural',caseType:'natural',assignment:null,session:null,retained:null,step:'intro',ranking:[],rankingInitial:[],reading:{},activeDossierTab:"overview",formValues:{},replayExposureMs:0,replayEnteredAt:null,response:null,deleted:false,audio:{status:'not_supplied',started:false,completed:false,maxPositionSeconds:0},speechMetadata:null,replay:{mode:null,stream:null,completed:false}};
 let streamPlayer=null,streamView=null,lastStreamSave=0,initializingUI=false,pendingAudioPosition=null;
 let speech, toastTimer, draftBlocked=false, speechChanged=false;
 let storageEpoch='';
@@ -38,10 +40,31 @@ const draftKey=state.preview?`${DRAFT_KEY}_preview_${state.role}_${state.conditi
 init();
 
 function init(){
+  prepareProtocol();
   const view=params.get('view')==='participant'?'participant':'researcher';
   qs(`#${view}-view`).classList.remove('hidden');
   bindResearcher(); renderRecords();
   if(view==='participant')setupParticipant();
+}
+function prepareProtocol(){
+  try{
+    let marker=JSON.parse(localStorage.getItem(PROTOCOL_KEY)||'null');
+    if(marker?.protocol===SESSION.VERSION&&marker.phase==='complete')return;
+    if(marker?.protocol!==SESSION.VERSION||![marker.fromEpoch,marker.toEpoch].includes(storageEpoch)){
+      marker={protocol:SESSION.VERSION,fromEpoch:storageEpoch,toEpoch:`${SESSION.VERSION}-${token(8)}`,phase:'pending'};
+      localStorage.setItem(PROTOCOL_KEY,JSON.stringify(marker));
+    }
+    // Journal the migration before any writes, so a failed write can resume on refresh.
+    const draft=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');
+    if(draft?.epoch===marker.fromEpoch){draft.epoch=marker.toEpoch;localStorage.setItem(DRAFT_KEY,JSON.stringify(draft));}
+    // Retire already-open single-case writers after preserving their saved work.
+    localStorage.setItem(EPOCH_KEY,marker.toEpoch);storageEpoch=marker.toEpoch;
+    localStorage.setItem(PROTOCOL_KEY,JSON.stringify({...marker,phase:'complete'}));
+  }catch{draftBlocked=true;qs('#intro-error').textContent='流程升级暂未保存，原进度仍保留。请检查浏览器存储空间后刷新重试。';}
+}
+function newerDraftExists(){
+  const saved=JSON.parse(draftStorage().getItem(draftKey)||'null');
+  return saved?.epoch===storageEpoch&&saved.assignment?.sessionId===state.assignment?.sessionId&&saved.session?.protocol===SESSION.VERSION&&state.session&&(saved.session.caseIndex>state.session.caseIndex||saved.session.responses.length>state.session.responses.length);
 }
 function bindResearcher(){
   qsa('[data-scroll]').forEach(button=>button.addEventListener('click',()=>{
@@ -109,9 +132,9 @@ function setupParticipant(){
   qs('#delete-response').addEventListener('click',deleteResponse);
   qs('#retain-response').addEventListener('click',retainResponse);
   qs('#download-response').addEventListener('click',downloadResponse);
-  speech=window.StudySpeech.create({textarea:qs('#open-response'),startButton:qs('#speech-start'),stopButton:qs('#speech-stop'),status:qs('#speech-status'),interim:qs('#speech-interim'),onChange:()=>{
-    speechChanged=true;qs('#open-response-confirm').checked=false;updateOpenResponse();captureForm();saveDraft();
-  }});
+  qs('#next-case').addEventListener('click',nextCase);
+  qs('#delete-partial').addEventListener('click',deleteResponse);
+  setupSpeechInput();
   const audio=qs('#judgment-audio');
   audio.addEventListener('play',()=>{state.audio.started=true;state.audio.status='available';updateAudioUI();saveDraft();});
   audio.addEventListener('pause',()=>{captureAudioPosition();updateAudioUI();saveDraft();});
@@ -121,7 +144,40 @@ function setupParticipant(){
   audio.addEventListener('error',()=>{if(state.replay.mode!=='audio')return;state.audio.status='error';updateAudioUI();saveDraft();});
   window.addEventListener('pagehide',()=>{pausePlayback();stopExposure();captureForm();saveDraft();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){pausePlayback();stopExposure();}else if(state.step==='replay')state.replayEnteredAt=Date.now();saveDraft();});
-  restoreDraft();
+  if(!draftBlocked)restoreDraft();
+}
+function setupSpeechInput(){
+  speech?.destroy();speechChanged=false;
+  speech=window.StudySpeech.create({textarea:qs('#open-response'),startButton:qs('#speech-start'),stopButton:qs('#speech-stop'),status:qs('#speech-status'),interim:qs('#speech-interim'),onChange:()=>{
+    speechChanged=true;qs('#open-response-confirm').checked=false;updateOpenResponse();captureForm();saveDraft();
+  }});
+ }
+function nextCase(){
+  if(state.step!=='between'||state.deleted)return;
+  try{
+    if(!currentEpoch()||isDeleted(state.assignment.sessionId))throw Error('本次数据已被清空或删除，请刷新页面。');
+    if(newerDraftExists())throw Error('另一页面已进入后续案件，请刷新当前页面以恢复最新进度。');
+    const next=SESSION.advance(state.session);
+    pausePlayback();stopExposure();initializingUI=true;
+    streamPlayer=null;streamView=null;pendingAudioPosition=null;lastStreamSave=0;
+    const audio=qs('#judgment-audio');audio.removeAttribute('src');audio.load();
+    Object.assign(state,{session:next,caseType:next.caseOrder[next.caseIndex],step:'dossier',response:null,reading:{},activeDossierTab:'overview',formValues:{},replayExposureMs:0,replayEnteredAt:null,speechMetadata:null,audio:{status:'not_supplied',started:false,completed:false,maxPositionSeconds:0,positionSeconds:0},replay:{mode:null,stream:null,completed:false}});
+    state.ranking=CORE.shuffle(CORE.subjectsFor(state.condition).map(x=>x.id));state.rankingInitial=[...state.ranking];
+    qs('#survey-form').reset();qs('#transcript-confirm').checked=false;qs('#dossier-confirm').checked=false;
+    for(const selector of ['#survey-error','#transcript-error','#dossier-error','#between-error'])qs(selector).textContent='';
+    setupSpeechInput();initializeAssignedUI();setStep('dossier');
+  }catch(error){qs('#between-error').textContent=error.message;}
+  finally{initializingUI=false;}
+}
+function renderCaseProgress(){
+  const session=state.session;if(!session)return;
+  const done=SESSION.complete(session),between=state.step==='between';
+  qs('#case-progress').classList.toggle('hidden',state.step==='intro'||state.deleted);
+  qs('#case-progress-label').textContent=done?'已完成 2 / 2 个案件':between?'已完成 1 / 2 个案件':`第 ${session.caseIndex+1} / 2 个案件 · ${LABELS.cases[state.caseType]}`;
+  qs('#case-progress-detail').textContent=done?'两案评价均已提交':between?'继续完成第二案后结束本次研究':'每个案件都需分别完成阅读、回放和评价';
+  qs('#next-case-name').textContent=LABELS.cases[session.caseOrder[1]];
+  qs('#submit-evaluation').textContent=session.caseIndex===0?'提交本案评价，继续第二案 →':'提交第二案，完成研究 →';
+  if(state.preview)qs('#preview-condition-label').textContent=`${LABELS.roles[state.role]} · ${LABELS.conditions[state.condition]} · 第 ${session.caseIndex+1} 案：${LABELS.cases[state.caseType]}`;
 }
 function updateScreening(){
   const practicing=qs('input[name="practicingLawyer"]:checked')?.value==='yes';
@@ -146,6 +202,7 @@ function startStudy(){
     state.assignment=CORE.assignParticipant(background,{existing,sessionId:`JR-${token(8).toUpperCase()}`,preview:state.preview?previewSelection:null});
     Object.assign(state,{role:state.assignment.role,condition:state.assignment.condition,caseType:state.assignment.caseType});
     if(raw&&CORE.validAssignment(existing)){restoreDraft();return;}
+    state.session=SESSION.create(state.assignment);
     state.ranking=CORE.shuffle(CORE.subjectsFor(state.condition).map(x=>x.id));state.rankingInitial=[...state.ranking];
     state.step='dossier';
     draftStorage().setItem(draftKey,JSON.stringify(snapshot()));
@@ -155,7 +212,7 @@ function startStudy(){
 function initializeAssignedUI(){
   initializingUI=true;
   try{
-  qs('#session-code').textContent=`体验编号：${state.assignment.sessionId}`;
+  qs('#session-code').textContent=`体验编号：${state.assignment.sessionId}`;renderCaseProgress();
   qs('#role-perspective').textContent={lawyer:'请结合您的律师专业经验评价以下裁判过程。',litigant:'本次请采用模拟的诉讼当事人视角：设想您是受到这份裁判影响的当事人。此视角不表示您的真实经历。',public:'本次请采用普通公众的观察视角：作为关注司法活动的社会成员，评价以下裁判过程。'}[state.role];
   renderDossier();renderTranscript();renderDecision();renderRanking();renderRatings();restoreForm();updateRankingMode();updateOpenResponse();
   }finally{initializingUI=false;}
@@ -164,10 +221,26 @@ function restoreDraft(){
   try{
     const raw=draftStorage().getItem(draftKey);if(!raw)return;
     const draft=JSON.parse(raw);
+    const upgrade=JSON.parse(localStorage.getItem(PROTOCOL_KEY)||'null');
+    if(draft.epoch===upgrade?.fromEpoch&&storageEpoch===upgrade?.toEpoch)draft.epoch=storageEpoch;
     if(draft.epoch!==storageEpoch){draftStorage().removeItem(draftKey);return;}
     if(draft.deleted||isDeleted(draft.assignment?.sessionId)){draftStorage().setItem(draftKey,JSON.stringify(deletionMarker(draft.sessionId||draft.assignment.sessionId)));state.deleted=true;state.response=null;state.formValues={};qs('#session-code').textContent='本次回答已删除';markDeleted();setStep('debrief',false);return;}
     if(![CORE.VERSION,'2.0.0'].includes(draft.version)||!CORE.validAssignment(draft.assignment)||!STEPS.includes(draft.step))throw Error('invalid draft');
     Object.assign(state,{assignment:draft.assignment,role:draft.assignment.role,condition:draft.assignment.condition,caseType:draft.assignment.caseType,step:draft.step,ranking:draft.ranking,rankingInitial:draft.rankingInitial,reading:draft.version===CORE.VERSION?(draft.reading||{}):{},activeDossierTab:draft.activeDossierTab||'overview',formValues:draft.formValues||{},replayExposureMs:draft.replayExposureMs||0,response:draft.response||null,deleted:Boolean(draft.deleted),audio:draft.audio||state.audio,speechMetadata:draft.speechMetadata||null,replay:draft.replay||{mode:null,version:'legacy_monologue',stream:null,completed:false}});
+    state.session=SESSION.restore(state.assignment,draft);state.retained=draft.retained??null;
+    // A saved answer wins if the following draft write was interrupted or another tab finished first.
+    const stored=readRecords().find(r=>r.sessionId===state.assignment.sessionId);
+    if(stored?.protocol===SESSION.VERSION){
+      const savedSession=SESSION.restore(state.assignment,{session:stored});
+      if(savedSession.responses.length>state.session.responses.length)state.session=savedSession;
+      state.retained=stored.retained??state.retained;
+    }else if(stored){
+      const legacy=SESSION.restore(state.assignment,{response:stored});
+      state.session=state.session.responses.length?{...state.session,responses:[stored,...state.session.responses.slice(1)],migratedFrom:legacy.migratedFrom}:legacy;
+    }
+    state.caseType=state.session.caseOrder[state.session.caseIndex];
+    state.response=state.session.responses[state.session.caseIndex]||null;
+    if(state.response)state.step=SESSION.complete(state.session)?'debrief':'between';
     if(state.deleted)state.ranking=CORE.subjectsFor(state.condition).map(x=>x.id);
     else if(!CORE.validRanking(state.ranking,state.condition))throw Error('invalid ranking');
     if(draft.version!==CORE.VERSION&&!state.response){state.step='dossier';state.audio={status:'not_supplied',started:false,completed:false,maxPositionSeconds:0};}
@@ -191,11 +264,11 @@ function deletionMarker(sessionId){return {version:CORE.VERSION,epoch:storageEpo
 function deletedSessions(){const raw=localStorage.getItem(DELETED_KEY);const ids=raw?JSON.parse(raw):[];if(!Array.isArray(ids))throw Error('删除状态无法读取。');return ids;}
 function isDeleted(id){return Boolean(id&&deletedSessions().includes(id));}
 function currentEpoch(){return (localStorage.getItem(EPOCH_KEY)||'')===storageEpoch;}
-function snapshot(){if(state.deleted)return deletionMarker(state.assignment?.sessionId);return {epoch:storageEpoch,version:CORE.VERSION,assignment:state.assignment,step:state.step,ranking:state.ranking,rankingInitial:state.rankingInitial,reading:state.reading,activeDossierTab:state.activeDossierTab,formValues:state.formValues,replayExposureMs:exposure(),transcriptConfirmed:qs('#transcript-confirm').checked,response:state.response,deleted:state.deleted,audio:state.audio,replay:{...state.replay,stream:streamPlayer?.getSnapshot()||state.replay.stream},speechMetadata:mergedSpeechMetadata()};}
+function snapshot(){if(state.deleted)return deletionMarker(state.assignment?.sessionId);return {epoch:storageEpoch,version:CORE.VERSION,assignment:state.assignment,session:state.session,retained:state.retained,step:state.step,ranking:state.ranking,rankingInitial:state.rankingInitial,reading:state.reading,activeDossierTab:state.activeDossierTab,formValues:state.formValues,replayExposureMs:exposure(),transcriptConfirmed:qs('#transcript-confirm').checked,response:state.response,deleted:state.deleted,audio:state.audio,replay:{...state.replay,stream:streamPlayer?.getSnapshot()||state.replay.stream},speechMetadata:mergedSpeechMetadata()};}
 function saveDraft(){
   if(!state.assignment||draftBlocked||initializingUI)return;
   try{
-    if(!currentEpoch())return;
+    if(!currentEpoch()||newerDraftExists())return;
     if(isDeleted(state.assignment.sessionId)){draftStorage().setItem(draftKey,JSON.stringify(deletionMarker(state.assignment.sessionId)));return;}
     draftStorage().setItem(draftKey,JSON.stringify(snapshot()));
   }
@@ -402,15 +475,17 @@ function submitSurvey(event){
     if(rankingMode==='rank'&&!CORE.validRanking(state.ranking,state.condition))throw Error('排序无法保存，请联系研究者。');
     stopExposure();captureForm();
     const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,dialogueVersion:DIALOGUE.VERSION,sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.version,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'sequential_audio_only':(state.condition==='none'?'judge_clerk_dialogue':'judge_ai_dialogue'),playback:{...state.replay,stream:streamPlayer?.getSnapshot()||state.replay.stream},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),rankingStatus:rankingMode,ranking:rankingMode==='rank'?state.ranking.map(id=>CORE.SUBJECTS.find(s=>s.id===id).label):[],rankingIds:rankingMode==='rank'?[...state.ranking]:[],rankingInitial:[...state.rankingInitial],ratings,ratingStatus,openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:null,submittedAt:new Date().toISOString(),prototype:true};
-    updateSavedResponse(response);state.response=response;setStep('debrief');
+    const session=SESSION.submit(state.session,response,state.assignment);
+    updateSavedResponse(SESSION.record(session,state.assignment));state.session=session;state.response=response;setStep(SESSION.complete(session)?'debrief':'between');
   }catch(error){qs('#survey-error').textContent=`未提交：${error.message}`;}
 }
 function retainResponse(){
-  if(!state.response||state.deleted)return;
-  try{const updated={...state.response,retained:true};updateSavedResponse(updated);state.response=updated;saveDraft();qs('#retain-status').textContent='已记录：同意匿名保留本次回答。';}
+  if(!state.response||state.deleted||!SESSION.complete(state.session))return;
+  try{updateSavedResponse(SESSION.record(state.session,state.assignment,true));state.retained=true;saveDraft();qs('#retain-status').textContent='已记录：同意匿名保留本次两个案件的回答。';}
   catch{qs('#retain-status').textContent='未能保存选择，请重试。';}
 }
 function markDeleted(){
+  qs('#case-progress').classList.add('hidden');qs('#screen-debrief h1').textContent='本次作答已退出';qs('#screen-debrief .lead').textContent='本次两个案件的回答及未完成进度已从当前浏览器删除。';
   qs('#retain-status').textContent='本次回答和未完成内容已从当前浏览器删除。';
   qs('#retain-response').disabled=true;qs('#delete-response').disabled=true;qs('#download-response').disabled=true;
 }
@@ -422,37 +497,46 @@ function deleteResponse(){
     const ids=deletedSessions();if(!ids.includes(sessionId))ids.push(sessionId);localStorage.setItem(DELETED_KEY,JSON.stringify(ids));
     const records=readRecords().filter(x=>x.sessionId!==sessionId);localStorage.setItem(STORAGE_KEY,JSON.stringify(records));
     // Keep only assignment and completion marker to prevent refresh from resurrecting deleted answers.
-    state.response=null;state.formValues={};state.speechMetadata=null;state.deleted=true;
+    state.response=null;state.session=null;state.retained=null;state.formValues={};state.speechMetadata=null;state.deleted=true;
     qs('#survey-form').reset();speech.destroy();qs('#open-response').value='';
-    draftStorage().removeItem(draftKey);state.step='debrief';saveDraft();markDeleted();
-  }catch{qs('#retain-status').textContent='删除未完成，请重试。';}
+    draftStorage().removeItem(draftKey);setStep('debrief');saveDraft();markDeleted();
+  }catch{qs(state.step==='between'?'#between-error':'#retain-status').textContent='删除未完成，请重试。';}
 }
-function downloadResponse(){if(!state.response||state.deleted)return;try{if(!currentEpoch()||isDeleted(state.response.sessionId)){qs('#retain-status').textContent='本次数据已被删除或清空，不能下载。';return;}downloadBlob(JSON.stringify(state.response,null,2),`${state.response.sessionId}.json`,'application/json');}catch{qs('#retain-status').textContent='无法确认数据状态，请刷新页面后重试。';}}
+function downloadResponse(){if(!state.response||state.deleted)return;try{if(!currentEpoch()||isDeleted(state.response.sessionId)){qs('#retain-status').textContent='本次数据已被删除或清空，不能下载。';return;}downloadBlob(JSON.stringify(SESSION.record(state.session,state.assignment,state.retained),null,2),`${state.response.sessionId}.json`,'application/json');}catch{qs('#retain-status').textContent='无法确认数据状态，请刷新页面后重试。';}}
 function setStep(step,persist=true){
   if(!STEPS.includes(step))return;
+  if(step==='debrief'&&!state.deleted&&state.session&&!SESSION.complete(state.session))step=state.response?'between':state.step;
   if(state.step==='replay')stopExposure();
   if(step!=='replay')pausePlayback();
   if(step!=='survey'&&speech?.isBusy())speech.stop();
   state.step=step;if(step==='replay'&&!document.hidden)state.replayEnteredAt=Date.now();
   qsa('.study-screen').forEach(screen=>screen.classList.toggle('active',screen.id===`screen-${step}`));
-  const current=STEPS.indexOf(step);qsa('.study-progress li').forEach((item,i)=>{item.classList.toggle('active',i===current);item.classList.toggle('done',i<current);});
+  renderCaseProgress();
+  const current=step==='between'?4:STEPS.indexOf(step);qsa('.study-progress li').forEach((item,i)=>{item.classList.toggle('active',i===current);item.classList.toggle('done',i<current);});
   window.scrollTo({top:0,behavior:'instant'});if(step==='replay')requestAnimationFrame(()=>{qs('#chat-stream').scrollTop=qs('#chat-stream').scrollHeight;updateChatScroll();});if(step==='dossier')requestAnimationFrame(checkReadingEnd);if(persist)saveDraft();
 }
 function readRecords(){const raw=localStorage.getItem(STORAGE_KEY);const records=raw?JSON.parse(raw):[];if(!Array.isArray(records))throw Error('已有记录无法读取，不能覆盖。');return records;}
-function updateSavedResponse(response){if(!currentEpoch()||isDeleted(response.sessionId))throw Error('本次数据已被删除或清空，不能再次保存。');const records=readRecords();const index=records.findIndex(x=>x.sessionId===response.sessionId);if(index<0)records.push(response);else records[index]=response;localStorage.setItem(STORAGE_KEY,JSON.stringify(records));}
+function updateSavedResponse(response){
+  if(!currentEpoch()||isDeleted(response.sessionId))throw Error('本次数据已被删除或清空，不能再次保存。');
+  const records=readRecords(),index=records.findIndex(x=>x.sessionId===response.sessionId),existing=records[index];
+  if(existing&&!existing.protocol&&JSON.stringify(existing)!==JSON.stringify(response.responses?.[0]))throw Error('已有已提交的首案回答，请刷新页面后继续。');
+  if(existing?.protocol===SESSION.VERSION&&existing.responses.some((r,i)=>JSON.stringify(r)!==JSON.stringify(response.responses[i])))throw Error('已有更新的案件回答，请刷新页面后继续。');
+  if(index<0)records.push(response);else records[index]=response;localStorage.setItem(STORAGE_KEY,JSON.stringify(records));
+}
 function renderRecords(){
   let records;try{records=readRecords();}catch{qs('#records-body').innerHTML='<tr><td colspan="6">已有记录无法读取，未作覆盖。请联系研究者处理。</td></tr>';return;}
-  const numeric=records.filter(x=>typeof x.ratings?.fairness==='number');const ranked=records.filter(x=>x.ranking?.length);
-  qs('#metric-complete').textContent=records.length;
+  const rows=SESSION.rows(records);
+  const numeric=rows.filter(x=>typeof x.ratings?.fairness==='number');const ranked=rows.filter(x=>x.ranking?.length);
+  qs('#metric-complete').textContent=records.filter(r=>r.protocol===SESSION.VERSION&&r.completed).length;
   qs('#metric-fairness').textContent=numeric.length?(numeric.reduce((sum,x)=>sum+x.ratings.fairness,0)/numeric.length).toFixed(1):'—';
   qs('#metric-judge-first').textContent=ranked.length?`${Math.round(ranked.filter(x=>x.rankingIds?.[0]==='judge'||x.ranking?.[0]==='本案承办法官').length/ranked.length*100)}%`:'—';
-  qs('#metric-latest').textContent=records.length?formatTime(records.at(-1).submittedAt):'—';
-  qs('#records-body').innerHTML=records.length?records.slice().reverse().map(item=>`<tr><td>${escapeHtml(item.sessionId)}</td><td>${escapeHtml(LABELS.roles[item.role]||item.role)}<small>v${escapeHtml(item.version||'1')} ${item.preview?'预览':''}</small></td><td>${escapeHtml(LABELS.conditions[item.condition]||item.condition)}</td><td>${escapeHtml(item.version?LABELS.cases[item.caseType]:item.caseType==='natural'?'旧版故意伤害':'旧版数据处置')}</td><td>${escapeHtml(item.ratings?.fairness??'—')}</td><td>${formatTime(item.submittedAt)}</td></tr>`).join(''):'<tr><td colspan="6" class="empty-cell">尚无测试记录。完成参与者流程后可在这里查看与导出。</td></tr>';
+  qs('#metric-latest').textContent=records.length?formatTime(records.reduce((latest,r)=>Date.parse(r.submittedAt)>Date.parse(latest||0)?r.submittedAt:latest,null)):'—';
+  qs('#records-body').innerHTML=rows.length?rows.slice().reverse().map(item=>`<tr><td>${escapeHtml(item.sessionId)}<small>${item.studyProtocol==='single_case'?'旧版单案':`第 ${item.caseNumber} / 2 案 · ${item.studyCompleted?'两案完成':'尚未完成两案'}`}</small></td><td>${escapeHtml(LABELS.roles[item.role]||item.role)}<small>v${escapeHtml(item.version||'1')} ${item.preview?'预览':''}</small></td><td>${escapeHtml(LABELS.conditions[item.condition]||item.condition)}</td><td>${escapeHtml(item.version?LABELS.cases[item.caseType]:item.caseType==='natural'?'旧版故意伤害':'旧版数据处置')}</td><td>${escapeHtml(item.ratings?.fairness??'—')}</td><td>${formatTime(item.submittedAt)}</td></tr>`).join(''):'<tr><td colspan="6" class="empty-cell">尚无测试记录。完成参与者流程后可在这里查看与导出。</td></tr>';
 }
 function exportCsv(){
   let records;try{records=readRecords();}catch{return toast('已有记录无法读取，未作覆盖。');}if(!records.length)return toast('当前没有可导出的记录');
-  const header=['session_id','version','case_version','dialogue_version','preview','role','role_assignment','practicing_lawyer','license_active','legal_education','legal_degree','litigation_experience','litigation_experience_status','screening_version','reading_progress','condition','case_type','presentation','replay_completed','replay_exposure_ms','ranking_status','ranking_ids','ranking_labels','ranking_initial',...RATINGS.flatMap(([k])=>[k,k+'_status']),'manipulation_check','final_signer','open_response','speech_metadata','audio_metadata','retained','submitted_at'];
-  const rows=records.map(r=>[r.sessionId,r.version||'1',r.caseVersion||'legacy',r.dialogueVersion||'legacy_monologue',r.preview,r.role,r.roleAssignment||'self_selected',r.background?.practicingLawyer,r.background?.licenseActive,r.background?.legalEducation,r.background?.legalDegree,r.background?.litigationExperience,r.background?.litigationExperienceStatus,r.screeningVersion||r.assignment?.version,JSON.stringify(r.reading||null),r.condition,r.caseType,r.presentation,r.replayCompleted,r.replayExposureMs,r.rankingStatus||'legacy',JSON.stringify(r.rankingIds||[]),JSON.stringify(r.ranking||[]),JSON.stringify(r.rankingInitial||[]),...RATINGS.flatMap(([k])=>[r.ratings?.[k],r.ratingStatus?.[k]||'legacy']),r.manipulationCheck,r.finalSigner,r.openResponse,JSON.stringify(r.speech||null),JSON.stringify(r.audio||null),r.retained,r.submittedAt]);
+  const header=['session_id','study_protocol','case_number','case_order','study_completed','migrated_from','version','case_version','dialogue_version','preview','role','role_assignment','practicing_lawyer','license_active','legal_education','legal_degree','litigation_experience','litigation_experience_status','screening_version','reading_progress','condition','case_type','presentation','replay_completed','replay_exposure_ms','ranking_status','ranking_ids','ranking_labels','ranking_initial',...RATINGS.flatMap(([k])=>[k,k+'_status']),'manipulation_check','final_signer','open_response','speech_metadata','audio_metadata','retained','submitted_at'];
+  const rows=SESSION.rows(records).map(r=>[r.sessionId,r.studyProtocol,r.caseNumber,JSON.stringify(r.caseOrder),r.studyCompleted,r.migratedFrom,r.version||'1',r.caseVersion||'legacy',r.dialogueVersion||'legacy_monologue',r.preview,r.role,r.roleAssignment||'self_selected',r.background?.practicingLawyer,r.background?.licenseActive,r.background?.legalEducation,r.background?.legalDegree,r.background?.litigationExperience,r.background?.litigationExperienceStatus,r.screeningVersion||r.assignment?.version,JSON.stringify(r.reading||null),r.condition,r.caseType,r.presentation,r.replayCompleted,r.replayExposureMs,r.rankingStatus||'legacy',JSON.stringify(r.rankingIds||[]),JSON.stringify(r.ranking||[]),JSON.stringify(r.rankingInitial||[]),...RATINGS.flatMap(([k])=>[r.ratings?.[k],r.ratingStatus?.[k]||'legacy']),r.manipulationCheck,r.finalSigner,r.openResponse,JSON.stringify(r.speech||null),JSON.stringify(r.audio||null),r.retained,r.submittedAt]);
   downloadBlob([header,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n'),'judicial-ai-prototype.csv','text/csv;charset=utf-8');
 }
 function valid(value,choices,fallback){return choices.includes(value)?value:fallback;}
