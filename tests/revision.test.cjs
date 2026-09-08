@@ -49,11 +49,11 @@ function wav(seconds=4){
   await page.locator('#dossier-confirm').check();await page.locator('#to-replay').click();
   await page.locator('#playback-toggle').click();await page.clock.runFor(1500);
   assert.ok((await page.locator('#chat-messages').innerText()).length>0);
-  await page.locator('#playback-toggle').click();const text=await page.locator('#chat-messages').innerText();await page.clock.runFor(90000);
+  await page.locator('#playback-toggle').click();const text=await page.locator('#chat-messages').innerText();await page.clock.runFor(120000);
   assert.equal(await page.locator('#chat-messages').innerText(),text);assert.equal(await page.locator('#to-decision').isDisabled(),true);
   await page.reload();assert.equal(await page.locator('#chat-messages').innerText(),text);
-  await page.locator('#playback-toggle').click();await page.clock.runFor(90000);await page.locator('#transcript-confirm').check();
-  assert.equal(await page.locator('#to-decision').isDisabled(),false);assert.equal(await page.locator('.chat-message').count(),7);
+  await page.locator('#playback-toggle').click();await page.clock.runFor(120000);await page.locator('#transcript-confirm').check();
+  assert.equal(await page.locator('#to-decision').isDisabled(),false);assert.equal(await page.locator('.chat-message').count(),13);
   await page.locator('#playback-restart').click();assert.equal(await page.locator('#to-decision').isDisabled(),true);
   await page.clock.runFor(1200);await page.locator('#playback-toggle').click();
   await page.screenshot({path:'../../work/revision-mobile.png',fullPage:true});
@@ -73,7 +73,7 @@ function wav(seconds=4){
 
   for(const caseType of ['natural','statutory']){
    const audioContext=await browser.newContext(),audioPage=await audioContext.newPage();let fail=caseType==='statutory';
-   await audioPage.route('**/audio-config.js',route=>route.fulfill({contentType:'application/javascript',body:'window.STUDY_AUDIO='+JSON.stringify(Object.fromEntries(['natural','statutory'].map(k=>[k,Object.fromEntries(['none','procedural','substantive','decisional'].map(c=>[c,`./audio/recordings/${k}-${c}.wav`]))])))+';'}));
+   await audioPage.route('**/audio-config.js',route=>route.fulfill({contentType:'application/javascript',body:'window.STUDY_AUDIO_VERSION=StudyDialogue.VERSION;window.STUDY_AUDIO='+JSON.stringify(Object.fromEntries(['natural','statutory'].map(k=>[k,Object.fromEntries(['none','procedural','substantive','decisional'].map(c=>[c,`./audio/recordings/${k}-${c}.wav`]))])))+';'}));
    await audioPage.route('**/audio/recordings/*.wav',route=>{
     if(fail)return route.fulfill({status:404,body:'missing'});
     const body=wav(),range=route.request().headers().range?.match(/^bytes=(\d+)-(\d*)$/);
@@ -85,7 +85,9 @@ function wav(seconds=4){
    assert.equal(await audioPage.locator('#stream-panel').isVisible(),false);assert.equal(await audioPage.locator('#chat-messages').innerText(),'');
    assert.equal(await audioPage.locator('#judgment-audio').getAttribute('controls'),null,'audio exposes no skip control');
    assert.equal(await audioPage.locator('#transcript-confirm').isDisabled(),true);
-   if(fail){await audioPage.locator('#playback-toggle').click();await audioPage.getByText('录音暂时无法播放，请重试。完整收听后才能继续。',{exact:true}).waitFor();assert.equal(await audioPage.locator('#to-decision').isDisabled(),true);fail=false;}
+   // Preloading reports the missing file before a click. Wait for that failure,
+   // then make the fixture available and retry once; a second click would pause.
+   if(fail){await audioPage.getByText('录音暂时无法播放，请重试。完整收听后才能继续。',{exact:true}).waitFor();assert.equal(await audioPage.locator('#to-decision').isDisabled(),true);fail=false;}
    await audioPage.locator('#playback-toggle').click();
    await audioPage.waitForFunction(()=>document.querySelector('#judgment-audio').currentTime>0.8);
    await audioPage.locator('#playback-toggle').click();
