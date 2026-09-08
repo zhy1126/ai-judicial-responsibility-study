@@ -1,0 +1,85 @@
+/* Scripted study dialogue, adapted from the researcher-supplied cases. */
+(function(root,factory){
+  const api=factory();
+  if(typeof module==='object'&&module.exports)module.exports=api;else root.StudyDialogue=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(){
+  'use strict';
+  const VERSION='dialogue-2026-09-08-v1';
+  const SPEAKERS={judge:{name:'承办法官',avatar:'法'},ai:{name:'AI 辅助系统',avatar:'AI'},clerk:{name:'书记员',avatar:'书'}};
+  const CONDITIONS=['none','procedural','substantive','decisional'];
+  const cases={
+    natural:{
+      topics:['材料准备','行为定性','到案与量刑','材料边界','形成裁判','最终复核'],
+      prepare:'本案有证人证言与供述、现场与物证、鉴定与死亡材料、报警与到案材料四组摘要。研究材料没有附各项证据原件，需按已提供内容审阅。',
+      factQuestion:'材料记载吴某某在互殴中持刀扎刺陈某某，伤及心脏并致其死亡。辩护人提出过失致人死亡的意见，请定位相关材料，暂不要评价罪名。',
+      factLocate:'请查看“案件总览”的冲突经过及辩护意见、“主要证据”中的证人证言与供述、鉴定与死亡材料。我只定位这些摘要，定性由你判断。',
+      factAnalysisQuestion:'吴某某在互殴中持刀扎刺陈某某，造成死亡；辩护人认为此前没有矛盾、事后积极施救，应按过失致人死亡评价。请比较判断路径，先不作定罪结论。',
+      factAnalysis:'应把事发时的持刀行为与事后的施救行为分开评价。此前没有矛盾、事后实施救助，不能单独排除伤害故意；也需结合具体行为审查辩护意见。材料中持刀扎刺及死亡后果是需要核对的重点，罪名由你确定。',
+      sentencingQuestion:'结合持刀行为，我认定应按故意伤害评价。量刑还要考虑到案经过、认罪认罚等情节。请帮我定位报警、施救和供述的记载。',
+      sentencingLocate:'请查看“主要证据”的报警与到案材料，包括110接警单、报警录音、到案经过及急救记录。案件总览另列有认罪认罚和初犯情节，供你核对。',
+      sentencingAnalysisQuestion:'我已对照材料审查行为定性。对于主动报警、到案后供述和认罪认罚，分别需要考虑哪些问题？',
+      sentencingAnalysis:'材料记载其作案后安排急救、送医途中自行报警、被查获后如实供述，并认定这些情况构成自首。认罪认罚、初犯也应分别审查。不能因有从宽情节就忽略一人死亡的严重后果，具体量刑仍需由你综合判断。',
+      boundaryQuestion:'材料中的到案经过支持自首评价，认罪认罚也应考虑。另有一项民事和解，请定位和解范围的记载，不补写材料没有的内容。',
+      boundaryLocate:'已定位亲属之间就民事赔偿达成和解的记载，以及被害人近亲属不再追究民事赔偿责任的表述。请按原有文字审阅，不增加其他事实。',
+      boundaryAnalysisQuestion:'材料记载双方亲属达成民事和解。这是否足以表述为已经取得刑事谅解？',
+      boundaryAnalysis:'不能直接这样表述。提供的材料只明确了民事赔偿和解，没有明确记载刑事谅解；这两项不能直接等同，也不能补写已经赔偿到位等未载明事实。',
+      judgeDecision:'我不将民事和解写成刑事谅解。综合死亡后果、自首、认罪认罚及初犯等情节，我采纳公诉机关量刑建议，确定故意伤害罪、有期徒刑十五年、剥夺政治权利三年。',
+      literalCheck:'按你提供的文本，罪名为故意伤害罪，刑期为十五年，附加刑为剥夺政治权利三年。我只核对这些文字的对应关系，不评价结论是否适当。',
+      reasoningCheck:'复核清单包括：持刀行为与定性之间的联系、死亡后果与从宽情节的分别说明，以及民事和解的记载范围。请确认理由回应了辩护意见；我不推荐裁判结果或生成主文。',
+      recommendationQuestion:'我已核对持刀行为、死亡后果及从宽情节。请提出定罪量刑建议并拟一份主文草案，我会独立审核，可以修改或拒绝。',
+      recommendation:'我建议认定故意伤害罪，结合本案材料中公诉机关的量刑建议，判处有期徒刑十五年、剥夺政治权利三年。主文草案为：“吴某某犯故意伤害罪，判处有期徒刑十五年，剥夺政治权利三年。”这只是待你复核的建议与草案。',
+      reviewQuestion:'我会再次核对事实、理由和主文，尤其保留“民事和解”这一准确表述，不把未记载的刑事谅解写入理由。请指出最后需要核对的项目。',
+      reviewLocate:'需要核对罪名、十五年刑期与三年附加刑的文字，以及事实摘要、到案经过和民事和解段落的位置。最终内容是否采纳、如何修改和签署，由你负责。',
+      reviewAnalysis:'请再次核对持刀扎刺与死亡后果的依据、报警与如实供述的先后经过，并检查理由是否准确区分民事和解与刑事谅解。最终事实认定、理由取舍和签署仍由你完成。',
+      final:'我已重新核对案件材料，确认上述事实认定与裁判理由。最终判决：吴某某犯故意伤害罪，判处有期徒刑十五年，剥夺政治权利三年。最终文本由我确认并签署。'
+    },
+    statutory:{
+      topics:['材料准备','行为定性','共同犯罪地位','到案情节','形成裁判','最终复核'],
+      prepare:'本案摘要包含软件权属与许可、网络传播和违法所得、搜查扣押、共同犯罪地位及认罪情节。原材料没有完整列出每项事实的证据名称，不能自行补造取证报告。',
+      factQuestion:'材料记载郑某未经授权，通过信息网络传播游戏软件并获利。请定位权属、许可状态、传播行为和违法所得的记载，暂不要评价罪名。',
+      factLocate:'请查看“主要证据”中的软件权属与许可、传播与收益摘要。材料记载某公司为著作权人、郑某未获授权、通过网络传播，违法所得为八万九千九百八十四元。',
+      factAnalysisQuestion:'郑某未经授权，通过信息网络传播游戏软件并获利。请列出判断行为性质需要核对的要素，先不作定罪结论。',
+      factAnalysis:'应核对软件权属及保护对象、是否获得许可、是否向公众网络传播，以及营利目的和收益。材料记载郑某未获授权，违法所得为八万九千九百八十四元。需要分别核对这些要素，不能只看到收益就跳过其他条件；罪名由你确定。',
+      sentencingQuestion:'根据已查明的权属、许可和传播事实，我认定本案构成侵犯著作权罪。请定位郑某在共同犯罪中的作用，以及认罪认罚的记载。',
+      sentencingLocate:'“共同犯罪地位”记载郑某起次要作用；认罪情节记载其如实供述、自愿认罪认罚并签字具结。这些位置已列在材料摘要中，供你核对。',
+      sentencingAnalysisQuestion:'我已核对行为性质。郑某在共同犯罪中的次要作用，与如实供述、认罪认罚应如何分别审查？',
+      sentencingAnalysis:'材料记载郑某起次要作用，属于从犯；如实供述、自愿认罪认罚和签字具结是另外的从宽情节。应分别核对其依据，在裁判理由中分别说明相关依据。具体处罚由你综合确定。',
+      boundaryQuestion:'我会分别考虑从犯、初犯、如实供述和认罪认罚。请定位郑某的到案经过，核对材料写的是怎样到案。',
+      boundaryLocate:'到案经过记载郑某于二〇二五年十一月二十九日被民警抓获，另记载其到案后如实供述。请按这些原有表述核对文本。',
+      boundaryAnalysisQuestion:'到案经过记载郑某被民警抓获，之后如实供述。这里能否把如实供述写成自首？',
+      boundaryAnalysis:'仅凭被抓获后如实供述，不能直接表述为自首。本材料记载的是被民警抓获，没有记载自动投案；应保留如实供述这一情节，不自行增加自首认定。',
+      judgeDecision:'我将如实供述作为相应情节，不写成自首。综合违法所得、从犯地位及认罪认罚等情节，我采纳公诉机关量刑建议，确定侵犯著作权罪、有期徒刑八个月，并处罚金人民币九万元。',
+      literalCheck:'按你提供的文本，罪名为侵犯著作权罪，刑期为八个月，罚金为人民币九万元。违法所得另记为八万九千九百八十四元，两项金额分别列示。这是文字核对，不是量刑建议。',
+      reasoningCheck:'复核清单包括：权属与许可、营利性网络传播、违法所得、共同犯罪地位，以及如实供述和认罪认罚的依据。应分别说明这些事项；我不推荐刑期、罚金或生成主文。',
+      recommendationQuestion:'我已核对行为事实、违法所得及从宽情节。请提出定罪量刑建议并拟一份主文草案，我会独立审核，可以修改或拒绝。',
+      recommendation:'我建议认定侵犯著作权罪，结合本案材料中公诉机关的量刑建议，判处有期徒刑八个月，并处罚金人民币九万元。主文草案为：“郑某犯侵犯著作权罪，判处有期徒刑八个月，并处罚金人民币九万元。”违法所得八万九千九百八十四元与罚金分别记载。建议与草案须由你复核。',
+      reviewQuestion:'我会再次核对事实、理由和主文：违法所得与罚金分开列示，到案情节写为被抓获后如实供述。请指出最后需要核对的项目。',
+      reviewLocate:'需要核对八个月刑期、九万元罚金和八万九千九百八十四元违法所得的文字，以及共同犯罪地位、到案经过和认罪认罚段落的位置。最终内容由你确认并签署。',
+      reviewAnalysis:'请核对软件权属、授权状态与传播行为的对应关系，再检查从犯、如实供述和认罪认罚的理由是否分别列明。不得补造电子取证报告，也不要把违法所得与罚金混为同一金额。最终判断和签署由你完成。',
+      final:'我已重新核对案件材料，确认上述事实认定与裁判理由。最终判决：郑某犯侵犯著作权罪，判处有期徒刑八个月，并处罚金人民币九万元。最终文本由我确认并签署。'
+    }
+  };
+  function messagesFor(caseType,condition){
+    const c=cases[caseType];if(!c||!CONDITIONS.includes(condition))throw Error('未知的案例或参与条件。');
+    const assistant=condition==='none'?'clerk':'ai';
+    const analytical=['substantive','decisional'].includes(condition);
+    const openings={
+      none:'本次不使用人工智能。请协助定位和核对材料；证据评价、法律适用、裁判理由与主文由审判团队完成。我们先核对有哪些材料。',
+      procedural:'请先整理本案材料目录。你的任务限于定位材料和流程、文字核对，不评价证据、不解释法律，也不提出裁判建议。',
+      substantive:'请先整理本案材料，再协助分析证据和法律适用。你可以比较解释路径，但不要推荐裁判结果，也不要生成主文。',
+      decisional:'请先整理本案材料，再协助分析证据和法律适用。之后我会请你提出裁判建议和主文草案；我将独立复核，决定是否采纳并完成签署。'
+    };
+    const pairs=[
+      [openings[condition],c.prepare],
+      [analytical?c.factAnalysisQuestion:c.factQuestion,analytical?c.factAnalysis:c.factLocate],
+      [analytical?c.sentencingAnalysisQuestion:c.sentencingQuestion,analytical?c.sentencingAnalysis:c.sentencingLocate],
+      [analytical?c.boundaryAnalysisQuestion:c.boundaryQuestion,analytical?c.boundaryAnalysis:c.boundaryLocate],
+      condition==='decisional'?[c.recommendationQuestion,c.recommendation]:[c.judgeDecision+(condition==='substantive'?'请列出理由的复核清单，不生成主文。':'请按我给定的内容核对文字。'),condition==='substantive'?c.reasoningCheck:c.literalCheck],
+      [c.reviewQuestion+(condition==='decisional'?'我将按核对结果完善裁判理由，系统草案不直接作为最终判决。':''),analytical?c.reviewAnalysis:c.reviewLocate]
+    ];
+    const result=pairs.flatMap(([question,answer],i)=>[{role:'judge',stage:c.topics[i],text:question},{role:assistant,stage:c.topics[i],text:answer}]);
+    result.push({role:'judge',stage:'确认并签署',text:c.final});
+    return result;
+  }
+  return {VERSION,SPEAKERS,messagesFor};
+});

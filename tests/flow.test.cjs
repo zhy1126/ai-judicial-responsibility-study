@@ -17,9 +17,9 @@ async function readCase(page){
  assert.equal(await page.locator('.chat-message').count(),0);
  assert.equal(await page.locator('#judgment-transcript').count(),0);
  assert.equal(await page.locator('#to-decision').isDisabled(),true);
- await page.locator('#playback-toggle').click();await page.clock.runFor(90000);
+ await page.locator('#playback-toggle').click();await page.clock.runFor(120000);
  await page.locator('#transcript-confirm').check();await page.locator('#to-decision').click();
- assert.equal(await page.locator('.chat-message').count(),7,'all played messages remain in chat');
+ assert.equal(await page.locator('.chat-message').count(),13,'all played messages remain in chat');
  assert.ok((await page.locator('#chat-messages').textContent()).length>400);
  await page.locator('#to-survey').click();
 }

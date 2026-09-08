@@ -10,17 +10,14 @@
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
     <meta name="theme-color" content="#12233f" />
-    <title>衡度研究室 · 人机协同裁判调查</title>
+    <title>人机协同裁判与司法责任 · 情境调查</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div id="app-shell">
       <section id="researcher-view" class="view researcher-view hidden" aria-labelledby="researcher-title">
         <aside class="researcher-sidebar">
-          <a class="brand brand-light" href="./?view=researcher" aria-label="衡度研究室首页">
-            <span class="brand-seal" aria-hidden="true">衡</span>
-            <span><strong>衡度研究室</strong><small>实验设计台</small></span>
-          </a>
+          <a class="study-topic study-topic-light" href="./?view=researcher" aria-label="人机协同裁判与司法责任研究首页"><strong>人机协同裁判<br>与司法责任</strong><small>研究设计与预览</small></a>
           <nav class="sidebar-nav" aria-label="研究者页面导航">
             <button class="nav-link active" data-scroll="research-overview"><span>01</span>研究问题</button>
             <button class="nav-link" data-scroll="design-panel"><span>02</span>实验矩阵</button>
@@ -78,7 +75,7 @@
             </div>
             <div class="design-notes">
               <div class="design-note"><span>✓</span><p><strong>为什么保留无 AI 对照？</strong>保留全部由人工处理的基线，与三种AI辅助程度进行比较。</p></div>
-              <div class="design-note"><span>✓</span><p><strong>为什么统一呈现方式？</strong>四种条件共用顺序回放界面，录音补齐后统一使用纯音频；同案保留相同裁判理由，只改变工作分工说明。</p></div>
+              <div class="design-note"><span>✓</span><p><strong>为什么统一呈现方式？</strong>四种条件共用顺序回放界面，录音补齐后统一使用纯音频；同案保留相同核心事实与最终裁判，改变 AI 在对话中的权限和回应。</p></div>
               <div class="design-note"><span>✓</span><p><strong>如何隔离 AI 参与方式？</strong>同一案件类型内保持最终裁判结果与核心事实不变，只改变 AI 在形成过程中的权限和产出。</p></div>
             </div>
           </section>
@@ -142,13 +139,13 @@
             </div>
           </section>
 
-          <footer class="researcher-footer"><span>衡度研究室 · 交互原型 v2.0</span><span>正式收集前需接入服务器、伦理同意与安全存储</span></footer>
+          <footer class="researcher-footer"><span>人机协同裁判与司法责任 · 情境调查</span><span>正式收集前需接入服务器、伦理同意与安全存储</span></footer>
         </main>
       </section>
 
       <section id="participant-view" class="view participant-view hidden" aria-labelledby="participant-title">
         <header class="participant-topbar">
-          <a class="brand" href="./?view=participant" aria-label="衡度研究室参与者首页"><span class="brand-seal">衡</span><span><strong>衡度研究室</strong><small>司法判断体验研究</small></span></a>
+          <a class="study-topic" href="./?view=participant" aria-label="人机协同裁判与司法责任研究首页"><strong>人机协同裁判与司法责任</strong><small>情境调查研究</small></a>
           <div class="topbar-right">
             <span id="session-code" class="session-code">体验编号：待分配</span>
             <a id="researcher-return" class="researcher-return hidden" href="./?view=researcher">返回设计台</a>
@@ -221,8 +218,9 @@
             <section id="screen-replay" class="study-screen replay-screen">
               <div class="screen-kicker"><span class="stage-badge">第 2 部分</span><span class="category-badge">过程记录</span></div>
               <h1>模拟裁判过程回放</h1>
-              <p class="lead">以下以承办法官的第一人称呈现本模拟情境中的工作分工、裁判理由与最终核对。请按顺序完整观看或收听。</p>
+              <p class="lead">以下为模拟审阅中的对话记录，呈现任务提出、回应、追问与最终复核。请按顺序完整观看或收听。</p>
               <p id="playback-source" class="helper-text"></p>
+              <p id="dialogue-update-note" class="helper-text hidden" role="status">裁判对话已更新，请重新完整观看后评价。案卷阅读进度与分组已保留。</p>
               <article class="playback-card chat-window" aria-labelledby="playback-title">
                 <header class="chat-header"><div><span class="chat-seal" aria-hidden="true">审</span><div><strong id="playback-title">模拟审判 · 对话记录</strong><small>案件审阅与裁判理由 · 按顺序回放</small></div></div><span class="chat-record-label">模拟记录</span></header>
                 <audio id="judgment-audio" preload="metadata" class="hidden" aria-label="模拟裁判过程录音"></audio>
@@ -286,7 +284,7 @@
 
             <section id="screen-debrief" class="study-screen debrief-screen">
               <div class="completion-mark">✓</div><p class="eyebrow">COMPLETED</p><h1>感谢您的参与</h1><p class="lead">您的原型回答已经保存在当前浏览器中。</p>
-              <div class="debrief-card"><h2>关于本研究的完整说明</h2><p>本研究随机改变了 <strong>AI 的参与方式</strong> 与 <strong>案例</strong>；非律师另被随机分配到当事人或公众观察视角。律师身份来自背景筛选，并未随机赋予。您看到的过程记录是研究情境，不代表现实法院或任何真实法官的工作记录。研究关注：在同一案例的最终裁判结果保持一致时，仅改变 AI 的参与边界，是否会改变不同社会角色对责任、程序公正、控制感、信任与裁判正当性的判断。</p><p>案件依据研究者提供的材料去标识化改编，过程说明为模拟编写。不同案例的刑期与损害后果并不相同；同一案例在四种参与条件下保留相同裁判结果。合成配音用于统一呈现，不代表真实法官声音。</p></div>
+              <div class="debrief-card"><h2>关于本研究的完整说明</h2><p>本研究随机改变了 <strong>AI 的参与方式</strong> 与 <strong>案例</strong>；非律师另被随机分配到当事人或公众观察视角。律师身份来自背景筛选，并未随机赋予。您看到的对话是预先编写的研究情境，不代表现实法院或任何真实法官的工作记录。研究关注：在同一案例的最终裁判结果保持一致时，仅改变 AI 的参与边界，是否会改变不同社会角色对责任、程序公正、控制感、信任与裁判正当性的判断。</p><p>案件依据研究者提供的材料去标识化改编，法官与 AI 的对话为模拟编写；无 AI 对照为法官与书记员对话。不同案例的刑期与损害后果并不相同；同一案例在四种参与条件下保留相同裁判结果。合成配音用于统一呈现，不代表真实法官声音。</p></div>
               <div class="retain-card"><div><strong>是否同意研究者继续匿名保存并分析您的回答？</strong><small>原型按钮只更新本机记录。</small></div><div><button id="delete-response" class="button button-secondary" type="button">不同意，删除回答</button><button id="retain-response" class="button button-primary" type="button">同意保留</button></div></div>
               <p id="retain-status" class="retain-status" role="status"></p>
               <div class="completion-actions"><button id="download-response" class="button button-secondary" type="button">下载本次回答 JSON</button><a id="finish-link" class="button button-primary hidden" href="./?view=researcher">返回研究设计台</a></div>
@@ -299,6 +297,7 @@
     <div id="toast" class="toast hidden" role="status"></div>
     <script defer src="./study-core.js"></script>
     <script defer src="./study-content.js"></script>
+    <script defer src="./study-dialogue.js"></script>
     <script defer src="./audio-config.js"></script>
     <script defer src="./speech-input.js"></script>
     <script defer src="./study-stream.js"></script>
