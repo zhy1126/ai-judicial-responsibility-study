@@ -222,9 +222,28 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 .playback-card { margin-top:26px; padding:30px; border:1px solid #d9dddf; border-radius:12px; background:#fff; box-shadow:var(--shadow-sm); }
 .playback-card h2 { font-size:24px; }
 .playback-phase { margin:24px 0 14px; color:var(--teal); font-size:14px; font-weight:700; }
-.stream-panel { min-height:210px; padding:20px; background:#f7f7f3; border-left:3px solid var(--teal); }
-#stream-text { font-size:17px; line-height:2; margin:0; font-family:var(--font-serif); }
 #playback-progress { width:100%; height:8px; margin-top:26px; accent-color:var(--teal); }
 .playback-controls { display:flex; flex-wrap:wrap; gap:12px; margin-top:18px; }
 .audio-visual { padding:35px 0; text-align:center; font-size:50px; letter-spacing:8px; color:var(--teal); }
-@media(max-width:760px){.playback-card{padding:22px 18px;}.stream-panel{padding:16px;}.playback-controls .button{flex:1;}.audio-visual{font-size:34px;letter-spacing:4px;}}
+@media(max-width:760px){.playback-card{padding:22px 18px;}.playback-controls .button{flex:1;}.audio-visual{font-size:34px;letter-spacing:4px;}}
+
+/* Restore the original chatbot surface while retaining the current study text. */
+.playback-card.chat-window { padding:0; }
+.chat-window .chat-header { padding:18px 22px; }
+.chat-window .chat-header strong { font-size:16px; }
+.chat-window .chat-header small { margin-top:4px; font-size:12px; }
+.chat-record-label { color:var(--muted); font-size:11px; white-space:nowrap; }
+.chat-window .chat-stream { height:clamp(340px,60vh,600px); overscroll-behavior:contain; scrollbar-gutter:stable; }
+.chat-window .message-meta strong { font-size:13px; }
+.chat-window .message-meta span { font-size:11px; }
+.chat-window .message-bubble { max-width:100%; font-size:16px; line-height:1.85; padding:14px 17px; overflow-wrap:anywhere; }
+.chat-window .message-avatar { width:34px; height:34px; font-size:13px; }
+.chat-window .chat-message { margin-bottom:23px; }
+.chat-empty { padding:100px 16px; color:var(--muted); text-align:center; font-size:14px; }
+.chat-follow { min-height:36px; padding:4px 18px; text-align:right; background:#f3f4f3; }
+.chat-follow .text-button { font-size:12px; }
+.chat-playback-footer { padding:16px 22px 22px; border-top:1px solid var(--line); }
+.chat-playback-footer .playback-phase { margin:0 0 10px; }
+.chat-playback-footer #playback-progress { margin-top:0; }
+.chat-window .audio-visual { margin:0 20px; }
+@media(max-width:760px){.chat-window .chat-header{padding:16px 14px;}.chat-window .chat-header strong{font-size:14px;}.chat-window .chat-header small{font-size:11px;}.chat-record-label{display:none;}.chat-window .chat-stream{padding:18px 12px;height:55vh;min-height:340px;}.chat-window .message-bubble{font-size:15px;padding:12px;}.chat-window .chat-message{grid-template-columns:30px minmax(0,1fr);gap:8px;}.chat-window .message-avatar{width:30px;height:30px;}.chat-playback-footer{padding:15px;}.chat-window .message-meta{flex-wrap:wrap;gap:4px 8px;}}

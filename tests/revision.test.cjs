@@ -48,12 +48,12 @@ function wav(seconds=4){
   await page.locator('#dossier-confirm').uncheck();assert.equal(await page.locator('#to-replay').isDisabled(),true);
   await page.locator('#dossier-confirm').check();await page.locator('#to-replay').click();
   await page.locator('#playback-toggle').click();await page.clock.runFor(1500);
-  assert.ok((await page.locator('#stream-text').innerText()).length>0);
-  await page.locator('#playback-toggle').click();const text=await page.locator('#stream-text').innerText();await page.clock.runFor(90000);
-  assert.equal(await page.locator('#stream-text').innerText(),text);assert.equal(await page.locator('#to-decision').isDisabled(),true);
-  await page.reload();assert.equal(await page.locator('#stream-text').innerText(),text);
+  assert.ok((await page.locator('#chat-messages').innerText()).length>0);
+  await page.locator('#playback-toggle').click();const text=await page.locator('#chat-messages').innerText();await page.clock.runFor(90000);
+  assert.equal(await page.locator('#chat-messages').innerText(),text);assert.equal(await page.locator('#to-decision').isDisabled(),true);
+  await page.reload();assert.equal(await page.locator('#chat-messages').innerText(),text);
   await page.locator('#playback-toggle').click();await page.clock.runFor(90000);await page.locator('#transcript-confirm').check();
-  assert.equal(await page.locator('#to-decision').isDisabled(),false);assert.equal(await page.locator('#stream-text').innerText(),'');
+  assert.equal(await page.locator('#to-decision').isDisabled(),false);assert.equal(await page.locator('.chat-message').count(),7);
   await page.locator('#playback-restart').click();assert.equal(await page.locator('#to-decision').isDisabled(),true);
   await page.clock.runFor(1200);await page.locator('#playback-toggle').click();
   await page.screenshot({path:'../../work/revision-mobile.png',fullPage:true});
@@ -82,7 +82,7 @@ function wav(seconds=4){
     return route.fulfill({status:206,contentType:'audio/wav',headers:{'Accept-Ranges':'bytes','Content-Range':`bytes ${start}-${end}/${body.length}`},body:body.subarray(start,end+1)});
    });
    await startPreview(audioPage,caseType);await readAll(audioPage);
-   assert.equal(await audioPage.locator('#stream-panel').isVisible(),false);assert.equal(await audioPage.locator('#stream-text').innerText(),'');
+   assert.equal(await audioPage.locator('#stream-panel').isVisible(),false);assert.equal(await audioPage.locator('#chat-messages').innerText(),'');
    assert.equal(await audioPage.locator('#judgment-audio').getAttribute('controls'),null,'audio exposes no skip control');
    assert.equal(await audioPage.locator('#transcript-confirm').isDisabled(),true);
    if(fail){await audioPage.locator('#playback-toggle').click();await audioPage.getByText('录音暂时无法播放，请重试。完整收听后才能继续。',{exact:true}).waitFor();assert.equal(await audioPage.locator('#to-decision').isDisabled(),true);fail=false;}
@@ -95,7 +95,7 @@ function wav(seconds=4){
    assert.equal(await audioPage.locator('#judgment-audio').evaluate(a=>a.paused),true,'refresh does not autoplay');
    await audioPage.locator('#playback-toggle').click();await audioPage.locator('#transcript-confirm:not([disabled])').waitFor();
    await audioPage.locator('#transcript-confirm').check();await audioPage.locator('#to-decision').click();await audioPage.locator('#screen-decision.active').waitFor();
-   assert.equal(await audioPage.locator('#stream-text').innerText(),'');
+   assert.equal(await audioPage.locator('#chat-messages').innerText(),'');
    await audioContext.close();
   }
   console.log('Passed: mutual exclusion, degree semantics, scroll/three-confirm gate, reload, pause/restart, v2 migration, audio-only playback, real media resume/completion and missing-audio retry.');

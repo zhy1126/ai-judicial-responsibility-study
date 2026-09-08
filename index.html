@@ -222,16 +222,16 @@
               <div class="screen-kicker"><span class="stage-badge">第 2 部分</span><span class="category-badge">过程记录</span></div>
               <h1>模拟裁判过程回放</h1>
               <p class="lead">以下以承办法官的第一人称呈现本模拟情境中的工作分工、裁判理由与最终核对。请按顺序完整观看或收听。</p>
-              <article class="playback-card" aria-labelledby="playback-title">
-                <header><p class="eyebrow">裁判形成记录</p><h2 id="playback-title">案件审阅与裁判理由</h2></header>
-                <p id="playback-source" class="helper-text"></p>
+              <p id="playback-source" class="helper-text"></p>
+              <article class="playback-card chat-window" aria-labelledby="playback-title">
+                <header class="chat-header"><div><span class="chat-seal" aria-hidden="true">审</span><div><strong id="playback-title">模拟审判 · 对话记录</strong><small>案件审阅与裁判理由 · 按顺序回放</small></div></div><span class="chat-record-label">模拟记录</span></header>
                 <audio id="judgment-audio" preload="metadata" class="hidden" aria-label="模拟裁判过程录音"></audio>
                 <div id="audio-visual" class="audio-visual hidden" aria-hidden="true">▂ ▅ ▃ ▇ ▄ ▆ ▂</div>
-                <p id="playback-phase" class="playback-phase" role="status"></p>
-                <div id="stream-panel" class="stream-panel"><p id="stream-text"></p></div>
+                <div id="stream-panel"><div id="chat-stream" class="chat-stream" role="log" aria-label="裁判过程对话记录" aria-live="off" tabindex="0"><p id="chat-empty" class="chat-empty">点击“开始播放”，对话消息将依次出现。</p><div id="chat-messages"></div></div><div class="chat-follow"><button id="chat-latest" class="text-button hidden" type="button">回到最新消息 ↓</button></div></div>
+                <div class="chat-playback-footer"><p id="playback-phase" class="playback-phase" role="status"></p>
                 <progress id="playback-progress" max="100" value="0" aria-label="裁判过程播放进度"></progress>
                 <p id="audio-status" class="helper-text" role="status"></p>
-                <div class="playback-controls"><button id="playback-toggle" type="button" class="button button-primary">开始播放</button><button id="playback-restart" type="button" class="button button-secondary">从头播放</button></div>
+                <div class="playback-controls"><button id="playback-toggle" type="button" class="button button-primary">开始播放</button><button id="playback-restart" type="button" class="button button-secondary">从头播放</button></div></div>
               </article>
               <label class="check-row read-confirm"><input id="transcript-confirm" type="checkbox" disabled><span id="playback-confirm-label">我已完整观看裁判过程，包括工作分工、裁判理由和最终核对。</span></label>
               <div class="screen-actions"><button class="button button-secondary" type="button" data-back="dossier">返回案卷</button><span id="transcript-error" class="form-error" role="alert"></span><button id="to-decision" class="button button-primary" type="button" disabled>查看最终裁判 <span>→</span></button></div>
