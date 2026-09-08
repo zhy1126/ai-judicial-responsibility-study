@@ -2,12 +2,14 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 let core;
 try { core = require('../study-core.js'); } catch { core = {}; }
-const answers = { practicingLawyer: 'no', licenseActive: null, legalEducation: 'yes', litigationExperience: 'yes' };
+const answers = { practicingLawyer: 'no', licenseActive: null, legalDegree: 'yes', litigationExperience: 'yes' };
 test('only current active practising lawyers receive lawyer role; real history remains separate', () => {
   assert.equal(typeof core.assignParticipant, 'function');
   const a = core.assignParticipant({...answers, practicingLawyer:'yes', licenseActive:'yes'}, {choose:x=>x[0],sessionId:'A'});
   assert.equal(a.role, 'lawyer');
-  assert.equal(a.background.legalEducation, 'yes');
+  assert.equal(a.background.legalDegree, 'yes');
+  assert.equal(a.background.litigationExperience, null);
+  assert.equal(a.background.litigationExperienceStatus, 'not_asked_lawyer_branch');
   const b = core.assignParticipant(answers, {choose:x=>x.at(-1),sessionId:'B'});
   assert.equal(b.role, 'public');
   assert.equal(b.background.litigationExperience, 'yes');
@@ -21,8 +23,20 @@ test('an existing assignment survives reload or repeated submission without new 
 });
 test('unanswered or inconsistent screening cannot create assignment', () => {
   assert.equal(typeof core.assignParticipant, 'function');
-  assert.throws(()=>core.assignParticipant({...answers,legalEducation:null},{sessionId:'A'}));
+  assert.throws(()=>core.assignParticipant({...answers,legalDegree:null},{sessionId:'A'}));
   assert.throws(()=>core.assignParticipant({...answers,practicingLawyer:'yes',licenseActive:null},{sessionId:'A'}));
+});
+test('lawyer branch skips litigation history; switching to a non-lawyer requires it',()=>{
+  assert.equal(core.assignParticipant({...answers,practicingLawyer:'yes',licenseActive:'yes',litigationExperience:null},{choose:x=>x[0],sessionId:'A'}).role,'lawyer');
+  assert.throws(()=>core.assignParticipant({...answers,litigationExperience:null},{sessionId:'B'}));
+  assert.throws(()=>core.assignParticipant({...answers,legalDegree:undefined,legalEducation:'yes'},{sessionId:'C'}),'old education does not imply a degree');
+});
+test('reading requires each distinct section to reach its end and be confirmed',()=>{
+  const complete={overview:{reachedEnd:true,confirmed:true},evidence:{reachedEnd:true,confirmed:true},task:{reachedEnd:true,confirmed:true}};
+  assert.equal(core.readingComplete(complete),true);
+  assert.equal(core.readingComplete({...complete,evidence:{reachedEnd:false,confirmed:true}}),false);
+  assert.equal(core.readingComplete({...complete,task:{reachedEnd:true,confirmed:false}}),false);
+  assert.equal(core.readingComplete(['overview','evidence','task']),false,'old tab visits are not completed reading');
 });
 test('no-AI omits inapplicable technical actors and the system is distinct from its provider',()=>{
   assert.equal(typeof core.subjectsFor, 'function');

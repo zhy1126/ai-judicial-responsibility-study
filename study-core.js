@@ -5,7 +5,8 @@
   else root.StudyCore = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const VERSION = '2.0.0';
+  const VERSION = '2.1.0';
+  const DOSSIER_TABS = ['overview','evidence','task'];
   const ROLES = ['lawyer', 'litigant', 'public'];
   const CONDITIONS = ['none', 'procedural', 'substantive', 'decisional'];
   const CASE_TYPES = ['natural', 'statutory'];
@@ -23,17 +24,21 @@
     return items[bytes[0] % items.length];
   }
   function validAssignment(a) {
-    return Boolean(a && a.version === VERSION && a.sessionId && ROLES.includes(a.role) && CONDITIONS.includes(a.condition) && CASE_TYPES.includes(a.caseType) && a.background);
+    return Boolean(a && [VERSION,'2.0.0'].includes(a.version) && a.sessionId && ROLES.includes(a.role) && CONDITIONS.includes(a.condition) && CASE_TYPES.includes(a.caseType) && a.background);
   }
   function assignParticipant(background, options = {}) {
     if (validAssignment(options.existing)) return options.existing;
     const yesNo = value => value === 'yes' || value === 'no';
-    if (!background || !['practicingLawyer','legalEducation','litigationExperience'].every(k => yesNo(background[k])) || (background.practicingLawyer === 'yes' && !yesNo(background.licenseActive))) {
+    if (!background || !['practicingLawyer','legalDegree'].every(k => yesNo(background[k])) || (background.practicingLawyer === 'yes' ? !yesNo(background.licenseActive) : !yesNo(background.litigationExperience))) {
       throw new Error('请完成所有背景是非题。');
     }
     if (!options.sessionId) throw new Error('缺少体验编号。');
     const draw = options.choose || choose;
-    const facts = {...background, licenseActive: background.practicingLawyer === 'yes' ? background.licenseActive : null};
+    const lawyerBranch = background.practicingLawyer === 'yes';
+    const facts = {practicingLawyer:background.practicingLawyer, legalDegree:background.legalDegree,
+      licenseActive:lawyerBranch ? background.licenseActive : null,
+      litigationExperience:lawyerBranch ? null : background.litigationExperience,
+      litigationExperienceStatus:lawyerBranch ? 'not_asked_lawyer_branch' : 'answered'};
     const lawyer = facts.practicingLawyer === 'yes' && facts.licenseActive === 'yes';
     const preview = options.preview;
     return {
@@ -46,6 +51,7 @@
     };
   }
   function subjectsFor(condition) { return SUBJECTS.filter(x => condition !== 'none' || ['judge','court'].includes(x.id)); }
+  function readingComplete(progress) { return DOSSIER_TABS.every(tab=>progress?.[tab]?.reachedEnd === true && progress[tab].confirmed === true); }
   function validRanking(ids, condition) {
     const expected = subjectsFor(condition).map(x=>x.id);
     return Array.isArray(ids) && ids.length === expected.length && new Set(ids).size === expected.length && ids.every(id=>expected.includes(id));
@@ -61,5 +67,5 @@
     if (!/^[1-7]$/.test(String(raw))) throw new Error('请完成所有适用的感受题。');
     return {value:Number(raw),status:'answered'};
   }
-  return {VERSION,ROLES,CONDITIONS,CASE_TYPES,SCALE,SUBJECTS,choose,shuffle,validAssignment,assignParticipant,subjectsFor,validRanking,ratingValue};
+  return {VERSION,DOSSIER_TABS,ROLES,CONDITIONS,CASE_TYPES,SCALE,SUBJECTS,choose,shuffle,validAssignment,assignParticipant,readingComplete,subjectsFor,validRanking,ratingValue};
 });
