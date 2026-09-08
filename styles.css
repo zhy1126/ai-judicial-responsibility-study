@@ -265,3 +265,5 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 .chat-window .chat-message.ai .message-avatar { font-size:11px; }
 @media(max-width:1020px) and (min-width:761px){.researcher-sidebar .study-topic strong{font-size:12px;overflow-wrap:anywhere;}.researcher-sidebar .study-topic small{font-size:10px;}}
 @media(max-width:760px){.participant-topbar{height:auto;min-height:72px;padding:14px 17px;gap:12px;}.study-topic strong{font-size:15px;}.study-topic small{font-size:11px;}.researcher-return{white-space:nowrap;}.chat-window .chat-message.judge{grid-template-columns:minmax(0,1fr) 30px;padding-left:12px;}.chat-window .chat-message.ai,.chat-window .chat-message.clerk{padding-right:12px;}}
+
+.case-progress{display:flex;flex-direction:column;gap:7px;margin:0 0 28px;padding:16px 20px;border-left:4px solid #178278;border-radius:8px;background:#e9f3f1;color:#183d39}.case-progress strong{font-size:17px}.case-progress span{font-size:14px;line-height:1.6}.case-progress.hidden{display:none}

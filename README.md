@@ -2,7 +2,15 @@
 
 供研究合作者审阅和预测试使用的静态交互原型。v2.1 在原有四种 AI 参与条件上调整筛选、案例材料、审阅呈现及问卷。没有新增正式采集后台。
 
-## 本次修改
+## 每人两个案件
+
+每个参与者需要依次完成故意伤害和侵犯著作权两个案件，每案各自完成三栏阅读、完整裁判对话回放和评价。背景只问一次，观察视角及 AI 条件全程不变，随机决定两案先后。预览参数 case 选择的是第一案，之后自动进入另一案。第一案完成后显示过渡页，第二案完成后才出现完整事后说明。
+
+当前会话协议为 `two-cases-2026-09-08-v1`。一个体验编号对应一个会话记录，`responses` 按 `caseOrder` 保存两份独立回答；仅完成一案时 `completed:false`。第一案已提交但第二案未开始、第二案中途和两案完成后均可刷新续做。第二案的阅读确认、回放、排序、量表和语音元数据重新开始。旧单案已完成进度会提示继续另一案，原答卷原样保留，标记 `migratedFrom:single_case`；原有单案记录在提交第二案时合入两案记录。已删除的会话保持删除。
+
+CSV 每案一行，共享 `session_id`，增加 `study_protocol`、`case_number`、`case_order`、`study_completed` 和 `migrated_from`。旧单案明确标记，不计入两案完成人数。JSON 下载、最终保留选择及删除操作针对整次会话。设计台评分统计按已保存的案件回答计算，包含未完成两案的记录；两案完成人数单独统计。
+
+## 其他修改
 
 - 用是非题识别当前有效执业的律师；非律师以 1∶1 概率分配到当事人或公众**模拟观察视角**。第三题记录是否已取得法学相关学位；律师分支不显示诉讼经历题并记为未询问，非律师的真实诉讼经历另行记录。律师身份不是随机变量。
 - 保留无 AI、程序性、实质性、决定性四种参与方式。共用同一顺序回放组件，展示法官提出任务、AI 回应、法官追问与复核的实际多轮对话；无 AI 条件为法官与书记员对话。录音准备期间在 chatbot 对话框内逐字呈现，保留已播放的消息气泡，可向上回看；八份录音配置齐全后统一切换纯音频，不再显示文字。支持暂停、继续和从头播放，完整播放并确认后才能继续。
@@ -26,9 +34,11 @@
 
 正式流程原型的未完成会话保存在本机 localStorage，刷新继续原分组和答案；预览进度使用各标签页的 sessionStorage。一个浏览器的正式流程原型默认对应同一个会话；新被试应使用独立浏览器环境。设计台的清空按钮会使其他打开页面的旧进度失效。
 
-本轮新增 `dialogueVersion:dialogue-2026-09-08-v1`，新呈现方式为 `judge_ai_dialogue` / `judge_clerk_dialogue`。此前独白与新对话不能混作同一刺激材料。旧版未完成会话保留原分组与已确认案卷，清除旧回放位置及未提交评价后重新观看；已提交记录不重写。
+对话内容版本为 `dialogueVersion:dialogue-2026-09-08-v1`，新呈现方式为 `judge_ai_dialogue` / `judge_clerk_dialogue`。此前独白与新对话不能混作同一刺激材料。旧版未完成会话保留原分组与已确认案卷，清除旧回放位置及未提交评价后重新观看；已提交的单案内容原样保存。
 
-旧版记录使用原存储键保留，新记录标记 `version:2.1.0` 与 `caseVersion:cases-2026-09-07`。v2.0 未完成进度沿用原体验编号和分组，但需重新完成三栏阅读与顺序回放。旧 `legalEducation` 不转换为新 `legalDegree`；`screeningVersion` 保留分组时的问卷版本，已提交记录不重写。CSV 导出包含呈现方式、分栏阅读进度、真实背景、分配方式、完整排序、量表及状态、开放题、音频和输入方式元数据。JSON 下载保留完整结构。旧版法定犯是虚构数据处置案，与本版著作权案不能混为同一材料版本；新旧指标也应分版本分析。
+旧版记录使用原存储键保留，单案回答保留 `version:2.1.0` 与 `caseVersion:cases-2026-09-07`，两案会话另带上述协议标识。v2.0 未完成进度沿用原体验编号和分组，但需重新完成三栏阅读与顺序回放。旧 `legalEducation` 不转换为新 `legalDegree`；`screeningVersion` 保留分组时的问卷版本，已提交的单案内容原样保存。CSV 导出包含呈现方式、分栏阅读进度、真实背景、分配方式、完整排序、量表及状态、开放题、音频和输入方式元数据。JSON 下载保留完整结构。旧版法定犯是虚构数据处置案，与本版著作权案不能混为同一材料版本；新旧指标也应分版本分析。
+
+流程升级会一次性迁移已保存草稿，并让已打开的旧单案页面失去写入权限；旧页面需刷新后继续。两案间还按案件序号保护新进度，停留在第一案的旧标签页不能覆盖第二案草稿。
 
 删除回答会清除答案并写入只含会话标识的删除标记，避免其他旧页面重新保存已删除回答。清空操作通过共享版本标记使已打开的预览进度失效。
 
@@ -49,7 +59,7 @@
 运行规则及语音行为测试：
 
 ```sh
-node --test tests/study-core.test.cjs tests/speech-input.test.cjs tests/study-stream.test.cjs tests/study-dialogue.test.cjs
+node --test tests/study-core.test.cjs tests/study-session.test.cjs tests/speech-input.test.cjs tests/study-stream.test.cjs tests/study-dialogue.test.cjs
 node scripts/build.mjs
 ```
 
@@ -60,8 +70,11 @@ node tests/flow.test.cjs
 node tests/revision.test.cjs
 node tests/chatbot.test.cjs
 node tests/dialogue-migration.test.cjs
+node tests/two-case-session.test.cjs
+node tests/two-case-storage.test.cjs
+node tests/two-case-upgrade.test.cjs
 ```
 
-通过 `PLAYWRIGHT_PATH` 指向已有 Playwright 包，`STUDY_TEST_URL` 可覆盖本机服务地址。浏览器测试覆盖24条完整预览路径、手机宽度、刷新、删除、清空、手动输入兜底及旧记录导出。
+通过 `PLAYWRIGHT_PATH` 指向已有 Playwright 包，`STUDY_TEST_URL` 可覆盖本机服务地址。浏览器测试覆盖24条完整两案预览路径（48份案件评价）、手机宽度、刷新、删除、清空、手动输入兜底及旧记录导出。
 
 构建产物为 `_site/`，仅包含网页脚本、样式和已有录音，不包含测试、配音文字及内部说明。已有 GitHub Actions 在 main 更新后先运行规则测试，再构建和发布至 GitHub Pages。
