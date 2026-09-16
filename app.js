@@ -8,7 +8,7 @@ const CORE = window.StudyCore;
 const CASES = window.StudyContent.cases;
 const NARRATION = window.StudyNarration;
 const CONSENT_VERSION = "research-use-2026-09-16";
-const PRESENTATION_PROTOCOL = "narration-role-2026-09-16-v1";
+const PRESENTATION_PROTOCOL = "case-role-broll-2026-09-16-v3";
 const SESSION = window.StudySession;
 const LABELS = {
   roles: {lawyer:'律师专业视角',litigant:'当事人视角',public:'公众视角'},
@@ -246,7 +246,15 @@ function restoreDraft(){
     if(state.deleted)state.ranking=CORE.subjectsFor(state.condition).map(x=>x.id);
     else if(!CORE.validRanking(state.ranking,state.condition)){state.ranking=CORE.shuffle(CORE.subjectsFor(state.condition).map(x=>x.id));state.rankingInitial=[...state.ranking];state.formValues.rankingConfirm=false;}
     if(draft.version!==CORE.VERSION&&!state.response){state.step='dossier';state.audio={status:'not_supplied',started:false,completed:false,maxPositionSeconds:0};}
-    initializeAssignedUI();qs('#transcript-confirm').checked=state.replay.completed&&Boolean(draft.transcriptConfirmed);updatePlaybackGate();
+    // New role/case footage requires a fresh unsubmitted trial, while preserving assignment and submitted answers.
+    const mediaChanged=!state.response&&state.orientation[state.caseType]?.version!==window.STUDY_ROLE_MEDIA?.version;
+    if(mediaChanged){
+      state.reading={};state.activeDossierTab='overview';state.formValues={};state.speechMetadata=null;
+      state.replay={mode:null,version:'previous_role_media',completed:false};
+      state.audio={status:'not_supplied',started:false,completed:false,maxPositionSeconds:0};
+      state.step='dossier';
+    }
+    initializeAssignedUI();qs('#transcript-confirm').checked=!mediaChanged&&state.replay.completed&&Boolean(draft.transcriptConfirmed);updatePlaybackGate();
     if(!state.response){
       if(!CORE.readingComplete(state.reading))state.step='dossier';
       else if((!state.replay.completed||!qs('#transcript-confirm').checked)&&['decision','survey'].includes(state.step))state.step='replay';
@@ -518,9 +526,10 @@ function orientation(){
  if(!old||old.version!==version)state.orientation[state.caseType]={version,visibleMs:0,completed:false,videoCompleted:false,videoMax:0};
  return state.orientation[state.caseType];
 }
-function roleMediaReady(){return CORE.ROLES.every(role=>{try{const asset=window.STUDY_ROLE_MEDIA?.[role];return asset?.src&&new URL(asset.src,location.href).origin===location.origin;}catch{return false;}});}
+function roleMediaReady(){return CORE.CASE_TYPES.every(caseType=>CORE.ROLES.every(role=>{try{const asset=window.STUDY_ROLE_MEDIA?.cases?.[caseType]?.[role];return asset?.src&&new URL(asset.src,location.href).origin===location.origin;}catch{return false;}}));}
 function setupOrientation(){
  const dialog=qs('#role-dialog'),video=qs('#role-video');
+ for(const event of ['play','pause','ended'])video.addEventListener(event,()=>{qs('#role-video-play').textContent=video.ended?'重新观看':video.paused?(video.currentTime?'继续播放':'播放情境短片'):'暂停播放';});
  dialog.addEventListener('cancel',e=>e.preventDefault());
  qs('#role-video-play').addEventListener('click',async()=>{
   if(!video.paused){video.pause();qs('#role-video-play').textContent='继续播放';return;}
@@ -549,7 +558,7 @@ function openOrientation(){
  qs('#role-title').textContent=LABELS.roles[state.role];qs('#role-description').textContent=NARRATION.rolePrompt(state.role,state.caseType);
  qs('#updated-consent').classList.toggle('hidden',Boolean(state.consent));
  qs('#role-video-panel').classList.toggle('hidden',!roleMediaReady());
- if(roleMediaReady()){const media=window.STUDY_ROLE_MEDIA[state.role];video.src=media.src;video.poster=media.poster;video.load();}
+ if(roleMediaReady()){const media=window.STUDY_ROLE_MEDIA.cases[state.caseType][state.role];video.src=media.src;video.poster=media.poster;qs('#role-video-play').textContent='播放情境短片';video.load();}
  updateOrientation();if(!dialog.open)dialog.showModal();exposureTick=performance.now();
 }
 function tickExposure(){
