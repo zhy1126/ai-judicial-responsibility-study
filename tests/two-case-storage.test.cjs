@@ -3,7 +3,7 @@ const base=process.env.STUDY_TEST_URL||'http://127.0.0.1:8765',draftKey='judicia
 (async()=>{const browser=await chromium.launch({headless:true});try{
  const context=await browser.newContext(),firstTab=await context.newPage();await firstTab.goto(base+'/?view=participant');
  const seeded=await firstTab.evaluate(({draftKey,recordsKey})=>{
-  const assignment=StudyCore.assignParticipant({practicingLawyer:'yes',licenseActive:'yes',legalDegree:'yes'},{choose:x=>x[0],sessionId:'TABS'}),response={...assignment,caseType:assignment.caseType,openResponse:'原始首案回答',submittedAt:'2026-09-08T00:00:00Z'};
+  const assignment=StudyCore.assignParticipant({legalIndustry:'yes',legalOccupation:'lawyer',practicingLawyer:'yes',licenseActive:'yes',legalDegree:'yes'},{choose:x=>x[0],sessionId:'TABS'}),response={...assignment,caseType:assignment.caseType,openResponse:'原始首案回答',submittedAt:'2026-09-08T00:00:00Z'};
   const session=StudySession.submit(StudySession.create(assignment),response,assignment),draft={version:'2.1.0',epoch:localStorage.getItem('judicial_ai_responsibility_reset_epoch_v2')||'',assignment,session,step:'between',ranking:['judge','court'],rankingInitial:['judge','court'],response};localStorage.setItem(draftKey,JSON.stringify(draft));localStorage.setItem(recordsKey,JSON.stringify([StudySession.record(session,assignment)]));return {assignment,response,draft};
  },{draftKey,recordsKey});await firstTab.reload();await firstTab.locator('#screen-between.active').waitFor();
  const secondTab=await context.newPage();await secondTab.goto(base+'/?view=participant');await secondTab.locator('#next-case').click();

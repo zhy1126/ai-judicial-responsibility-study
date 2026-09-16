@@ -8,7 +8,7 @@ const CORE = window.StudyCore;
 const CASES = window.StudyContent.cases;
 const NARRATION = window.StudyNarration;
 const CONSENT_VERSION = "research-use-2026-09-16";
-const PRESENTATION_PROTOCOL = "judge-screening-disclosure-2026-09-16-v1";
+const PRESENTATION_PROTOCOL = "legal-industry-screening-2026-09-16-v2";
 const SESSION = window.StudySession;
 const LABELS = {
   roles: {judge:'法官专业视角',lawyer:'律师专业视角',litigant:'当事人视角',public:'公众视角'},
@@ -102,10 +102,10 @@ function setupParticipant(){
   if(state.preview){
     qs('#preview-banner').classList.remove('hidden');qs('#researcher-return').classList.remove('hidden');qs('#finish-link').classList.remove('hidden');
     qs('#preview-condition-label').textContent=`${LABELS.roles[state.role]} · ${LABELS.conditions[state.condition]} · ${LABELS.cases[state.caseType]}`;
-    for(const [name,value] of Object.entries({judgeCaseExperience:state.role==='judge'?'yes':'no',practicingLawyer:state.role==='lawyer'?'yes':'no',legalDegree:['lawyer','judge'].includes(state.role)?'yes':'no',litigationExperience:state.role==='litigant'?'yes':'no'}))qs(`input[name="${name}"][value="${value}"]`).checked=true;
+    for(const [name,value] of Object.entries({legalIndustry:['lawyer','judge'].includes(state.role)?'yes':'no',legalOccupation:state.role==='lawyer'?'lawyer':'judge',judgeCaseExperience:state.role==='judge'?'yes':'no',legalDegree:['lawyer','judge'].includes(state.role)?'yes':'no',litigationExperience:state.role==='litigant'?'yes':'no'}))qs(`input[name="${name}"][value="${value}"]`).checked=true;
     qs('#screening-note').textContent='预览使用示例背景，按设计台选定的视角和条件呈现，不代表真实参与者。';
   }
-  qsa('input[name="practicingLawyer"],input[name="judgeCaseExperience"]').forEach(el=>el.addEventListener('change',updateScreening));updateScreening();
+  qsa('.screening-section input[type="radio"]').forEach(el=>el.addEventListener('change',updateScreening));updateScreening();
   qs('#start-study').addEventListener('click',startStudy);
   qsa('.dossier-tabs button').forEach(button=>button.addEventListener('click',()=>showDossierTab(button.dataset.tab)));
   qs('#to-replay').addEventListener('click',beginReplay);
@@ -184,12 +184,19 @@ function renderCaseProgress(){
   if(state.preview)qs('#preview-condition-label').textContent=`${LABELS.roles[state.role]} · ${LABELS.conditions[state.condition]} · 第 ${session.caseIndex+1} 案：${LABELS.cases[state.caseType]}`;
 }
 function updateScreening(){
- const nonLawyer=qs('input[name="practicingLawyer"]:checked')?.value==='no';
- qs('#judge-question').classList.toggle('hidden',!nonLawyer);
- qsa('input[name="judgeCaseExperience"]').forEach(el=>{el.disabled=!nonLawyer;if(!nonLawyer)el.checked=false;});
- const lay=nonLawyer&&qs('input[name="judgeCaseExperience"]:checked')?.value==='no';
- qs('#litigation-question').classList.toggle('hidden',!lay);
- qsa('input[name="litigationExperience"]').forEach(el=>{el.disabled=!lay;if(!lay)el.checked=false;});
+ const selected=name=>qs(`input[name="${name}"]:checked`)?.value;
+ const toggle=(id,name,visible)=>{
+   qs(id).classList.toggle('hidden',!visible);
+   qsa(`input[name="${name}"]`).forEach(el=>{el.disabled=!visible;if(!visible){if(el.type==='radio')el.checked=false;else el.value='';}});
+ };
+ const industry=selected('legalIndustry');
+ toggle('#occupation-question','legalOccupation',industry==='yes');
+ const occupation=selected('legalOccupation');
+ toggle('#occupation-detail-question','legalOccupationDetail',industry==='yes'&&occupation==='other');
+ toggle('#occupation-other-field','legalOccupationOther',selected('legalOccupationDetail')==='other');
+ const nonLawyer=industry==='no'||(industry==='yes'&&['judge','other'].includes(occupation));
+ toggle('#judge-question','judgeCaseExperience',nonLawyer);
+ toggle('#litigation-question','litigationExperience',nonLawyer&&selected('judgeCaseExperience')==='no');
  if(!state.preview)qs('#screening-note').textContent='';
 }
 
@@ -197,7 +204,8 @@ function startStudy(){
   qs('#intro-error').textContent='';
   if(draftBlocked){qs('#intro-error').textContent='已有进度无法读取，请联系研究者处理后再继续。';return;}
   if(!qs('#consent-checkbox').checked){qs('#intro-error').textContent='请先确认同意参加。';return;}
-  const background=Object.fromEntries(['practicingLawyer','judgeCaseExperience','legalDegree','litigationExperience'].map(name=>[name,qs(`input[name="${name}"]:checked`)?.value||null]));
+  const background=Object.fromEntries(['legalIndustry','legalOccupation','legalOccupationDetail','judgeCaseExperience','legalDegree','litigationExperience'].map(name=>[name,qs(`input[name="${name}"]:checked`)?.value||null]));
+  background.legalOccupationOther=qs('input[name="legalOccupationOther"]').value;
   try{
     if(!currentEpoch()){qs('#intro-error').textContent='研究者已清空测试数据，请刷新页面后开始新的体验。';return;}
     // Re-read before assigning so another tab's existing assignment is not rerandomized.
@@ -215,7 +223,7 @@ function startStudy(){
     state.step='dossier';
     draftStorage().setItem(draftKey,JSON.stringify(snapshot()));
     initializeAssignedUI();setStep('dossier');
-  }catch(error){state.step='intro';qs('#intro-error').textContent=error.message==='请完成所有背景是非题。'?error.message:'无法保存本次分组，请允许浏览器保存本机数据后再试。';}
+  }catch(error){state.step='intro';qs('#intro-error').textContent=error.message==='请完成所有背景问题。'?error.message:'无法保存本次分组，请允许浏览器保存本机数据后再试。';}
 }
 function initializeAssignedUI(){
   initializingUI=true;
@@ -252,9 +260,9 @@ function restoreDraft(){
     if(state.response)state.step=SESSION.complete(state.session)?'debrief':'between';
     if(!state.preview&&!state.session.responses.length&&state.assignment.screeningVersion!==CORE.SCREENING_VERSION){
       state.needsRescreen=true;state.step='intro';
-      for(const name of ['practicingLawyer','legalDegree','litigationExperience']){const value=state.assignment.background[name];const input=qs(`input[name="${name}"][value="${value}"]`);if(input)input.checked=true;}
+      for(const name of ['legalIndustry','legalOccupation','legalOccupationDetail','judgeCaseExperience','legalDegree','litigationExperience']){const value=state.assignment.background[name];const input=qs(`input[name="${name}"][value="${value}"]`);if(input)input.checked=true;}
       updateScreening();qs('#consent-checkbox').checked=Boolean(state.consent);
-      qs('#intro-error').textContent='背景题已补充法官办案经历，请核对后继续。原案件顺序和 AI 条件将保留。';
+      qs('#intro-error').textContent='背景题已更新，请先确认法律相关从业情况，再核对其余问题。原案件顺序和 AI 条件将保留。';
       setStep('intro',false);return;
     }
     // Preserve a randomized display order, never reinterpret an old ranking as scores.
@@ -550,8 +558,8 @@ function renderRecords(){
 }
 function exportCsv(){
   let records;try{records=readRecords();}catch{return toast('已有记录无法读取，未作覆盖。');}if(!records.length)return toast('当前没有可导出的记录');
-  const header=['session_id','study_protocol','case_number','case_order','study_completed','migrated_from','version','case_version','dialogue_version','narration_version','condition_line','consent','orientation','preview','role','role_assignment','background_group','judge_case_experience','judge_case_experience_status','practicing_lawyer','license_active','legal_education','legal_degree','litigation_experience','litigation_experience_status','screening_version','reading_progress','condition','case_type','presentation','replay_completed','replay_exposure_ms','ranking_status','ranking_ids','ranking_labels','ranking_initial','responsibility_measure','responsibility_order',...CORE.SUBJECTS.map(s=>'responsibility_score_'+s.id),...CORE.SUBJECTS.map(s=>'responsibility_allocation_'+s.id),'responsibility_allocation_total',...RATINGS.flatMap(([k])=>[k,k+'_status']),'manipulation_check','final_signer','involvement','open_response','speech_metadata','audio_metadata','retained','submitted_at'];
-  const rows=SESSION.rows(records).map(r=>[r.sessionId,r.studyProtocol,r.caseNumber,JSON.stringify(r.caseOrder),r.studyCompleted,r.migratedFrom,r.version||'1',r.caseVersion||'legacy',r.dialogueVersion||'',r.narrationVersion||'',r.conditionLine||'',JSON.stringify(r.consent||null),JSON.stringify(r.orientation||null),r.preview,r.role,r.roleAssignment||'self_selected',r.backgroundGroup||r.assignment?.backgroundGroup||'',r.background?.judgeCaseExperience,r.background?.judgeCaseExperienceStatus,r.background?.practicingLawyer,r.background?.licenseActive,r.background?.legalEducation,r.background?.legalDegree,r.background?.litigationExperience,r.background?.litigationExperienceStatus,r.screeningVersion||r.assignment?.version,JSON.stringify(r.reading||null),r.condition,r.caseType,r.presentation,r.replayCompleted,r.replayExposureMs,r.rankingStatus||(r.responsibilityMeasure?'not_collected':'legacy'),JSON.stringify(r.rankingIds||[]),JSON.stringify(r.ranking||[]),JSON.stringify(r.rankingInitial||[]),r.responsibilityMeasure||'ranking_legacy',JSON.stringify(r.responsibilityOrder||[]),...CORE.SUBJECTS.map(s=>r.responsibilityScores?.[s.id]??''),...CORE.SUBJECTS.map(s=>r.responsibilityAllocation?.[s.id]??''),r.responsibilityAllocationTotal??'',...RATINGS.flatMap(([k])=>[r.ratings?.[k],r.ratingStatus?.[k]||'legacy']),r.manipulationCheck,r.finalSigner,r.involvement??'',r.openResponse,JSON.stringify(r.speech||null),JSON.stringify(r.audio||null),r.retained,r.submittedAt]);
+  const header=['session_id','study_protocol','case_number','case_order','study_completed','migrated_from','version','case_version','dialogue_version','narration_version','condition_line','consent','orientation','preview','role','role_assignment','background_group','legal_industry','legal_occupation','legal_occupation_detail','legal_occupation_other','judge_case_experience','judge_case_experience_status','practicing_lawyer','license_active','legal_education','legal_degree','litigation_experience','litigation_experience_status','screening_version','reading_progress','condition','case_type','presentation','replay_completed','replay_exposure_ms','ranking_status','ranking_ids','ranking_labels','ranking_initial','responsibility_measure','responsibility_order',...CORE.SUBJECTS.map(s=>'responsibility_score_'+s.id),...CORE.SUBJECTS.map(s=>'responsibility_allocation_'+s.id),'responsibility_allocation_total',...RATINGS.flatMap(([k])=>[k,k+'_status']),'manipulation_check','final_signer','involvement','open_response','speech_metadata','audio_metadata','retained','submitted_at'];
+  const rows=SESSION.rows(records).map(r=>[r.sessionId,r.studyProtocol,r.caseNumber,JSON.stringify(r.caseOrder),r.studyCompleted,r.migratedFrom,r.version||'1',r.caseVersion||'legacy',r.dialogueVersion||'',r.narrationVersion||'',r.conditionLine||'',JSON.stringify(r.consent||null),JSON.stringify(r.orientation||null),r.preview,r.role,r.roleAssignment||'self_selected',r.backgroundGroup||r.assignment?.backgroundGroup||'',r.background?.legalIndustry,r.background?.legalOccupation,r.background?.legalOccupationDetail,r.background?.legalOccupationOther,r.background?.judgeCaseExperience,r.background?.judgeCaseExperienceStatus,r.background?.practicingLawyer,r.background?.licenseActive,r.background?.legalEducation,r.background?.legalDegree,r.background?.litigationExperience,r.background?.litigationExperienceStatus,r.screeningVersion||r.assignment?.version,JSON.stringify(r.reading||null),r.condition,r.caseType,r.presentation,r.replayCompleted,r.replayExposureMs,r.rankingStatus||(r.responsibilityMeasure?'not_collected':'legacy'),JSON.stringify(r.rankingIds||[]),JSON.stringify(r.ranking||[]),JSON.stringify(r.rankingInitial||[]),r.responsibilityMeasure||'ranking_legacy',JSON.stringify(r.responsibilityOrder||[]),...CORE.SUBJECTS.map(s=>r.responsibilityScores?.[s.id]??''),...CORE.SUBJECTS.map(s=>r.responsibilityAllocation?.[s.id]??''),r.responsibilityAllocationTotal??'',...RATINGS.flatMap(([k])=>[r.ratings?.[k],r.ratingStatus?.[k]||'legacy']),r.manipulationCheck,r.finalSigner,r.involvement??'',r.openResponse,JSON.stringify(r.speech||null),JSON.stringify(r.audio||null),r.retained,r.submittedAt]);
   downloadBlob([header,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n'),'judicial-ai-prototype.csv','text/csv;charset=utf-8');
 }
 function valid(value,choices,fallback){return choices.includes(value)?value:fallback;}
