@@ -29,7 +29,7 @@
 
 案例来自研究者提供的两份 Word。原件不上传仓库；展示为去标识化摘要。法官陈述是依据案例编写的研究材料，不是真实法官的工作记录或原声。
 
-`study-narration.js` 是两份共用正文的来源，版本 `shared-narration-2026-09-16-v1`。`audio/shared-scripts/` 提供对应 TXT。音频仅按案件配置：natural 与 statutory。两案均配置同源音频且版本匹配后统一启用播放器，始终保留辅助文字。录音尚未提供。详见 [配音接入说明](docs/audio-handoff.md)。
+`study-narration.js` 是两份共用正文的来源，版本 `shared-narration-2026-09-16-v2`。正文已按研究者提供的0916版Word原文及分段更新（故意伤害5段，侵犯著作权6段）。`audio/shared-scripts/` 提供对应 TXT。音频仅按案件配置：natural 与 statutory。两案均配置同源音频且版本匹配后统一启用播放器，始终保留辅助文字。录音尚未提供。详见 [配音接入说明](docs/audio-handoff.md)。
 
 `role-media.js` 按 `cases[caseType][role]` 声明六个 18 秒视频，版本 `case-role-broll-2026-09-16-v5`。当事人以第一人称看见医院等候、案件材料、民事赔偿沟通或游戏传播及案中物品。所有画面不包含凶器、冲突动作、受伤、患者或遗体，游戏屏幕只用风景。字幕采用自然短句及明确指定的简体中文字体（PingFang SC），可编辑文本见 `docs/video-subtitles-v5.json`。字幕依据原案事实，场景、人物及屏幕细节为示意重构；不提前呈现判决或预设情绪。画面由内置图像生成工具制作，采用缓慢运镜，这不是人物动态表演。优化视频与封面位于 `video/`；旧 v2 文件仅用于兼容旧页面。详见 [分镜说明](docs/case-role-broll.md)。
 

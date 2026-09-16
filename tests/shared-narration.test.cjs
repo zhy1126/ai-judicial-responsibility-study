@@ -1,8 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const N=require('../study-narration.js');
+const revised=require('./fixtures/narration-0916.json');
 test('each case has one unchanged first-person narrative for all AI conditions',()=>{
  for(const caseType of ['natural','statutory']){
-  const text=N.paragraphsFor(caseType);assert.equal(text.length,5);assert.ok(text.every(p=>typeof p==='string'&&p.length>20));
+  const text=N.paragraphsFor(caseType);assert.deepEqual(text,revised[caseType]);assert.ok(text.every(p=>typeof p==='string'&&p.length>20));
+  assert.equal(fs.readFileSync(require.resolve('../audio/shared-scripts/'+caseType+'.txt'),'utf8').trim(),text.join('\n\n'));
   assert.doesNotMatch(text.join(''),/AI|人工智能|系统|书记员/);
   for(const condition of ['none','procedural','substantive','decisional'])assert.deepEqual(N.paragraphsFor(caseType,condition),text);
  }
