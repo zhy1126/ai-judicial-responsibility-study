@@ -8,6 +8,9 @@ const assert=require('node:assert/strict');const{chromium}=require(process.env.P
  await p.route('**/audio-config.js*',r=>r.fulfill({contentType:'application/javascript',body:"window.STUDY_AUDIO_VERSION=StudyNarration.VERSION;window.STUDY_AUDIO={natural:'./natural.mp3',statutory:''};"}));await p.reload();assert.equal(await p.evaluate(()=>state.replay.mode),'text');
  // Media errors remain visible instead of being overwritten by the exposure ticker.
  await p.locator('#role-video').evaluate(v=>v.dispatchEvent(new Event('error')));await p.waitForTimeout(750);assert.match(await p.locator('#role-status').innerText(),/暂时无法播放/);
+ // A current-version unsubmitted draft from the old role-only video must restart the current trial.
+ await p.evaluate(k=>{const d=snapshot();d.version=StudyCore.VERSION;d.step='survey';d.orientation[d.session.caseOrder[d.session.caseIndex]]={version:'role-immersion-2026-09-16-v2',completed:true,videoCompleted:true,visibleMs:18000};d.reading=Object.fromEntries(['overview','evidence','task'].map(t=>[t,{reachedEnd:true,confirmed:true,visibleMs:6000}]));d.formValues={fairness:'7',involvement:'7'};d.replay={mode:'text',version:StudyNarration.VERSION,completed:true,textReachedEnd:true,textVisibleMs:40000};d.transcriptConfirmed=true;localStorage.setItem(k,JSON.stringify(d));},dk);
+ await p.reload();await p.locator('#role-dialog[open]').waitFor();assert.equal(await p.evaluate(()=>state.step),'dossier');assert.equal(await p.evaluate(()=>state.formValues.fairness),undefined);assert.equal(await p.evaluate(()=>StudyCore.readingComplete(state.reading)),false);assert.equal(await p.evaluate(()=>state.orientation[state.caseType].version),'case-role-broll-2026-09-16-v3');assert.deepEqual(await p.evaluate(()=>state.assignment),a);
  await c.close();
  // Retain a completed old single-case answer while offering the second case.
  const c2=await b.newContext(),p2=await c2.newPage();await p2.goto(base+'/?view=participant');
