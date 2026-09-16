@@ -267,3 +267,15 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:760px){.participant-topbar{height:auto;min-height:72px;padding:14px 17px;gap:12px;}.study-topic strong{font-size:15px;}.study-topic small{font-size:11px;}.researcher-return{white-space:nowrap;}.chat-window .chat-message.judge{grid-template-columns:minmax(0,1fr) 30px;padding-left:12px;}.chat-window .chat-message.ai,.chat-window .chat-message.clerk{padding-right:12px;}}
 
 .case-progress{display:flex;flex-direction:column;gap:7px;margin:0 0 28px;padding:16px 20px;border-left:4px solid #178278;border-radius:8px;background:#e9f3f1;color:#183d39}.case-progress strong{font-size:17px}.case-progress span{font-size:14px;line-height:1.6}.case-progress.hidden{display:none}
+
+/* Shared narration and matched role introduction. */
+.condition-disclosure{padding:18px 22px;border-left:4px solid var(--teal,#357f78);background:#edf5f3;color:#183e39;font-size:17px;line-height:1.8;margin:24px 0}
+.narration-audio{padding:24px;border:1px solid #d9e0e5;border-radius:14px;background:#fff;margin:20px 0}
+.narration-audio progress{width:100%;margin:16px 0}
+.narration-text{background:#fff;border:1px solid #d9e0e5;border-radius:14px;padding:24px 32px;max-height:62vh;overflow:auto;line-height:2;font-size:18px;scrollbar-gutter:stable}
+.narration-text p{margin:0 0 1.2em}.narration-text p:last-child{margin-bottom:0}
+.role-dialog{border:0;border-radius:18px;padding:28px;max-width:720px;width:calc(100% - 32px);max-height:92dvh;overflow:auto;color:#18263a;background:#fff;box-shadow:0 20px 80px #10203055}
+.role-dialog::backdrop{background:#18263aaa}.role-dialog h2{font-size:26px;margin:6px 0 16px}.role-description{font-size:18px;line-height:1.9}
+#role-video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin:18px 0 12px;background:#eef1f4}
+#role-continue{width:100%;margin-top:14px}.dossier-tabs button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:600px){.role-dialog{padding:20px}.role-description{font-size:16px}.narration-text{font-size:17px;padding:20px;max-height:60vh}.condition-disclosure{font-size:16px;padding:16px}.role-dialog h2{font-size:23px}}

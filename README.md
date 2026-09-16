@@ -1,80 +1,60 @@
 # 人机协同裁判司法责任研究
 
-供研究合作者审阅和预测试使用的静态交互原型。v2.1 在原有四种 AI 参与条件上调整筛选、案例材料、审阅呈现及问卷。没有新增正式采集后台。
+供合作者审阅和预测试的静态网站。当前版本为 2.2.0；参与者仍依次完成故意伤害与侵犯著作权两案。没有新增采集后台，回答仅保存在参与者当前浏览器。
 
-## 每人两个案件
+## 当前实验设计
 
-每个参与者需要依次完成故意伤害和侵犯著作权两个案件，每案各自完成三栏阅读、完整裁判对话回放和评价。背景只问一次，观察视角及 AI 条件全程不变，随机决定两案先后。预览参数 case 选择的是第一案，之后自动进入另一案。第一案完成后显示过渡页，第二案完成后才出现完整事后说明。
+- 三组：以当前职业自我报告识别律师；非律师以 1∶1 概率随机进入模拟当事人或普通公众组。法学学位、既往诉讼经历仅作为背景记录，不决定非律师分组。不纳入法官／检察官职业组，也不让参与者自行选择模拟角色。
+- 当事人视角：故意伤害案为被害人的近亲属；侵犯著作权案为代表被侵权的软件著作权方。
+- 四种 AI 条件：无 AI、程序性、实质性、决定性。**同一案件仅 AI 参与程度提示行不同**，陈述正文、录音、裁判结果及评价界面相同。
+- 每人完成两案，先后随机；角色和 AI 条件保持不变。律师身份来自职业自我报告，不能将三组差异全部解释为随机操纵的因果效果。
+- 每案开始播放所属角色的 18 秒情境短片（三个 6 秒镜头）。三组节奏、字幕样式、编码一致，无声音，无 AI 条件线索；同一角色两案共用短片，网页另外明确本案身份。角色文字至少显示 5 秒且短片播放完毕才开放下一步。
+- 三栏材料依次解锁，每栏至少阅读 5 秒、滚动到末尾并勾选确认。
+- 每案一份法官第一人称陈述，以音频加纯文字呈现。录音未提供时统一使用完整静态文字，阅读满 30 秒并到达末尾才能继续。没有流式对话。
+- 所有条件都显示四个责任主体（审判团队、法院、技术提供方、AI 系统），必须核对并确认完整排序，不能选择跳过。七点量表逐项标明含义，无默认答案。
+- 开放题和语音输入均可选。每案评价后增加一项探索性情境代入检查：同意程度 1–7 分，单独保存为 `involvement`，不自动用于排除，也不代表经过验证的完整量表。
+- 开始时确认研究用途；提交后保留回答，不再二次询问是否用于研究，仍可撤回删除整次会话。
 
-当前会话协议为 `two-cases-2026-09-08-v1`。一个体验编号对应一个会话记录，`responses` 按 `caseOrder` 保存两份独立回答；仅完成一案时 `completed:false`。第一案已提交但第二案未开始、第二案中途和两案完成后均可刷新续做。第二案的阅读确认、回放、排序、量表和语音元数据重新开始。旧单案已完成进度会提示继续另一案，原答卷原样保留，标记 `migratedFrom:single_case`；原有单案记录在提交第二案时合入两案记录。已删除的会话保持删除。
-
-CSV 每案一行，共享 `session_id`，增加 `study_protocol`、`case_number`、`case_order`、`study_completed` 和 `migrated_from`。旧单案明确标记，不计入两案完成人数。JSON 下载、最终保留选择及删除操作针对整次会话。设计台评分统计按已保存的案件回答计算，包含未完成两案的记录；两案完成人数单独统计。
-
-## 其他修改
-
-- 用是非题识别当前有效执业的律师；非律师以 1∶1 概率分配到当事人或公众**模拟观察视角**。第三题记录是否已取得法学相关学位；律师分支不显示诉讼经历题并记为未询问，非律师的真实诉讼经历另行记录。律师身份不是随机变量。
-- 保留无 AI、程序性、实质性、决定性四种参与方式。共用同一顺序回放组件，展示法官提出任务、AI 回应、法官追问与复核的实际多轮对话；无 AI 条件为法官与书记员对话。录音准备期间在 chatbot 对话框内逐字呈现，保留已播放的消息气泡，可向上回看；八份录音配置齐全后统一切换纯音频，不再显示文字。支持暂停、继续和从头播放，完整播放并确认后才能继续。
-- 案件总览、主要证据、裁判任务三栏分别在滚动到底后才能勾选确认；完成三栏后开放下一步，刷新保留进度。短材料若已完整显示，可直接确认。
-- 使用研究者提供的故意伤害与侵犯著作权案例，保留原判刑期、附加刑和金额。同一案例跨条件保持核心事实与最终裁判相同；对话随 AI 的参与权限调整。
-- 责任排序简化为审判团队、法院、技术提供方和 AI 系统本身，并附职责说明。无 AI 条件只显示前两项。初始顺序随机，作答需明确确认，也可选无法判断。
-- 七点量表逐点标注、无默认答案。中立与无法判断分别编码；无 AI 条件下 AI 使用信任与不安题记为不适用。
-- 最后开放题支持可选中文语音输入，允许修改和确认文字；浏览器不支持或识别失败时可继续打字。
+18 秒是研究者选定的预测试长度，并不证明代入操纵已经有效。视频与角色文字共同构成情境操纵，不能将组间差异单独归因于视频。
 
 ## 访问和预览
 
-现有 GitHub Pages 地址（main 部署后生效）：https://zhy1126.github.io/ai-judicial-responsibility-study/
+[参与者入口](https://zhy1126.github.io/ai-judicial-responsibility-study/?view=participant)
 
-以 HTTP 本机服务运行，例如 `python3 -m http.server 8765`，打开 `http://localhost:8765`。设计台可生成24条预览路径。直接打开 `index.html` 可以阅读，但语音和浏览器存储行为应以 HTTPS 或 localhost 环境为准。
+[研究者预览台](https://zhy1126.github.io/ai-judicial-responsibility-study/)
 
-示例：`/?view=participant&preview=1&role=public&condition=procedural&case=natural`。
+设计台有 24 条预览路径（3 角色 × 4 条件 × 2 起始案件）。例如 `/?view=participant&preview=1&role=public&condition=procedural&case=natural`。网址参数仅在预览模式生效，预览数据标记 `preview:true`，不能混入实际被试数据。
 
-正式流程原型入口：`/?view=participant`。只有预览模式采纳网址中的角色、条件和案例参数。预览数据标记 `preview:true`，不能混作实际被试数据。
+## 材料与配音
 
-## 分组和本机数据
+案例来自研究者提供的两份 Word。原件不上传仓库；展示为去标识化摘要。法官陈述是依据案例编写的研究材料，不是真实法官的工作记录或原声。
 
-正式流程原型的未完成会话保存在本机 localStorage，刷新继续原分组和答案；预览进度使用各标签页的 sessionStorage。一个浏览器的正式流程原型默认对应同一个会话；新被试应使用独立浏览器环境。设计台的清空按钮会使其他打开页面的旧进度失效。
+`study-narration.js` 是两份共用正文的来源，版本 `shared-narration-2026-09-16-v1`。`audio/shared-scripts/` 提供对应 TXT。音频仅按案件配置：natural 与 statutory。两案均配置同源音频且版本匹配后统一启用播放器，始终保留辅助文字。录音尚未提供。详见 [配音接入说明](docs/audio-handoff.md)。
 
-对话内容版本为 `dialogueVersion:dialogue-2026-09-08-v1`，新呈现方式为 `judge_ai_dialogue` / `judge_clerk_dialogue`。此前独白与新对话不能混作同一刺激材料。旧版未完成会话保留原分组与已确认案卷，清除旧回放位置及未提交评价后重新观看；已提交的单案内容原样保存。
+`role-media.js` 声明三个 18 秒角色视频，版本 `role-immersion-2026-09-16-v2`。画面由内置图像生成工具制作，采用一致缓慢推进和角色字幕；这是静帧运镜视频，不是实拍或人物动态表演。优化视频与封面位于 `video/`。
 
-旧版记录使用原存储键保留，单案回答保留 `version:2.1.0` 与 `caseVersion:cases-2026-09-07`，两案会话另带上述协议标识。v2.0 未完成进度沿用原体验编号和分组，但需重新完成三栏阅读与顺序回放。旧 `legalEducation` 不转换为新 `legalDegree`；`screeningVersion` 保留分组时的问卷版本，已提交的单案内容原样保存。CSV 导出包含呈现方式、分栏阅读进度、真实背景、分配方式、完整排序、量表及状态、开放题、音频和输入方式元数据。JSON 下载保留完整结构。旧版法定犯是虚构数据处置案，与本版著作权案不能混为同一材料版本；新旧指标也应分版本分析。
+历史 `study-dialogue.js`、`study-stream.js`、`audio/scripts/` 与旧导出脚本仅留档，不再加载或部署；不要使用旧八份对话稿配音。
 
-流程升级会一次性迁移已保存草稿，并让已打开的旧单案页面失去写入权限；旧页面需刷新后继续。两案间还按案件序号保护新进度，停留在第一案的旧标签页不能覆盖第二案草稿。
+## 数据与升级
 
-删除回答会清除答案并写入只含会话标识的删除标记，避免其他旧页面重新保存已删除回答。清空操作通过共享版本标记使已打开的预览进度失效。
+会话协议仍为 `two-cases-2026-09-08-v1`。一位参与者对应一个 session，含两个独立 `responses`。第一案提交、第二案中途、全部完成后均可刷新继续；第二案重新计阅读、播放、排序和评价。
 
-这些分组与存储保证适用于本机原型，不能代替正式研究的服务端参与者标识、分配锁及采集数据库。并发首开和跨设备身份识别不在本机存储的保证范围内。
+升级保留旧分组、体验编号和已提交答卷。未完成旧材料需重新阅读新版材料、角色提示并确认研究用途。新旧刺激材料用 `version`、`caseVersion`、`narrationVersion`、`orientation.version`、`presentation` 区分，不应混作同一版本。旧单案继续第二案时标记 `migratedFrom:single_case`，原答卷保持原样。
 
-## 案例与声音
+CSV 每案一行，同一人共享 session_id；增加 narration_version、condition_line、consent、orientation 与 involvement。JSON 下载和删除针对整次会话。旧页面写入保护、删除标记和清空版本控制继续保留。
 
-素材来自研究者提供的两份 Word 文件，原件不上传仓库。展示为去标识化摘要；四种工作分工及第一人称说明是模拟编写，不是原审法官真实心理过程或原声记录。
+正式进度保存在 localStorage；预览草稿保存在 sessionStorage。当前没有跨设备身份识别、服务器随机分配锁或中央数据库。新参与者应使用独立浏览器环境。设计台只能查看当前浏览器的数据。
 
-页头只展示“人机协同裁判与司法责任”研究主题，不使用研究室 Logo。
-
-配音尚未生成。`audio/scripts/` 包含两案×四条件共八份最终朗读文字，详情见 [配音接入说明](docs/audio-handoff.md)。所有八条音频地址完整且 STUDY_AUDIO_VERSION 与当前对话版本一致后统一启用纯音频播放器；未完整配置时四条件均使用临时流式呈现。音频没有跳转进度控制，播放结束后开放确认。加载失败可重试，不能跳过录音，也不会只为一个条件切换文字。刷新恢复播放位置，不自动播放；离开播放页或隐藏标签页会暂停。
-
-浏览器语音识别不需要将研究者的配音TOKEN写入网页。其支持范围、普通话识别、网络连通性和服务端处理规则取决于浏览器及提供方，不能保证在所有手机或网络中可用。真实麦克风及目标招募设备仍须预测试；当前完成的语音检查使用模拟识别事件。已有TTS配音API未必提供STT识别接口。
+语音输入使用浏览器支持的 SpeechRecognition，主动点击后才申请麦克风；不支持时可打字。仅保存核对后的文字与输入元数据，不保存原始录音。真实麦克风和目标手机仍需现场预测试，不需要把配音服务密钥放在网页里。
 
 ## 验证与发布
 
-运行规则及语音行为测试：
-
 ```sh
-node --test tests/study-core.test.cjs tests/study-session.test.cjs tests/speech-input.test.cjs tests/study-stream.test.cjs tests/study-dialogue.test.cjs
+node --test tests/study-core.test.cjs tests/study-session.test.cjs tests/speech-input.test.cjs tests/narration-design.test.cjs tests/shared-narration.test.cjs
 node scripts/build.mjs
+python3 -m http.server 8766 --directory _site
+# 另一个终端，需 Playwright + Chromium
+node tests/narration-flow.test.cjs
 ```
 
-可选浏览器回归测试需要在开发环境安装 Playwright 和 Chromium，并先启动上述本机服务：
-
-```sh
-node tests/flow.test.cjs
-node tests/revision.test.cjs
-node tests/chatbot.test.cjs
-node tests/dialogue-migration.test.cjs
-node tests/two-case-session.test.cjs
-node tests/two-case-storage.test.cjs
-node tests/two-case-upgrade.test.cjs
-```
-
-通过 `PLAYWRIGHT_PATH` 指向已有 Playwright 包，`STUDY_TEST_URL` 可覆盖本机服务地址。浏览器测试覆盖24条完整两案预览路径（48份案件评价）、手机宽度、刷新、删除、清空、手动输入兜底及旧记录导出。
-
-构建产物为 `_site/`，仅包含网页脚本、样式和已有录音，不包含测试、配音文字及内部说明。已有 GitHub Actions 在 main 更新后先运行规则测试，再构建和发布至 GitHub Pages。
+可用 PLAYWRIGHT_PATH、PLAYWRIGHT_BROWSERS_PATH 和 STUDY_TEST_URL 指定测试环境。旧的 chatbot/dialogue 等浏览器脚本是历史版本回归，当前以 narration-flow 为准。main 更新后 GitHub Actions 执行规则测试、构建并发布至原 GitHub Pages。构建不包含原始案例、测试、配音文字或内部说明。

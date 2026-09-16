@@ -26,7 +26,7 @@
   return {...session,caseIndex:1};
  }
  function record(session,assignment,retained=null){
-  return {...session,version:'2.1.0',sessionId:assignment.sessionId,assignment,role:assignment.role,condition:assignment.condition,preview:assignment.preview,completed:complete(session),retained,submittedAt:session.responses.at(-1)?.submittedAt||null};
+  return {...session,version:'2.2.0',sessionId:assignment.sessionId,assignment,role:assignment.role,condition:assignment.condition,preview:assignment.preview,completed:complete(session),retained,submittedAt:session.responses.at(-1)?.submittedAt||null};
  }
  function rows(records){
   return records.flatMap(record=>record.protocol===VERSION?record.responses.map((r,i)=>({...r,studyProtocol:record.protocol,caseNumber:i+1,caseOrder:record.caseOrder,studyCompleted:record.completed,retained:record.retained,migratedFrom:record.migratedFrom})): [{...record,studyProtocol:'single_case',caseNumber:1,caseOrder:[record.caseType],studyCompleted:false,migratedFrom:null}]);
