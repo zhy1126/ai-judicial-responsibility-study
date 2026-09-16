@@ -8,7 +8,7 @@ const CORE = window.StudyCore;
 const CASES = window.StudyContent.cases;
 const NARRATION = window.StudyNarration;
 const CONSENT_VERSION = "research-use-2026-09-16";
-const PRESENTATION_PROTOCOL = "case-role-broll-2026-09-16-v5";
+const PRESENTATION_PROTOCOL = "responsibility-dual-2026-09-16-v1";
 const SESSION = window.StudySession;
 const LABELS = {
   roles: {lawyer:'律师专业视角',litigant:'当事人视角',public:'公众视角'},
@@ -24,7 +24,7 @@ const RATINGS = [
 const STEPS = ['intro','dossier','replay','decision','survey','debrief','between'];
 const qs = (selector,root=document)=>root.querySelector(selector);
 const qsa = (selector,root=document)=>[...root.querySelectorAll(selector)];
-const state = {preview:false,role:'public',condition:'procedural',caseType:'natural',assignment:null,session:null,retained:null,step:'intro',ranking:[],rankingInitial:[],reading:{},activeDossierTab:"overview",formValues:{},replayExposureMs:0,replayEnteredAt:null,response:null,deleted:false,audio:{status:'not_supplied',started:false,completed:false,maxPositionSeconds:0},speechMetadata:null,replay:{mode:null,stream:null,completed:false}};
+const state = {preview:false,role:'public',condition:'procedural',caseType:'natural',assignment:null,session:null,retained:null,step:'intro',responsibilityOrder:[],responsibilityStage:'independent',reading:{},activeDossierTab:"overview",formValues:{},replayExposureMs:0,replayEnteredAt:null,response:null,deleted:false,audio:{status:'not_supplied',started:false,completed:false,maxPositionSeconds:0},speechMetadata:null,replay:{mode:null,stream:null,completed:false}};
 let initializingUI=false,pendingAudioPosition=null,exposureTick=performance.now(),lastExposureSave=0;
 let speech, toastTimer, draftBlocked=false, speechChanged=false;
 let storageEpoch='';
@@ -116,8 +116,10 @@ function setupParticipant(){
   qs('#to-survey').addEventListener('click',()=>setStep('survey'));
   qsa('[data-back]').forEach(button=>button.addEventListener('click',()=>setStep(button.dataset.back)));
   qs('#survey-form').addEventListener('submit',submitSurvey);
-  qs('#survey-form').addEventListener('input',()=>{captureForm();saveDraft();updateRatingFeedback();});
-  qs('#survey-form').addEventListener('change',()=>{captureForm();saveDraft();updateRatingFeedback();});
+  qs('#to-allocation').addEventListener('click',()=>changeResponsibilityStage('allocation'));
+  qs('#back-to-scores').addEventListener('click',()=>changeResponsibilityStage('independent'));
+  qs('#survey-form').addEventListener('input',()=>{updateResponsibilityUI();captureForm();saveDraft();updateRatingFeedback();});
+  qs('#survey-form').addEventListener('change',()=>{updateResponsibilityUI();captureForm();saveDraft();updateRatingFeedback();});
   qs('#dossier-confirm').addEventListener('change',()=>{
     const progress=state.reading[state.activeDossierTab];
     if(progress?.reachedEnd&&progress.visibleMs>=CORE.MIN_READING_MS)progress.confirmed=qs('#dossier-confirm').checked;
@@ -164,7 +166,7 @@ function nextCase(){
     pendingAudioPosition=null;
     const audio=qs('#judgment-audio');audio.removeAttribute('src');audio.load();
     Object.assign(state,{session:next,caseType:next.caseOrder[next.caseIndex],step:'dossier',response:null,reading:{},activeDossierTab:'overview',formValues:{},replayExposureMs:0,replayEnteredAt:null,speechMetadata:null,audio:{status:'not_supplied',started:false,completed:false,maxPositionSeconds:0,positionSeconds:0},replay:{mode:null,stream:null,completed:false}});
-    state.ranking=CORE.shuffle(CORE.subjectsFor(state.condition).map(x=>x.id));state.rankingInitial=[...state.ranking];
+    state.responsibilityOrder=CORE.shuffle(CORE.subjectsFor(state.condition).map(x=>x.id));state.responsibilityStage='independent';
     qs('#survey-form').reset();qs('#transcript-confirm').checked=false;qs('#dossier-confirm').checked=false;
     for(const selector of ['#survey-error','#transcript-error','#dossier-error','#between-error'])qs(selector).textContent='';
     setupSpeechInput();initializeAssignedUI();setStep('dossier');
@@ -204,7 +206,7 @@ function startStudy(){
     if(raw&&CORE.validAssignment(existing)){restoreDraft();return;}
     state.consent={version:CONSENT_VERSION,acceptedAt:new Date().toISOString()};state.retained=true;
     state.session=SESSION.create(state.assignment);
-    state.ranking=CORE.shuffle(CORE.subjectsFor(state.condition).map(x=>x.id));state.rankingInitial=[...state.ranking];
+    state.responsibilityOrder=CORE.shuffle(CORE.subjectsFor(state.condition).map(x=>x.id));state.responsibilityStage='independent';
     state.step='dossier';
     draftStorage().setItem(draftKey,JSON.stringify(snapshot()));
     initializeAssignedUI();setStep('dossier');
@@ -215,7 +217,7 @@ function initializeAssignedUI(){
   try{
   qs('#session-code').textContent=`体验编号：${state.assignment.sessionId}`;renderCaseProgress();
   qs('#role-perspective').textContent=NARRATION.rolePrompt(state.role,state.caseType);
-  renderDossier();renderTranscript();renderDecision();renderRanking();renderRatings();restoreForm();updateRankingMode();updateOpenResponse();
+  renderDossier();renderTranscript();renderDecision();renderResponsibility();renderRatings();restoreForm();updateResponsibilityUI();updateOpenResponse();
   }finally{initializingUI=false;}
 }
 function restoreDraft(){
@@ -227,7 +229,7 @@ function restoreDraft(){
     if(draft.epoch!==storageEpoch){draftStorage().removeItem(draftKey);return;}
     if(draft.deleted||isDeleted(draft.assignment?.sessionId)){draftStorage().setItem(draftKey,JSON.stringify(deletionMarker(draft.sessionId||draft.assignment.sessionId)));state.deleted=true;state.response=null;state.formValues={};qs('#session-code').textContent='本次回答已删除';markDeleted();setStep('debrief',false);return;}
     if(![CORE.VERSION,'2.1.0','2.0.0'].includes(draft.version)||!CORE.validAssignment(draft.assignment)||!STEPS.includes(draft.step))throw Error('invalid draft');
-    Object.assign(state,{assignment:draft.assignment,role:draft.assignment.role,condition:draft.assignment.condition,caseType:draft.assignment.caseType,step:draft.step,ranking:draft.ranking,rankingInitial:draft.rankingInitial,reading:draft.version===CORE.VERSION?(draft.reading||{}):{},activeDossierTab:draft.activeDossierTab||'overview',formValues:draft.formValues||{},replayExposureMs:draft.replayExposureMs||0,response:draft.response||null,deleted:Boolean(draft.deleted),audio:draft.audio||state.audio,speechMetadata:draft.speechMetadata||null,replay:draft.replay||{mode:null,version:'legacy_monologue',stream:null,completed:false}});
+    Object.assign(state,{assignment:draft.assignment,role:draft.assignment.role,condition:draft.assignment.condition,caseType:draft.assignment.caseType,step:draft.step,reading:draft.version===CORE.VERSION?(draft.reading||{}):{},activeDossierTab:draft.activeDossierTab||'overview',formValues:draft.formValues||{},replayExposureMs:draft.replayExposureMs||0,response:draft.response||null,deleted:Boolean(draft.deleted),audio:draft.audio||state.audio,speechMetadata:draft.speechMetadata||null,replay:draft.replay||{mode:null,version:'legacy_monologue',stream:null,completed:false}});
     state.orientation=draft.orientation||{};state.consent=draft.consent||null;
     state.session=SESSION.restore(state.assignment,draft);state.retained=draft.retained??null;
     // A saved answer wins if the following draft write was interrupted or another tab finished first.
@@ -243,8 +245,14 @@ function restoreDraft(){
     state.caseType=state.session.caseOrder[state.session.caseIndex];
     state.response=state.session.responses[state.session.caseIndex]||null;
     if(state.response)state.step=SESSION.complete(state.session)?'debrief':'between';
-    if(state.deleted)state.ranking=CORE.subjectsFor(state.condition).map(x=>x.id);
-    else if(!CORE.validRanking(state.ranking,state.condition)){state.ranking=CORE.shuffle(CORE.subjectsFor(state.condition).map(x=>x.id));state.rankingInitial=[...state.ranking];state.formValues.rankingConfirm=false;}
+    // Preserve a randomized display order, never reinterpret an old ranking as scores.
+    const order=draft.responsibilityOrder||draft.rankingInitial;
+    state.responsibilityOrder=CORE.validRanking(order,state.condition)?[...order]:CORE.shuffle(CORE.SUBJECTS.map(s=>s.id));
+    state.responsibilityStage=draft.responsibilityMeasure===CORE.RESPONSIBILITY_VERSION&&draft.responsibilityStage==='allocation'?'allocation':'independent';
+    if(draft.responsibilityMeasure!==CORE.RESPONSIBILITY_VERSION){
+      for(const key of Object.keys(state.formValues))if(key.startsWith('responsibility_'))delete state.formValues[key];
+      delete state.formValues.rankingConfirm;delete state.formValues.rankingMode;
+    }
     if(draft.version!==CORE.VERSION&&!state.response){state.step='dossier';state.audio={status:'not_supplied',started:false,completed:false,maxPositionSeconds:0};}
     // New role/case footage requires a fresh unsubmitted trial, while preserving assignment and submitted answers.
     const mediaChanged=!state.response&&state.orientation[state.caseType]?.version!==window.STUDY_ROLE_MEDIA?.version;
@@ -274,7 +282,7 @@ function deletionMarker(sessionId){return {version:CORE.VERSION,epoch:storageEpo
 function deletedSessions(){const raw=localStorage.getItem(DELETED_KEY);const ids=raw?JSON.parse(raw):[];if(!Array.isArray(ids))throw Error('删除状态无法读取。');return ids;}
 function isDeleted(id){return Boolean(id&&deletedSessions().includes(id));}
 function currentEpoch(){return (localStorage.getItem(EPOCH_KEY)||'')===storageEpoch;}
-function snapshot(){if(state.deleted)return deletionMarker(state.assignment?.sessionId);return {epoch:storageEpoch,version:CORE.VERSION,assignment:state.assignment,session:state.session,retained:state.retained,consent:state.consent,orientation:state.orientation,step:state.step,ranking:state.ranking,rankingInitial:state.rankingInitial,reading:state.reading,activeDossierTab:state.activeDossierTab,formValues:state.formValues,replayExposureMs:exposure(),transcriptConfirmed:qs('#transcript-confirm').checked,response:state.response,deleted:state.deleted,audio:state.audio,replay:{...state.replay},speechMetadata:mergedSpeechMetadata()};}
+function snapshot(){if(state.deleted)return deletionMarker(state.assignment?.sessionId);return {epoch:storageEpoch,version:CORE.VERSION,assignment:state.assignment,session:state.session,retained:state.retained,consent:state.consent,orientation:state.orientation,step:state.step,responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:state.responsibilityOrder,responsibilityStage:state.responsibilityStage,reading:state.reading,activeDossierTab:state.activeDossierTab,formValues:state.formValues,replayExposureMs:exposure(),transcriptConfirmed:qs('#transcript-confirm').checked,response:state.response,deleted:state.deleted,audio:state.audio,replay:{...state.replay},speechMetadata:mergedSpeechMetadata()};}
 function saveDraft(){
   if(!state.assignment||draftBlocked||initializingUI)return;
   try{
@@ -345,7 +353,7 @@ function renderTranscript(){
   state.replay={mode,version:NARRATION.VERSION,completed:false,textReachedEnd:false,textVisibleMs:0,materialChanged};
   state.audio={status:'not_supplied',started:false,completed:false,maxPositionSeconds:0,positionSeconds:0};
   state.replayExposureMs=0;state.replayEnteredAt=null;qs('#transcript-confirm').checked=false;
-  if(materialChanged&&!state.response){state.formValues={};state.speechMetadata=null;qs('#survey-form').reset();state.ranking=[...state.rankingInitial];}
+  if(materialChanged&&!state.response){state.formValues={};state.speechMetadata=null;qs('#survey-form').reset();state.responsibilityStage='independent';}
  }
  qs('#condition-disclosure').textContent=NARRATION.conditionLine(state.condition);
  qs('#narration-text').innerHTML=NARRATION.paragraphsFor(state.caseType).map(p=>`<p>${escapeHtml(p)}</p>`).join('');
@@ -411,18 +419,39 @@ function renderDecision(){
   const data=CASES[state.caseType];qs('#judgment-case-number').textContent=data.number;qs('#judgment-court').textContent=data.court;
   qs('#judgment-content').innerHTML=`<h2>刑事裁判摘要（研究材料）</h2>${data.judgment.map(p=>`<p>${p}</p>`).join('')}<ol>${data.orders.map(p=>`<li>${p}</li>`).join('')}</ol>`;
 }
-function renderRanking(){
-  qs('#ranking-list').innerHTML=state.ranking.map((id,index)=>{const subject=CORE.SUBJECTS.find(x=>x.id===id);return `<div class="ranking-item"><span class="rank-number">${index+1}</span><div><strong>${subject.label}</strong><p>${subject.description}</p></div><div class="rank-actions"><button type="button" data-rank-up="${index}" ${index===0?'disabled':''} aria-label="将${subject.label}上移">↑</button><button type="button" data-rank-down="${index}" ${index===state.ranking.length-1?'disabled':''} aria-label="将${subject.label}下移">↓</button></div></div>`;}).join('');
-  qsa('[data-rank-up]').forEach(button=>button.addEventListener('click',()=>moveRank(Number(button.dataset.rankUp),-1)));
-  qsa('[data-rank-down]').forEach(button=>button.addEventListener('click',()=>moveRank(Number(button.dataset.rankDown),1)));
+function renderResponsibility(){
+  for(const kind of ['score','allocation']){
+    qs(`#responsibility-${kind}-list`).innerHTML=state.responsibilityOrder.map(id=>{
+      const subject=CORE.SUBJECTS.find(s=>s.id===id),inputId=`responsibility-${kind}-${id}`;
+      return `<div class="responsibility-item"><div><label for="${inputId}">${subject.label}</label><p id="${inputId}-description">${subject.description}</p></div><div class="responsibility-value"><input id="${inputId}" name="responsibility_${kind}_${id}" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="未填" required aria-describedby="${inputId}-description ${kind==='score'?'independent':'allocation'}-help"><span>分</span></div></div>`;
+    }).join('');
+  }
 }
-function moveRank(index,direction){
-  const target=index+direction;if(target<0||target>=state.ranking.length)return;
-  [state.ranking[index],state.ranking[target]]=[state.ranking[target],state.ranking[index]];
-  qs('#ranking-confirm').checked=false;renderRanking();captureForm();saveDraft();
-  qs(direction===-1?`[data-rank-down="${target}"]`:`[data-rank-up="${target}"]`)?.focus();
+function responsibilityInput(kind){return Object.fromEntries(CORE.SUBJECTS.map(s=>[s.id,qs(`#responsibility-${kind}-${s.id}`).value]));}
+function validResponsibility(kind){try{return CORE.responsibilityValues(responsibilityInput(kind),kind==='allocation');}catch{return null;}}
+function updateResponsibilityUI(){
+  const scores=validResponsibility('score');
+  if(!scores)state.responsibilityStage='independent';
+  const allocationStage=state.responsibilityStage==='allocation';
+  for(const [id,active] of [['independent',!allocationStage],['allocation',allocationStage]]){
+    const field=qs(`#responsibility-${id}`);field.classList.toggle('hidden',!active);field.disabled=!active;
+  }
+  qs('#to-allocation').disabled=!scores;
+  const filled=Object.values(responsibilityInput('score')).filter(v=>v!=='').length;
+  qs('#score-status').textContent=scores?'四项评分已填写，可以进入责任分配。':`已填写 ${filled} / 4 项，请为每项填写 0–100 的整数。`;
+  const allocation=validResponsibility('allocation'),raw=responsibilityInput('allocation');
+  const numbers=Object.values(raw).map(v=>/^\d{1,3}$/.test(v)&&Number(v)<=100?Number(v):null);
+  const total=numbers.reduce((sum,v)=>sum+(v??0),0),missing=numbers.filter(v=>v===null).length;
+  const balance=total<100?`还差 ${100-total} 分`:total>100?`超出 ${total-100} 分`:'合计已达 100 分';
+  qs('#allocation-status').textContent=`已分配 ${total} / 100 分 · ${balance}${missing?`；还有 ${missing} 项未填写或无效，没有责任请填 0。`:allocation?'，可以继续作答。':'，请调整后继续。'}`;
+  qs('#allocation-status').classList.toggle('complete',Boolean(allocation));
+  qs('#submit-evaluation').disabled=!(scores&&allocationStage&&allocation);
 }
-function updateRankingMode(){qs('#ranking-mode').value='rank';qs('#ranking-section').classList.remove('hidden');qs('#ranking-confirm').required=true;}
+function changeResponsibilityStage(stage){
+  if(stage==='allocation'&&!validResponsibility('score'))return;
+  state.responsibilityStage=stage;updateResponsibilityUI();captureForm();saveDraft();
+  const field=qs(`#responsibility-${stage}`);field.scrollIntoView({behavior:'smooth',block:'start'});qs('input',field)?.focus({preventScroll:true});
+}
 
 function ratingApplicable(){return true;}
 
@@ -446,11 +475,11 @@ function submitSurvey(event){
   try{
     const data=new FormData(form),ratings={},ratingStatus={};
     for(const [name]of RATINGS){const result=CORE.ratingValue(data.get(name),ratingApplicable(name));ratings[name]=result.value;ratingStatus[name]=result.status;}
-    const rankingMode='rank';
-    if(!qs('#ranking-confirm').checked)throw Error('请核对并确认责任主体排序。');
-    if(rankingMode==='rank'&&!CORE.validRanking(state.ranking,state.condition))throw Error('排序无法保存，请联系研究者。');
+    if(state.responsibilityStage!=='allocation')throw Error('请先完成独立评分，再进行责任分配。');
+    const responsibilityScores=CORE.responsibilityValues(responsibilityInput('score'));
+    const responsibilityAllocation=CORE.responsibilityValues(responsibilityInput('allocation'),true);
     stopExposure();captureForm();
-    const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,narrationVersion:NARRATION.VERSION,conditionLine:NARRATION.conditionLine(state.condition),consent:state.consent,orientation:structuredClone(state.orientation[state.caseType]||{}),sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.version,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'shared_audio_and_text':'shared_plain_text',playback:{...state.replay},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),rankingStatus:rankingMode,ranking:rankingMode==='rank'?state.ranking.map(id=>CORE.SUBJECTS.find(s=>s.id===id).label):[],rankingIds:rankingMode==='rank'?[...state.ranking]:[],rankingInitial:[...state.rankingInitial],ratings,ratingStatus,involvement:Number(data.get('involvement')),openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:true,submittedAt:new Date().toISOString(),prototype:true};
+    const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,narrationVersion:NARRATION.VERSION,conditionLine:NARRATION.conditionLine(state.condition),consent:state.consent,orientation:structuredClone(state.orientation[state.caseType]||{}),sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.version,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'shared_audio_and_text':'shared_plain_text',playback:{...state.replay},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:[...state.responsibilityOrder],responsibilityScores,responsibilityAllocation,responsibilityAllocationTotal:Object.values(responsibilityAllocation).reduce((sum,value)=>sum+value,0),ratings,ratingStatus,involvement:Number(data.get('involvement')),openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:true,submittedAt:new Date().toISOString(),prototype:true};
     const session=SESSION.submit(state.session,response,state.assignment);
     updateSavedResponse(SESSION.record(session,state.assignment,true));state.retained=true;state.session=session;state.response=response;setStep(SESSION.complete(session)?'debrief':'between');
   }catch(error){qs('#survey-error').textContent=`未提交：${error.message}`;}
@@ -499,17 +528,17 @@ function updateSavedResponse(response){
 function renderRecords(){
   let records;try{records=readRecords();}catch{qs('#records-body').innerHTML='<tr><td colspan="6">已有记录无法读取，未作覆盖。请联系研究者处理。</td></tr>';return;}
   const rows=SESSION.rows(records);
-  const numeric=rows.filter(x=>typeof x.ratings?.fairness==='number');const ranked=rows.filter(x=>x.ranking?.length);
+  const numeric=rows.filter(x=>typeof x.ratings?.fairness==='number');const allocated=rows.filter(x=>x.responsibilityMeasure===CORE.RESPONSIBILITY_VERSION&&typeof x.responsibilityAllocation?.judge==='number');
   qs('#metric-complete').textContent=records.filter(r=>r.protocol===SESSION.VERSION&&r.completed).length;
   qs('#metric-fairness').textContent=numeric.length?(numeric.reduce((sum,x)=>sum+x.ratings.fairness,0)/numeric.length).toFixed(1):'—';
-  qs('#metric-judge-first').textContent=ranked.length?`${Math.round(ranked.filter(x=>x.rankingIds?.[0]==='judge'||x.ranking?.[0]==='本案承办法官').length/ranked.length*100)}%`:'—';
+  qs('#metric-judge-allocation').textContent=allocated.length?`${(allocated.reduce((sum,x)=>sum+x.responsibilityAllocation.judge,0)/allocated.length).toFixed(1)} 分`:'—';
   qs('#metric-latest').textContent=records.length?formatTime(records.reduce((latest,r)=>Date.parse(r.submittedAt)>Date.parse(latest||0)?r.submittedAt:latest,null)):'—';
-  qs('#records-body').innerHTML=rows.length?rows.slice().reverse().map(item=>`<tr><td>${escapeHtml(item.sessionId)}<small>${item.studyProtocol==='single_case'?'旧版单案':`第 ${item.caseNumber} / 2 案 · ${item.studyCompleted?'两案完成':'尚未完成两案'}`}</small></td><td>${escapeHtml(LABELS.roles[item.role]||item.role)}<small>v${escapeHtml(item.version||'1')} ${item.preview?'预览':''}</small></td><td>${escapeHtml(LABELS.conditions[item.condition]||item.condition)}</td><td>${escapeHtml(item.version?LABELS.cases[item.caseType]:item.caseType==='natural'?'旧版故意伤害':'旧版数据处置')}</td><td>${escapeHtml(item.ratings?.fairness??'—')}</td><td>${formatTime(item.submittedAt)}</td></tr>`).join(''):'<tr><td colspan="6" class="empty-cell">尚无测试记录。完成参与者流程后可在这里查看与导出。</td></tr>';
+  qs('#records-body').innerHTML=rows.length?rows.slice().reverse().map(item=>`<tr><td>${escapeHtml(item.sessionId)}<small>${item.studyProtocol==='single_case'?'旧版单案':`第 ${item.caseNumber} / 2 案 · ${item.studyCompleted?'两案完成':'尚未完成两案'}`}</small></td><td>${escapeHtml(LABELS.roles[item.role]||item.role)}<small>v${escapeHtml(item.version||'1')} ${item.preview?'预览':''} · ${item.responsibilityMeasure?'评分＋分配':'旧版排序'}</small></td><td>${escapeHtml(LABELS.conditions[item.condition]||item.condition)}</td><td>${escapeHtml(item.version?LABELS.cases[item.caseType]:item.caseType==='natural'?'旧版故意伤害':'旧版数据处置')}</td><td>${escapeHtml(item.ratings?.fairness??'—')}</td><td>${formatTime(item.submittedAt)}</td></tr>`).join(''):'<tr><td colspan="6" class="empty-cell">尚无测试记录。完成参与者流程后可在这里查看与导出。</td></tr>';
 }
 function exportCsv(){
   let records;try{records=readRecords();}catch{return toast('已有记录无法读取，未作覆盖。');}if(!records.length)return toast('当前没有可导出的记录');
-  const header=['session_id','study_protocol','case_number','case_order','study_completed','migrated_from','version','case_version','dialogue_version','narration_version','condition_line','consent','orientation','preview','role','role_assignment','practicing_lawyer','license_active','legal_education','legal_degree','litigation_experience','litigation_experience_status','screening_version','reading_progress','condition','case_type','presentation','replay_completed','replay_exposure_ms','ranking_status','ranking_ids','ranking_labels','ranking_initial',...RATINGS.flatMap(([k])=>[k,k+'_status']),'manipulation_check','final_signer','involvement','open_response','speech_metadata','audio_metadata','retained','submitted_at'];
-  const rows=SESSION.rows(records).map(r=>[r.sessionId,r.studyProtocol,r.caseNumber,JSON.stringify(r.caseOrder),r.studyCompleted,r.migratedFrom,r.version||'1',r.caseVersion||'legacy',r.dialogueVersion||'',r.narrationVersion||'',r.conditionLine||'',JSON.stringify(r.consent||null),JSON.stringify(r.orientation||null),r.preview,r.role,r.roleAssignment||'self_selected',r.background?.practicingLawyer,r.background?.licenseActive,r.background?.legalEducation,r.background?.legalDegree,r.background?.litigationExperience,r.background?.litigationExperienceStatus,r.screeningVersion||r.assignment?.version,JSON.stringify(r.reading||null),r.condition,r.caseType,r.presentation,r.replayCompleted,r.replayExposureMs,r.rankingStatus||'legacy',JSON.stringify(r.rankingIds||[]),JSON.stringify(r.ranking||[]),JSON.stringify(r.rankingInitial||[]),...RATINGS.flatMap(([k])=>[r.ratings?.[k],r.ratingStatus?.[k]||'legacy']),r.manipulationCheck,r.finalSigner,r.involvement??'',r.openResponse,JSON.stringify(r.speech||null),JSON.stringify(r.audio||null),r.retained,r.submittedAt]);
+  const header=['session_id','study_protocol','case_number','case_order','study_completed','migrated_from','version','case_version','dialogue_version','narration_version','condition_line','consent','orientation','preview','role','role_assignment','practicing_lawyer','license_active','legal_education','legal_degree','litigation_experience','litigation_experience_status','screening_version','reading_progress','condition','case_type','presentation','replay_completed','replay_exposure_ms','ranking_status','ranking_ids','ranking_labels','ranking_initial','responsibility_measure','responsibility_order',...CORE.SUBJECTS.map(s=>'responsibility_score_'+s.id),...CORE.SUBJECTS.map(s=>'responsibility_allocation_'+s.id),'responsibility_allocation_total',...RATINGS.flatMap(([k])=>[k,k+'_status']),'manipulation_check','final_signer','involvement','open_response','speech_metadata','audio_metadata','retained','submitted_at'];
+  const rows=SESSION.rows(records).map(r=>[r.sessionId,r.studyProtocol,r.caseNumber,JSON.stringify(r.caseOrder),r.studyCompleted,r.migratedFrom,r.version||'1',r.caseVersion||'legacy',r.dialogueVersion||'',r.narrationVersion||'',r.conditionLine||'',JSON.stringify(r.consent||null),JSON.stringify(r.orientation||null),r.preview,r.role,r.roleAssignment||'self_selected',r.background?.practicingLawyer,r.background?.licenseActive,r.background?.legalEducation,r.background?.legalDegree,r.background?.litigationExperience,r.background?.litigationExperienceStatus,r.screeningVersion||r.assignment?.version,JSON.stringify(r.reading||null),r.condition,r.caseType,r.presentation,r.replayCompleted,r.replayExposureMs,r.rankingStatus||(r.responsibilityMeasure?'not_collected':'legacy'),JSON.stringify(r.rankingIds||[]),JSON.stringify(r.ranking||[]),JSON.stringify(r.rankingInitial||[]),r.responsibilityMeasure||'ranking_legacy',JSON.stringify(r.responsibilityOrder||[]),...CORE.SUBJECTS.map(s=>r.responsibilityScores?.[s.id]??''),...CORE.SUBJECTS.map(s=>r.responsibilityAllocation?.[s.id]??''),r.responsibilityAllocationTotal??'',...RATINGS.flatMap(([k])=>[r.ratings?.[k],r.ratingStatus?.[k]||'legacy']),r.manipulationCheck,r.finalSigner,r.involvement??'',r.openResponse,JSON.stringify(r.speech||null),JSON.stringify(r.audio||null),r.retained,r.submittedAt]);
   downloadBlob([header,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n'),'judicial-ai-prototype.csv','text/csv;charset=utf-8');
 }
 function valid(value,choices,fallback){return choices.includes(value)?value:fallback;}

@@ -22,9 +22,11 @@ async function finish(p,audio=false){
  if(audio){await p.locator('#playback-toggle').click();await p.waitForFunction(()=>state.audio.completed);}
  else {assert.equal(await p.locator('#transcript-confirm').isDisabled(),true);await p.locator('#narration-text').evaluate(e=>{e.scrollTop=e.scrollHeight;e.dispatchEvent(new Event('scroll'));});await p.clock.runFor(31000);}
  await p.locator('#transcript-confirm').check();await p.locator('#to-decision').click();await p.locator('#to-survey').click();
- assert.equal(await p.locator('.ranking-item').count(),4);
+ assert.equal(await p.locator('#responsibility-score-list input').count(),4);
  await p.locator('[name=manipulationCheck]').selectOption('none');await p.locator('[name=finalSigner]').selectOption('judge');
- await p.locator('#ranking-confirm').check();
+ for(const id of ['judge','court','provider','system'])await p.locator(`#responsibility-score-${id}`).fill('50');
+ await p.locator('#to-allocation').click();
+ for(const id of ['judge','court','provider','system'])await p.locator(`#responsibility-allocation-${id}`).fill('25');
  for(const n of ['fairness','control','clarity','judgeOwnership','aiTrust','legitimacy','acceptance','unease'])await p.locator(`[name=${n}][value="4"]`).check();
  await p.locator('[name=involvement][value="4"]').check();await p.locator('[name=honestConfirm]').check();await p.locator('#submit-evaluation').click();
 }
@@ -48,7 +50,7 @@ function wav(){const size=32000,b=Buffer.alloc(44+size);b.write('RIFF');b.writeU
   }
   const record=await p.evaluate(k=>JSON.parse(localStorage.getItem(k))[0],recordsKey);
   assert.equal(record.responses.length,2);assert.equal(record.completed,true);assert.equal(record.retained,true);
-  for(const r of record.responses){assert.equal(r.orientation.videoCompleted,true);assert.equal(r.rankingIds.length,4);assert.equal(r.involvement,4);assert.ok(r.orientation.version.endsWith('-v5'));assert.ok(r.orientation.videoMax>=17);assert.equal(r.presentation,'shared_plain_text');assert.ok(r.consent.acceptedAt);}
+  for(const r of record.responses){assert.equal(r.orientation.videoCompleted,true);assert.equal(r.responsibilityOrder.length,4);assert.deepEqual(Object.values(r.responsibilityScores),[50,50,50,50]);assert.deepEqual(Object.values(r.responsibilityAllocation),[25,25,25,25]);assert.equal(r.involvement,4);assert.ok(r.orientation.version.endsWith('-v5'));assert.ok(r.orientation.videoMax>=17);assert.equal(r.presentation,'shared_plain_text');assert.ok(r.consent.acceptedAt);}
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.deepEqual(errors,[]);
   if(count===0){p.on('dialog',d=>d.accept());await p.locator('#delete-response').click();await p.reload();assert.equal(await p.locator('#screen-debrief h1').innerText(),'本次作答已退出');assert.equal(await p.evaluate(k=>JSON.parse(localStorage.getItem(k)||'[]').length,recordsKey),0);}
   await context.close();console.log('Passed',++count,role,condition,firstCase);
@@ -60,5 +62,5 @@ function wav(){const size=32000,b=Buffer.alloc(44+size);b.write('RIFF');b.writeU
  await p.goto(`${base}/?view=participant&preview=1&role=public&condition=none&case=natural`);await p.locator('#consent-checkbox').check();await p.locator('#start-study').click();await orient(p);
  for(let i=0;i<2;i++){await read(p);assert.equal(await p.locator('#audio-panel').isVisible(),true);assert.equal(await p.locator('#narration-text p').count(),5);await finish(p,true);if(i===0){await p.locator('#next-case').click();await orient(p);}}
  const record=await p.evaluate(k=>JSON.parse(localStorage.getItem(k))[0],recordsKey);assert.ok(record.responses.every(r=>r.presentation==='shared_audio_and_text'&&r.audio.completed));await c.close();
- console.log(`Passed: ${count} two-case paths (${count*2} responses), actual role video playback, timed reading, shared text equality, refresh, consent, mandatory ranking, withdrawal, mobile width and both-case audio.`);
+ console.log(`Passed: ${count} two-case paths (${count*2} responses), actual role video playback, timed reading, shared text equality, refresh, consent, mandatory independent scoring and 100-point allocation, withdrawal, mobile width and both-case audio.`);
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1)});

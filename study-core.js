@@ -6,6 +6,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const VERSION = '2.2.0';
+  const RESPONSIBILITY_VERSION = 'independent-and-allocation-2026-09-16-v1';
   const MIN_READING_MS = 5000;
   const DOSSIER_TABS = ['overview','evidence','task'];
   const ROLES = ['lawyer', 'litigant', 'public'];
@@ -68,5 +69,17 @@
     if (!/^[1-7]$/.test(String(raw))) throw new Error('请完成所有适用的感受题。');
     return {value:Number(raw),status:'answered'};
   }
-  return {VERSION,MIN_READING_MS,DOSSIER_TABS,ROLES,CONDITIONS,CASE_TYPES,SCALE,SUBJECTS,choose,shuffle,validAssignment,assignParticipant,readingComplete,subjectsFor,validRanking,ratingValue};
+  function responsibilityValues(raw, allocation = false) {
+    const ids = SUBJECTS.map(subject=>subject.id);
+    if (!raw || Array.isArray(raw) || Object.keys(raw).length !== ids.length || !ids.every(id=>Object.hasOwn(raw,id))) throw new Error('请填写四个责任主体的分值。');
+    const values = {};
+    for (const id of ids) {
+      const value = raw[id];
+      if (!((typeof value === 'number' && Number.isInteger(value)) || (typeof value === 'string' && /^\d{1,3}$/.test(value))) || Number(value)<0 || Number(value)>100) throw new Error('每个主体都需填写 0–100 的整数；没有责任请填 0。');
+      values[id] = Number(value);
+    }
+    if (allocation && Object.values(values).reduce((sum,value)=>sum+value,0)!==100) throw new Error('责任分配必须合计 100 分。');
+    return values;
+  }
+  return {VERSION,RESPONSIBILITY_VERSION,MIN_READING_MS,DOSSIER_TABS,ROLES,CONDITIONS,CASE_TYPES,SCALE,SUBJECTS,choose,shuffle,validAssignment,assignParticipant,readingComplete,subjectsFor,validRanking,ratingValue,responsibilityValues};
 });
