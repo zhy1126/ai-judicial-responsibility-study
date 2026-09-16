@@ -5,7 +5,7 @@ const recordsKey='judicial_ai_responsibility_prototype_records_v1';
 const roles=['lawyer','litigant','public'],conditions=process.env.STUDY_SMOKE?['none']:['none','procedural','substantive','decisional'];
 async function orient(p){
  await p.locator('#role-dialog[open]').waitFor();assert.equal(await p.locator('#role-continue').isDisabled(),true);
- assert.equal(await p.locator('#role-video').evaluate(v=>new URL(v.src).pathname.endsWith(`${state.caseType}-${state.role}-v3.mp4`)),true);await p.locator('#role-video').evaluate(v=>v.playbackRate=16);await p.locator('#role-video-play').click();
+ assert.equal(await p.locator('#role-video').evaluate(v=>new URL(v.src).pathname.endsWith(`${state.caseType}-${state.role}-v4.mp4`)),true);await p.locator('#role-video').evaluate(v=>v.playbackRate=16);await p.locator('#role-video-play').click();
  await p.waitForFunction(()=>state.orientation[state.caseType].videoCompleted);
  await p.clock.runFor(5500);await p.locator('#role-continue').click();
 }
@@ -48,7 +48,7 @@ function wav(){const size=32000,b=Buffer.alloc(44+size);b.write('RIFF');b.writeU
   }
   const record=await p.evaluate(k=>JSON.parse(localStorage.getItem(k))[0],recordsKey);
   assert.equal(record.responses.length,2);assert.equal(record.completed,true);assert.equal(record.retained,true);
-  for(const r of record.responses){assert.equal(r.orientation.videoCompleted,true);assert.equal(r.rankingIds.length,4);assert.equal(r.involvement,4);assert.ok(r.orientation.version.endsWith('-v3'));assert.ok(r.orientation.videoMax>=17);assert.equal(r.presentation,'shared_plain_text');assert.ok(r.consent.acceptedAt);}
+  for(const r of record.responses){assert.equal(r.orientation.videoCompleted,true);assert.equal(r.rankingIds.length,4);assert.equal(r.involvement,4);assert.ok(r.orientation.version.endsWith('-v4'));assert.ok(r.orientation.videoMax>=17);assert.equal(r.presentation,'shared_plain_text');assert.ok(r.consent.acceptedAt);}
   assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.deepEqual(errors,[]);
   if(count===0){p.on('dialog',d=>d.accept());await p.locator('#delete-response').click();await p.reload();assert.equal(await p.locator('#screen-debrief h1').innerText(),'本次作答已退出');assert.equal(await p.evaluate(k=>JSON.parse(localStorage.getItem(k)||'[]').length,recordsKey),0);}
   await context.close();console.log('Passed',++count,role,condition,firstCase);
