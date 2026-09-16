@@ -26,8 +26,8 @@ test('audio is keyed only by case and old dialogue scripts are not loaded by the
 });
 test('case-specific role videos cover six variants without AI-condition branches',()=>{
  const scope={window:{}};vm.runInNewContext(fs.readFileSync(require.resolve('../role-media.js'),'utf8'),scope);
- const m=scope.window.STUDY_ROLE_MEDIA;assert.equal(m.durationSeconds,18);
+ const m=scope.window.STUDY_ROLE_MEDIA;assert.equal(m.durationSeconds,18);assert.equal(m.shotCount,6);assert.equal(m.shotDurationSeconds,3);assert.equal(m.captionDurationSeconds,6);
  assert.deepEqual(Object.keys(m.cases),['natural','statutory']);
- const urls=[];for(const c of ['natural','statutory'])for(const role of ['lawyer','litigant','public']){const clip=m.cases[c][role];assert.match(clip.src,new RegExp(`${c}-${role}-v3\\.mp4$`));urls.push(clip.src);assert.ok(fs.existsSync(require('node:path').join(__dirname,'..',clip.src)));assert.ok(fs.existsSync(require('node:path').join(__dirname,'..',clip.poster)));}
+ const urls=[];for(const c of ['natural','statutory'])for(const role of ['lawyer','litigant','public']){const clip=m.cases[c][role];assert.match(clip.src,new RegExp(`${c}-${role}-v4\\.mp4$`));urls.push(clip.src);assert.ok(fs.existsSync(require('node:path').join(__dirname,'..',clip.src)));assert.ok(fs.existsSync(require('node:path').join(__dirname,'..',clip.poster)));}
  assert.equal(new Set(urls).size,6);assert.match(m.version,/case-role-broll/);
 });
