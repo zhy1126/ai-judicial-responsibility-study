@@ -279,3 +279,18 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 #role-video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin:18px 0 12px;background:#eef1f4}
 #role-continue{width:100%;margin-top:14px}.dossier-tabs button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:600px){.role-dialog{padding:20px}.role-description{font-size:16px}.narration-text{font-size:17px;padding:20px;max-height:60vh}.condition-disclosure{font-size:16px;padding:16px}.role-dialog h2{font-size:23px}}
+
+/* Responsibility values: blank until answered, the same order in both stages. */
+.responsibility-stage { border:0; padding:0; margin:24px 0 0; min-width:0; scroll-margin-top:24px; }
+.responsibility-stage legend { font-size:19px; font-weight:700; margin-bottom:8px; }
+.responsibility-list { display:grid; gap:12px; margin:20px 0; }
+.responsibility-item { display:grid; grid-template-columns:minmax(0,1fr) 104px; align-items:center; gap:16px; border:1px solid #dfe2e3; border-radius:12px; padding:18px; background:#fff; }
+.responsibility-item label { display:block; font-size:16px; font-weight:650; cursor:pointer; }
+.responsibility-item p { margin:6px 0 0; font-size:13px; line-height:1.65; color:var(--muted); }
+.responsibility-value { display:flex; align-items:center; gap:7px; }
+.responsibility-value input { width:80px; min-height:48px; padding:10px 6px; border:1px solid #aab7c0; border-radius:8px; font:inherit; font-size:18px; text-align:center; background:white; color:var(--navy-900); }
+.responsibility-value input:focus { outline:3px solid #cbe9e3; border-color:#347f73; }
+.responsibility-value input::placeholder { color:#77818e; font-size:14px; }
+.allocation-status { padding:16px; margin:16px 0; border-radius:10px; background:#f3f1e9; font-size:15px; line-height:1.65; font-weight:600; }
+.allocation-status.complete { background:#e7f3ef; color:#246c5c; }
+@media(max-width:520px){ .responsibility-item { padding:14px 12px; gap:10px; grid-template-columns:minmax(0,1fr) 88px; } .responsibility-value input { width:67px; } .responsibility-item label { font-size:15px; } }
