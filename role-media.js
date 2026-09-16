@@ -1,0 +1,1 @@
+window.STUDY_ROLE_MEDIA={version:'role-immersion-2026-09-16-v2',durationSeconds:18,lawyer:{src:'./video/lawyer-v2.mp4',poster:'./video/lawyer-v2.jpg'},litigant:{src:'./video/litigant-v2.mp4',poster:'./video/litigant-v2.jpg'},public:{src:'./video/public-v2.mp4',poster:'./video/public-v2.jpg'}};
