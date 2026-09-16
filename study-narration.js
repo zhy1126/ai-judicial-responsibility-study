@@ -28,10 +28,11 @@
  function conditionLine(condition){if(!lines[condition])throw Error('未知 AI 条件');return lines[condition];}
  function rolePrompt(role,caseType){
  if(!scripts[caseType])throw Error('未知案件');
+ if(role==='judge')return '请设想您是审理本案的法官。您将审阅案件材料，了解裁判形成过程，并对裁判承担审判职责。接下来，请结合您的法官办案经验，从本案承办法官的视角作答。';
  if(role==='lawyer')return '请设想您正以律师身份参与本案。您将阅读案件材料，随后了解裁判如何形成。请结合您的律师工作经验，从参与本案的律师视角作答。';
  if(role==='public')return '请设想您在日常生活中看到关于本案的报道。您与本案没有直接关系，也不代表任何一方。接下来，请以普通社会公众的视角了解裁判过程并作答。';
  if(role==='litigant')return caseType==='natural'?'请设想您是本案被害人的近亲属。您的亲人在冲突中死亡，您正在了解这起案件的裁判过程。接下来，请从被害人亲属的处境出发，评价这份涉及您家庭的裁判。':'请设想您代表本案中被侵权的软件著作权方参与诉讼。您所代表的权利方因软件被未经授权传播而受到侵害。接下来，请从这一权利方的处境出发，评价涉及自身权益的裁判。';
  throw Error('未知角色');
  }
- return {VERSION,paragraphsFor,conditionLine,rolePrompt,MIN_ROLE_MS:5000,MIN_TEXT_MS:30000};
+ return {VERSION,paragraphsFor,conditionLine,rolePrompt,MIN_ROLE_MS:5000,MIN_TEXT_MS:15000};
 });
