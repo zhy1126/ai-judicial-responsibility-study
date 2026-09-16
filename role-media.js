@@ -6,6 +6,7 @@ window.STUDY_ROLE_MEDIA={
   "captionDurationSeconds": 6,
   "cases": {
     "natural": {
+      "judge": {"src":"./video/natural-judge-v5.mp4","poster":"./video/natural-judge-v5.jpg"},
       "lawyer": {
         "src": "./video/natural-lawyer-v5.mp4",
         "poster": "./video/natural-lawyer-v5.jpg"
@@ -20,6 +21,7 @@ window.STUDY_ROLE_MEDIA={
       }
     },
     "statutory": {
+      "judge": {"src":"./video/statutory-judge-v5.mp4","poster":"./video/statutory-judge-v5.jpg"},
       "lawyer": {
         "src": "./video/statutory-lawyer-v5.mp4",
         "poster": "./video/statutory-lawyer-v5.jpg"

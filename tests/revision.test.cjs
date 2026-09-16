@@ -61,7 +61,7 @@ function wav(seconds=4){
 
   const oldContext=await browser.newContext(),oldPage=await oldContext.newPage();await oldPage.goto(base+'/?view=participant');
   const oldAssignment=await oldPage.evaluate(k=>{
-   const assignment=StudyCore.assignParticipant({practicingLawyer:'no',legalDegree:'yes',litigationExperience:'yes'},{choose:x=>x[0],sessionId:'V2-KEEP'});
+   const assignment=StudyCore.assignParticipant({practicingLawyer:'no',judgeCaseExperience:'no',legalDegree:'yes',litigationExperience:'yes'},{choose:x=>x[0],sessionId:'V2-KEEP'});
    assignment.version='2.0.0';assignment.background.legalEducation='yes';delete assignment.background.legalDegree;
    localStorage.setItem(k,JSON.stringify({version:'2.0.0',epoch:localStorage.getItem('judicial_ai_responsibility_reset_epoch_v2')||'',assignment,step:'survey',ranking:['judge','court'],rankingInitial:['judge','court'],readTabs:['overview','evidence','task'],dossierConfirmed:true,transcriptConfirmed:true}));return assignment;
   },draftKey);

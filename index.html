@@ -48,7 +48,7 @@
             <div class="rq-grid">
               <article class="rq-card rq-card-large">
                 <span class="rq-index">RQ1</span>
-                <div><strong>背景与观察视角</strong><p>律师、当事人与普通民众在评价 AI 参与的法律活动时，其责任分配和主观感受有何差异？律师身份为背景测量，非律师随机分配视角。</p></div>
+                <div><strong>背景与观察视角</strong><p>法官、律师、模拟当事人与无关群众在评价 AI 参与的法律活动时，其责任分配和主观感受有何差异？法官、律师与大众为背景群体；大众随机分配到当事人或无关群众视角。</p></div>
               </article>
               <article class="rq-card">
                 <span class="rq-index">RQ2</span>
@@ -63,11 +63,11 @@
 
           <section id="design-panel" class="dashboard-section panel">
             <div class="panel-head">
-              <div><p class="eyebrow">FACTORIAL DESIGN</p><h2>3 类视角 × 4 种参与方式 · 每人完成 2 案</h2></div>
-              <span class="matrix-total">24 条视角／条件／顺序预览路径</span>
+              <div><p class="eyebrow">FACTORIAL DESIGN</p><h2>4 类作答视角 × 4 种参与方式 · 每人完成 2 案</h2></div>
+              <span class="matrix-total">32 条视角／条件／顺序预览路径</span>
             </div>
             <div class="factor-grid">
-              <article class="factor-card"><span class="factor-number">3</span><div><strong>背景与观察视角</strong><p>律师专业视角 · 当事人视角 · 公众视角</p></div></article>
+              <article class="factor-card"><span class="factor-number">4</span><div><strong>背景与观察视角</strong><p>法官视角 · 律师视角 · 当事人视角 · 无关群众视角</p></div></article>
               <span class="factor-sign">×</span>
               <article class="factor-card"><span class="factor-number">4</span><div><strong>AI 条件</strong><p>无 AI 对照 · 程序性 · 实质性 · 决定性</p></div></article>
               <span class="factor-sign">×</span>
@@ -87,6 +87,7 @@
                 <fieldset>
                   <legend>预览观察视角</legend>
                   <div class="segmented" data-field="role">
+                    <button type="button" data-value="judge">法官</button>
                     <button type="button" data-value="lawyer">律师</button>
                     <button type="button" data-value="litigant">当事人</button>
                     <button type="button" data-value="public" class="selected">普通公众</button>
@@ -122,7 +123,7 @@
                 <li><span>05</span><div><strong>责任与感受</strong><small>独立评分、100分分配、量表与开放回答</small></div></li>
                 <li><span>06</span><div><strong>事后说明</strong><small>解释随机条件与研究用途</small></div></li>
               </ol>
-              <div class="flow-callout"><span aria-hidden="true">▶</span><p>非律师随机进入当事人或公众视角；各视角内随机分配审阅条件和两案顺序，同一人完成两案，视角与 AI 条件保持一致。真实背景单独记录。</p></div>
+              <div class="flow-callout"><span aria-hidden="true">▶</span><p>大众（非法官、非律师）随机进入当事人或无关群众视角；各视角内随机分配审阅条件和两案顺序，同一人完成两案，视角与 AI 条件保持一致。真实背景单独记录。</p></div>
             </aside>
           </section>
 
@@ -191,6 +192,7 @@
                 <h2 id="screening-title">请回答几项背景问题</h2>
                 <p>请按真实情况作答。后续可能请您从指定的模拟视角评价案例，这不会改变您的职业或经历记录。</p>
                 <fieldset class="screening-question"><legend>您目前是否正在以执业律师身份从事律师业务？</legend><div class="yes-no"><label><input type="radio" name="practicingLawyer" value="yes">是</label><label><input type="radio" name="practicingLawyer" value="no">否</label></div></fieldset>
+                <fieldset id="judge-question" class="screening-question hidden"><legend>您是否曾以法官身份办理过案件？</legend><p class="helper-text">指曾担任案件的承办法官或合议庭成员；仅有法官助理、书记员或其他法院工作经历不计入。</p><div class="yes-no"><label><input type="radio" name="judgeCaseExperience" value="yes">是</label><label><input type="radio" name="judgeCaseExperience" value="no">否</label></div></fieldset>
                 <fieldset class="screening-question"><legend>您是否已取得法学专业的相关学位？</legend><div class="yes-no"><label><input type="radio" name="legalDegree" value="yes">是</label><label><input type="radio" name="legalDegree" value="no">否</label></div></fieldset>
                 <fieldset id="litigation-question" class="screening-question hidden"><legend>您是否曾作为当事人参加诉讼？</legend><div class="yes-no"><label><input type="radio" name="litigationExperience" value="yes">是</label><label><input type="radio" name="litigationExperience" value="no">否</label></div></fieldset>
                 <p id="screening-note" class="helper-text" role="status"></p>
@@ -220,7 +222,6 @@
               <div class="screen-kicker"><span class="stage-badge">第 2 部分</span><span class="category-badge">过程记录</span></div>
               <h1>这份裁判是如何形成的</h1>
               <p class="lead">下面是一位法官对裁判形成过程的第一人称陈述。请结合案件材料，完整了解他的考虑。</p>
-              <p id="condition-disclosure" class="condition-disclosure"></p>
               <p id="playback-source" class="helper-text"></p>
               <p id="dialogue-update-note" class="helper-text hidden" role="status">裁判形成记录已更新，请完整阅读或收听后再作答。您的分组和已提交回答保持不变。</p>
               <section id="audio-panel" class="narration-audio hidden" aria-label="裁判形成录音">
@@ -230,7 +231,10 @@
                 <p id="audio-status" class="helper-text" role="status"></p>
                 <div class="playback-controls"><button id="playback-toggle" class="button button-primary" type="button">开始收听</button><button id="playback-restart" class="button button-secondary" type="button">从头收听</button></div>
               </section>
+              <section class="narration-record" aria-label="法官陈述及本案 AI 参与说明">
+              <p id="condition-disclosure" class="condition-disclosure"></p>
               <article id="narration-text" class="narration-text" tabindex="0" aria-label="裁判形成记录全文"></article>
+              </section>
               <p id="narration-reading-status" class="helper-text" role="status"></p>
               <label class="check-row read-confirm"><input id="transcript-confirm" type="checkbox" disabled><span id="playback-confirm-label">我已完整了解这份裁判形成记录。</span></label>
               <div class="screen-actions"><button class="button button-secondary" type="button" data-back="dossier">返回案卷</button><span id="transcript-error" class="form-error" role="alert"></span><button id="to-decision" class="button button-primary" type="button" disabled>查看最终裁判 <span>→</span></button></div>
@@ -306,7 +310,7 @@
 
             <section id="screen-debrief" class="study-screen debrief-screen">
               <div class="completion-mark">✓</div><p class="eyebrow">COMPLETED</p><h1>感谢您的参与</h1><p class="lead">您已完成两个案件，全部原型回答已经保存在当前浏览器中。</p>
-              <div class="debrief-card"><h2>关于本研究的完整说明</h2><p>本研究比较律师、模拟当事人与普通公众的责任判断及主观感受。律师身份来自自我报告；非律师随机分配到当事人或公众视角。每人完成故意伤害与侵犯著作权两案，顺序随机，角色和 AI 条件保持不变。</p><p>同一案件的陈述正文、录音与裁判结果在所有 AI 条件下相同，只有 AI 参与程度提示行不同。角色视频按案件和身份分别制作，当事人组采用第一人称视角，画面为 AI 生成的非暴力模拟场景，法官陈述为依据案例编写的研究材料，并非真实法官的工作记录或原声。</p><p>您的回答将依开始时的知情同意用于科学研究。当前原型仅保存在此浏览器，尚未自动上传；您仍可撤回并删除本次回答。</p></div>
+              <div class="debrief-card"><h2>关于本研究的完整说明</h2><p>本研究比较法官、律师、模拟当事人与无关群众的责任判断及主观感受。法官办案经历及当前律师职业来自自我报告；均不符合者作为大众，以相同概率随机分配到当事人或无关群众视角。每人完成故意伤害与侵犯著作权两案，顺序随机，角色和 AI 条件保持不变。</p><p>同一案件的陈述正文、录音与裁判结果在所有 AI 条件下相同，只有 AI 参与程度提示行不同。角色视频按案件和身份分别制作，当事人组采用第一人称视角，画面为 AI 生成的非暴力模拟场景，法官陈述为依据案例编写的研究材料，并非真实法官的工作记录或原声。</p><p>您的回答将依开始时的知情同意用于科学研究。当前原型仅保存在此浏览器，尚未自动上传；您仍可撤回并删除本次回答。</p></div>
               <div class="completion-actions"><button id="delete-response" class="text-button danger" type="button">撤回并删除本次回答</button></div>
               <p id="retain-status" class="retain-status" role="status"></p>
               <div class="completion-actions"><button id="download-response" class="button button-secondary" type="button">下载本次回答 JSON</button><a id="finish-link" class="button button-primary hidden" href="./?view=researcher">返回研究设计台</a></div>

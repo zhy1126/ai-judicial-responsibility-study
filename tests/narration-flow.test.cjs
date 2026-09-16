@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const {chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');
 const base=process.env.STUDY_TEST_URL||'http://127.0.0.1:8766';
 const recordsKey='judicial_ai_responsibility_prototype_records_v1';
-const roles=['lawyer','litigant','public'],conditions=process.env.STUDY_SMOKE?['none']:['none','procedural','substantive','decisional'];
+const roles=['judge','lawyer','litigant','public'],conditions=process.env.STUDY_SMOKE?['none']:['none','procedural','substantive','decisional'];
 async function orient(p){
  await p.locator('#role-dialog[open]').waitFor();assert.equal(await p.locator('#role-continue').isDisabled(),true);
  assert.equal(await p.locator('#role-video').evaluate(v=>new URL(v.src).pathname.endsWith(`${state.caseType}-${state.role}-v5.mp4`)),true);await p.locator('#role-video').evaluate(v=>v.playbackRate=16);await p.locator('#role-video-play').click();
@@ -20,7 +20,7 @@ async function read(p){
 }
 async function finish(p,audio=false){
  if(audio){await p.locator('#playback-toggle').click();await p.waitForFunction(()=>state.audio.completed);}
- else {assert.equal(await p.locator('#transcript-confirm').isDisabled(),true);await p.locator('#narration-text').evaluate(e=>{e.scrollTop=e.scrollHeight;e.dispatchEvent(new Event('scroll'));});await p.clock.runFor(31000);}
+ else {assert.equal(await p.locator('#transcript-confirm').isDisabled(),true);await p.locator('#narration-text').evaluate(e=>{e.scrollTop=e.scrollHeight;e.dispatchEvent(new Event('scroll'));});await p.clock.runFor(16000);}
  await p.locator('#transcript-confirm').check();await p.locator('#to-decision').click();await p.locator('#to-survey').click();
  assert.equal(await p.locator('#responsibility-score-list input').count(),4);
  await p.locator('[name=manipulationCheck]').selectOption('none');await p.locator('[name=finalSigner]').selectOption('judge');

@@ -92,7 +92,7 @@ h2 { font-family: var(--font-serif); font-size: 24px; line-height: 1.28; }
 .preview-config { display: grid; gap: 23px; margin-top: 21px; }
 .preview-config fieldset, .role-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .preview-config legend, .role-fieldset legend { margin-bottom: 10px; font-weight: 800; font-size: 13px; }
-.segmented { display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px; border-radius: 11px; background: #eef0f1; }
+.segmented { display: grid; grid-template-columns: repeat(4, 1fr); padding: 4px; border-radius: 11px; background: #eef0f1; }
 .segmented button { padding: 9px; border: 0; border-radius: 8px; color: var(--muted); background: transparent; cursor: pointer; font-weight: 700; }
 .segmented button.selected { color: var(--navy-900); background: #fff; box-shadow: 0 2px 8px rgba(20,32,51,.1); }
 .choice-list { display: grid; gap: 8px; }.choice-list label, .case-options label { display: flex; align-items: flex-start; gap: 11px; padding: 13px; border: 1px solid #dfe3e6; border-radius: 11px; cursor: pointer; }.choice-list label:has(input:checked), .case-options label:has(input:checked) { border-color: var(--teal); background: #f2faf8; box-shadow: 0 0 0 2px rgba(22,125,114,.08); }.choice-list input, .case-options input { margin-top: 4px; accent-color: var(--teal); }.choice-list b, .choice-list small, .case-options b, .case-options small { display: block; }.choice-list b, .case-options b { font-size: 13px; }.choice-list small, .case-options small { color: var(--muted); font-size: 11px; }
@@ -294,3 +294,10 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 .allocation-status { padding:16px; margin:16px 0; border-radius:10px; background:#f3f1e9; font-size:15px; line-height:1.65; font-weight:600; }
 .allocation-status.complete { background:#e7f3ef; color:#246c5c; }
 @media(max-width:520px){ .responsibility-item { padding:14px 12px; gap:10px; grid-template-columns:minmax(0,1fr) 88px; } .responsibility-value input { width:67px; } .responsibility-item label { font-size:15px; } }
+
+/* Keep the experimental disclosure visible while the monologue scrolls. */
+.narration-record{border:1px solid #aac5bf;border-radius:14px;overflow:hidden;background:#fff;margin:24px 0}
+.narration-record .condition-disclosure{margin:0;border:0;border-bottom:1px solid #aac5bf;font-weight:600}
+.narration-record .narration-text{border:0;border-radius:0}
+
+@media(max-width:600px){.segmented{grid-template-columns:repeat(2,1fr)}}

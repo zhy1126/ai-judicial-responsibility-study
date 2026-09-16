@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 let core;
 try { core = require('../study-core.js'); } catch { core = {}; }
-const answers = { practicingLawyer: 'no', licenseActive: null, legalDegree: 'yes', litigationExperience: 'yes' };
+const answers = { practicingLawyer: 'no', judgeCaseExperience: 'no', licenseActive: null, legalDegree: 'yes', litigationExperience: 'yes' };
 test('current self-reported practising lawyers receive lawyer role; real history remains separate', () => {
   assert.equal(typeof core.assignParticipant, 'function');
   const a = core.assignParticipant({...answers, practicingLawyer:'yes', licenseActive:'yes'}, {choose:x=>x[0],sessionId:'A'});
@@ -56,4 +56,20 @@ test('ranking validates exact applicable membership with no duplicates',()=>{
   assert.equal(core.validRanking(['court','judge','provider','system'],'none'),true);
   assert.equal(core.validRanking(['judge','judge'],'none'),false);
   assert.equal(core.validRanking(['judge','court','system'],'none'),false);
+});
+
+test('judge experience creates judge group; current lawyers have priority; lay backgrounds do not decide their simulated role',()=>{
+ for(const legalDegree of ['yes','no'])for(const litigationExperience of ['yes','no']){
+  const a=core.assignParticipant({...answers,judgeCaseExperience:'yes',legalDegree,litigationExperience},{sessionId:'J',choose:x=>x[0]});
+  assert.equal(a.role,'judge');assert.equal(a.backgroundGroup,'judge');assert.equal(a.background.litigationExperience,null);assert.equal(a.screeningVersion,core.SCREENING_VERSION);
+  const l=core.assignParticipant({...answers,practicingLawyer:'yes',judgeCaseExperience:'yes'},{sessionId:'L',choose:x=>x[0]});assert.equal(l.role,'lawyer');assert.equal(l.backgroundGroup,'lawyer');
+  for(const last of [false,true]){const p=core.assignParticipant({...answers,legalDegree,litigationExperience},{sessionId:'P',choose:x=>last?x.at(-1):x[0]});assert.equal(p.backgroundGroup,'public');assert.equal(p.role,last?'public':'litigant');}
+ }
+ assert.throws(()=>core.assignParticipant({...answers,judgeCaseExperience:null},{sessionId:'B'}));
+});
+test('rescreening preserves ID, AI condition and case order, and does not redraw an unchanged lay role',()=>{
+ const existing=core.assignParticipant(answers,{sessionId:'KEEP',choose:x=>x.at(-1)});delete existing.screeningVersion;
+ const j=core.assignParticipant({...answers,judgeCaseExperience:'yes'},{existing,rescreen:true,sessionId:'NEW',choose:()=>{throw Error('unexpected draw');}});
+ assert.equal(j.role,'judge');for(const key of ['sessionId','condition','caseType'])assert.equal(j[key],existing[key]);
+ const p=core.assignParticipant(answers,{existing,rescreen:true,sessionId:'NEW',choose:()=>{throw Error('unexpected draw');}});assert.equal(p.role,existing.role);
 });

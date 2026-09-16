@@ -9,7 +9,8 @@
   const RESPONSIBILITY_VERSION = 'independent-and-allocation-2026-09-16-v1';
   const MIN_READING_MS = 5000;
   const DOSSIER_TABS = ['overview','evidence','task'];
-  const ROLES = ['lawyer', 'litigant', 'public'];
+  const SCREENING_VERSION = 'judge-lawyer-public-2026-09-16-v1';
+  const ROLES = ['judge', 'lawyer', 'litigant', 'public'];
   const CONDITIONS = ['none', 'procedural', 'substantive', 'decisional'];
   const CASE_TYPES = ['natural', 'statutory'];
   const SCALE = ['完全不同意', '不同意', '比较不同意', '中立（既不赞同也不反对）', '比较同意', '同意', '完全同意'];
@@ -29,26 +30,28 @@
     return Boolean(a && [VERSION,'2.1.0','2.0.0'].includes(a.version) && a.sessionId && ROLES.includes(a.role) && CONDITIONS.includes(a.condition) && CASE_TYPES.includes(a.caseType) && a.background);
   }
   function assignParticipant(background, options = {}) {
-    if (validAssignment(options.existing)) return options.existing;
+    const existing = validAssignment(options.existing) ? options.existing : null;
+    if (existing && !options.rescreen) return existing;
     const yesNo = value => value === 'yes' || value === 'no';
-    if (!background || !['practicingLawyer','legalDegree'].every(k => yesNo(background[k])) || (background.practicingLawyer === 'no' && !yesNo(background.litigationExperience))) {
+    if (!background || !['practicingLawyer','legalDegree'].every(k => yesNo(background[k])) || (background.practicingLawyer === 'no' && (!yesNo(background.judgeCaseExperience) || (background.judgeCaseExperience === 'no' && !yesNo(background.litigationExperience))))) {
       throw new Error('请完成所有背景是非题。');
     }
     if (!options.sessionId) throw new Error('缺少体验编号。');
     const draw = options.choose || choose;
     const lawyerBranch = background.practicingLawyer === 'yes';
-    const facts = {practicingLawyer:background.practicingLawyer, legalDegree:background.legalDegree,
+    const judgeBranch = !lawyerBranch && background.judgeCaseExperience === 'yes';
+    const facts = {judgeCaseExperience:lawyerBranch ? null : background.judgeCaseExperience, judgeCaseExperienceStatus:lawyerBranch ? 'not_asked_lawyer_branch' : 'answered', practicingLawyer:background.practicingLawyer, legalDegree:background.legalDegree,
       licenseActive:null,
-      litigationExperience:lawyerBranch ? null : background.litigationExperience,
-      litigationExperienceStatus:lawyerBranch ? 'not_asked_lawyer_branch' : 'answered'};
+      litigationExperience:lawyerBranch || judgeBranch ? null : background.litigationExperience,
+      litigationExperienceStatus:lawyerBranch ? 'not_asked_lawyer_branch' : judgeBranch ? 'not_asked_judge_branch' : 'answered'};
     const lawyer = facts.practicingLawyer === 'yes';
     const preview = options.preview;
     return {
-      version: VERSION, sessionId: options.sessionId, background: facts,
-      role: preview && ROLES.includes(preview.role) ? preview.role : lawyer ? 'lawyer' : draw(['litigant','public']),
-      condition: preview && CONDITIONS.includes(preview.condition) ? preview.condition : draw(CONDITIONS),
-      caseType: preview && CASE_TYPES.includes(preview.caseType) ? preview.caseType : draw(CASE_TYPES),
-      roleAssignment: preview ? 'researcher_preview' : lawyer ? 'screened_lawyer' : 'randomized_perspective',
+      version: VERSION, screeningVersion:SCREENING_VERSION, backgroundGroup:lawyer ? 'lawyer' : judgeBranch ? 'judge' : 'public', sessionId: existing?.sessionId || options.sessionId, background: facts,
+      role: preview && ROLES.includes(preview.role) ? preview.role : lawyer ? 'lawyer' : judgeBranch ? 'judge' : existing && ['litigant','public'].includes(existing.role) ? existing.role : draw(['litigant','public']),
+      condition: preview && CONDITIONS.includes(preview.condition) ? preview.condition : existing?.condition || draw(CONDITIONS),
+      caseType: preview && CASE_TYPES.includes(preview.caseType) ? preview.caseType : existing?.caseType || draw(CASE_TYPES),
+      roleAssignment: preview ? 'researcher_preview' : lawyer ? 'screened_lawyer' : judgeBranch ? 'screened_judge' : 'randomized_perspective',
       preview: Boolean(preview), assignedAt: new Date().toISOString(),
     };
   }
@@ -81,5 +84,5 @@
     if (allocation && Object.values(values).reduce((sum,value)=>sum+value,0)!==100) throw new Error('责任分配必须合计 100 分。');
     return values;
   }
-  return {VERSION,RESPONSIBILITY_VERSION,MIN_READING_MS,DOSSIER_TABS,ROLES,CONDITIONS,CASE_TYPES,SCALE,SUBJECTS,choose,shuffle,validAssignment,assignParticipant,readingComplete,subjectsFor,validRanking,ratingValue,responsibilityValues};
+  return {VERSION,SCREENING_VERSION,RESPONSIBILITY_VERSION,MIN_READING_MS,DOSSIER_TABS,ROLES,CONDITIONS,CASE_TYPES,SCALE,SUBJECTS,choose,shuffle,validAssignment,assignParticipant,readingComplete,subjectsFor,validRanking,ratingValue,responsibilityValues};
 });
