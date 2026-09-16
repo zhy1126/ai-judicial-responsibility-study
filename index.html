@@ -191,9 +191,23 @@
               <section class="screening-section" aria-labelledby="screening-title">
                 <h2 id="screening-title">请回答几项背景问题</h2>
                 <p>请按真实情况作答。后续可能请您从指定的模拟视角评价案例，这不会改变您的职业或经历记录。</p>
-                <fieldset class="screening-question"><legend>您目前是否正在以执业律师身份从事律师业务？</legend><div class="yes-no"><label><input type="radio" name="practicingLawyer" value="yes">是</label><label><input type="radio" name="practicingLawyer" value="no">否</label></div></fieldset>
+                <fieldset class="screening-question"><legend>您目前是否从事法律相关工作？</legend><div class="yes-no"><label><input type="radio" name="legalIndustry" value="yes">是</label><label><input type="radio" name="legalIndustry" value="no">否</label></div></fieldset>
+                <fieldset id="occupation-question" class="screening-question hidden"><legend>您目前的职业身份是？</legend><p class="helper-text">请按当前实际从事的工作选择。</p><div class="occupation-options">
+                  <label><input type="radio" name="legalOccupation" value="lawyer">律师（目前以执业律师身份从事律师业务）</label>
+                  <label><input type="radio" name="legalOccupation" value="judge">法官</label>
+                  <label><input type="radio" name="legalOccupation" value="other">其他法律相关工作</label>
+                </div></fieldset>
+                <fieldset id="occupation-detail-question" class="screening-question hidden"><legend>您具体从事哪类法律相关工作？</legend><p class="helper-text">如有多项工作，请选择目前主要从事的一项。</p><div class="occupation-options">
+                  <label><input type="radio" name="legalOccupationDetail" value="corporate">企业法务／合规</label>
+                  <label><input type="radio" name="legalOccupationDetail" value="judge_assistant">法官助理</label>
+                  <label><input type="radio" name="legalOccupationDetail" value="court_support">书记员／其他审判辅助人员</label>
+                  <label><input type="radio" name="legalOccupationDetail" value="prosecution">检察机关工作人员</label>
+                  <label><input type="radio" name="legalOccupationDetail" value="lawyer_assistant">律师助理／实习律师</label>
+                  <label><input type="radio" name="legalOccupationDetail" value="academic">法律教学／科研</label>
+                  <label><input type="radio" name="legalOccupationDetail" value="other">其他，请注明</label>
+                </div><label id="occupation-other-field" class="occupation-other hidden">具体工作<input type="text" name="legalOccupationOther" maxlength="80" placeholder="请简要填写您的工作类别" autocomplete="off"></label></fieldset>
                 <fieldset id="judge-question" class="screening-question hidden"><legend>您是否曾以法官身份办理过案件？</legend><p class="helper-text">指曾担任案件的承办法官或合议庭成员；仅有法官助理、书记员或其他法院工作经历不计入。</p><div class="yes-no"><label><input type="radio" name="judgeCaseExperience" value="yes">是</label><label><input type="radio" name="judgeCaseExperience" value="no">否</label></div></fieldset>
-                <fieldset class="screening-question"><legend>您是否已取得法学专业的相关学位？</legend><div class="yes-no"><label><input type="radio" name="legalDegree" value="yes">是</label><label><input type="radio" name="legalDegree" value="no">否</label></div></fieldset>
+                <fieldset class="screening-question"><legend>您是否已取得法学专业的相关学位？</legend><p class="helper-text">此题仅用于记录教育背景，不作为进入某个组别的条件。</p><div class="yes-no"><label><input type="radio" name="legalDegree" value="yes">是</label><label><input type="radio" name="legalDegree" value="no">否</label></div></fieldset>
                 <fieldset id="litigation-question" class="screening-question hidden"><legend>您是否曾作为当事人参加诉讼？</legend><div class="yes-no"><label><input type="radio" name="litigationExperience" value="yes">是</label><label><input type="radio" name="litigationExperience" value="no">否</label></div></fieldset>
                 <p id="screening-note" class="helper-text" role="status"></p>
               </section>

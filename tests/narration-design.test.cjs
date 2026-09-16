@@ -2,12 +2,12 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const core=require('../study-core.js');
 test('current occupation alone determines lawyer screening without validity question',()=>{
- const a=core.assignParticipant({practicingLawyer:'yes',legalDegree:'yes'},{sessionId:'LAWYER',choose:x=>x[0]});
+ const a=core.assignParticipant({legalIndustry:'yes',legalOccupation:'lawyer',practicingLawyer:'yes',legalDegree:'yes'},{sessionId:'LAWYER',choose:x=>x[0]});
  assert.equal(a.role,'lawyer');assert.equal(a.background.licenseActive,null);
 });
 test('nonlawyers with no degree and no litigation experience enter either randomized lay role',()=>{
  for(const last of [false,true]){
-  const a=core.assignParticipant({practicingLawyer:'no',judgeCaseExperience:'no',legalDegree:'no',litigationExperience:'no'},{sessionId:'LAY',choose:x=>last?x.at(-1):x[0]});
+  const a=core.assignParticipant({legalIndustry:'no',practicingLawyer:'no',judgeCaseExperience:'no',legalDegree:'no',litigationExperience:'no'},{sessionId:'LAY',choose:x=>last?x.at(-1):x[0]});
   assert.equal(a.role,last?'public':'litigant');
  }
 });

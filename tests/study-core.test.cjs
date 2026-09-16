@@ -2,10 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 let core;
 try { core = require('../study-core.js'); } catch { core = {}; }
-const answers = { practicingLawyer: 'no', judgeCaseExperience: 'no', licenseActive: null, legalDegree: 'yes', litigationExperience: 'yes' };
+const answers = { legalIndustry:'no',practicingLawyer:'no', judgeCaseExperience: 'no', licenseActive: null, legalDegree: 'yes', litigationExperience: 'yes' };
 test('current self-reported practising lawyers receive lawyer role; real history remains separate', () => {
   assert.equal(typeof core.assignParticipant, 'function');
-  const a = core.assignParticipant({...answers, practicingLawyer:'yes', licenseActive:'yes'}, {choose:x=>x[0],sessionId:'A'});
+  const a = core.assignParticipant({...answers, legalIndustry:'yes',legalOccupation:'lawyer',practicingLawyer:'yes', licenseActive:'yes'}, {choose:x=>x[0],sessionId:'A'});
   assert.equal(a.role, 'lawyer');
   assert.equal(a.background.legalDegree, 'yes');
   assert.equal(a.background.litigationExperience, null);
@@ -13,7 +13,7 @@ test('current self-reported practising lawyers receive lawyer role; real history
   const b = core.assignParticipant(answers, {choose:x=>x.at(-1),sessionId:'B'});
   assert.equal(b.role, 'public');
   assert.equal(b.background.litigationExperience, 'yes');
-  assert.equal(core.assignParticipant({...answers,practicingLawyer:'yes'},{choose:x=>x[0],sessionId:'C'}).role,'lawyer');
+  assert.equal(core.assignParticipant({...answers,legalIndustry:'yes',legalOccupation:'lawyer',practicingLawyer:'yes'},{choose:x=>x[0],sessionId:'C'}).role,'lawyer');
 });
 test('an existing assignment survives reload or repeated submission without new random draws', () => {
   assert.equal(typeof core.assignParticipant, 'function');
@@ -24,10 +24,10 @@ test('an existing assignment survives reload or repeated submission without new 
 test('unanswered or inconsistent screening cannot create assignment', () => {
   assert.equal(typeof core.assignParticipant, 'function');
   assert.throws(()=>core.assignParticipant({...answers,legalDegree:null},{sessionId:'A'}));
-  assert.throws(()=>core.assignParticipant({...answers,practicingLawyer:null},{sessionId:'A'}));
+  assert.throws(()=>core.assignParticipant({...answers,legalIndustry:null},{sessionId:'A'}));
 });
 test('lawyer branch skips litigation history; switching to a non-lawyer requires it',()=>{
-  assert.equal(core.assignParticipant({...answers,practicingLawyer:'yes',licenseActive:'yes',litigationExperience:null},{choose:x=>x[0],sessionId:'A'}).role,'lawyer');
+  assert.equal(core.assignParticipant({...answers,legalIndustry:'yes',legalOccupation:'lawyer',practicingLawyer:'yes',licenseActive:'yes',litigationExperience:null},{choose:x=>x[0],sessionId:'A'}).role,'lawyer');
   assert.throws(()=>core.assignParticipant({...answers,litigationExperience:null},{sessionId:'B'}));
   assert.throws(()=>core.assignParticipant({...answers,legalDegree:undefined,legalEducation:'yes'},{sessionId:'C'}),'old education does not imply a degree');
 });
@@ -62,7 +62,7 @@ test('judge experience creates judge group; current lawyers have priority; lay b
  for(const legalDegree of ['yes','no'])for(const litigationExperience of ['yes','no']){
   const a=core.assignParticipant({...answers,judgeCaseExperience:'yes',legalDegree,litigationExperience},{sessionId:'J',choose:x=>x[0]});
   assert.equal(a.role,'judge');assert.equal(a.backgroundGroup,'judge');assert.equal(a.background.litigationExperience,null);assert.equal(a.screeningVersion,core.SCREENING_VERSION);
-  const l=core.assignParticipant({...answers,practicingLawyer:'yes',judgeCaseExperience:'yes'},{sessionId:'L',choose:x=>x[0]});assert.equal(l.role,'lawyer');assert.equal(l.backgroundGroup,'lawyer');
+  const l=core.assignParticipant({...answers,legalIndustry:'yes',legalOccupation:'lawyer',practicingLawyer:'yes',judgeCaseExperience:'yes'},{sessionId:'L',choose:x=>x[0]});assert.equal(l.role,'lawyer');assert.equal(l.backgroundGroup,'lawyer');
   for(const last of [false,true]){const p=core.assignParticipant({...answers,legalDegree,litigationExperience},{sessionId:'P',choose:x=>last?x.at(-1):x[0]});assert.equal(p.backgroundGroup,'public');assert.equal(p.role,last?'public':'litigant');}
  }
  assert.throws(()=>core.assignParticipant({...answers,judgeCaseExperience:null},{sessionId:'B'}));
