@@ -4,7 +4,7 @@
 
 ## 文稿
 
-当前文字来自 `study-narration.js`，对应 `audio/shared-scripts/natural.txt`（故意伤害）和 `statutory.txt`（侵犯著作权）。与交付的两份 Word 配音稿一致。旧 `audio/scripts/` 的八份对话稿已经停用。
+当前文字来自 `study-narration.js`，对应 `audio/shared-scripts/natural.txt`（故意伤害）和 `statutory.txt`（侵犯著作权）。已按研究者提供的两份《法官陈述配音稿0916.docx》原文同步，故意伤害5段、侵犯著作权6段；仅提取“朗读正文”，使用说明不呈现给参与者。正文未作润色。旧 `audio/scripts/` 的八份对话稿已经停用。
 
 请先在 Word 中人工修改，再同步网站正文与 TXT，最后配音。使用同一法官音色、普通口语陈述、自然停顿，不配音乐；不添加 AI、书记员、工作分工说明或不同条件特有句子。两案均明确是模拟研究材料，不冒充真实法官原声。
 
@@ -13,7 +13,7 @@
 将两个文件放到 `audio/recordings/`，例如 natural-narration-v1.mp3 和 statutory-narration-v1.mp3，然后更新：
 
 ```js
-window.STUDY_AUDIO_VERSION='shared-narration-2026-09-16-v1';
+window.STUDY_AUDIO_VERSION='shared-narration-2026-09-16-v2';
 window.STUDY_AUDIO={
  natural:'./audio/recordings/natural-narration-v1.mp3',
  statutory:'./audio/recordings/statutory-narration-v1.mp3'

@@ -60,7 +60,7 @@ function wav(){const size=32000,b=Buffer.alloc(44+size);b.write('RIFF');b.writeU
  await p.route('**/audio-config.js*',r=>r.fulfill({contentType:'application/javascript',body:"window.STUDY_AUDIO_VERSION=StudyNarration.VERSION;window.STUDY_AUDIO={natural:'./test-natural.wav',statutory:'./test-statutory.wav'};"}));
  await p.route('**/test-*.wav',r=>r.fulfill({contentType:'audio/wav',body:wav()}));
  await p.goto(`${base}/?view=participant&preview=1&role=public&condition=none&case=natural`);await p.locator('#consent-checkbox').check();await p.locator('#start-study').click();await orient(p);
- for(let i=0;i<2;i++){await read(p);assert.equal(await p.locator('#audio-panel').isVisible(),true);assert.equal(await p.locator('#narration-text p').count(),5);await finish(p,true);if(i===0){await p.locator('#next-case').click();await orient(p);}}
+ for(let i=0;i<2;i++){await read(p);assert.equal(await p.locator('#audio-panel').isVisible(),true);assert.equal(await p.locator('#narration-text p').count(),i===0?5:6);await finish(p,true);if(i===0){await p.locator('#next-case').click();await orient(p);}}
  const record=await p.evaluate(k=>JSON.parse(localStorage.getItem(k))[0],recordsKey);assert.ok(record.responses.every(r=>r.presentation==='shared_audio_and_text'&&r.audio.completed));await c.close();
  console.log(`Passed: ${count} two-case paths (${count*2} responses), actual role video playback, timed reading, shared text equality, refresh, consent, mandatory independent scoring and 100-point allocation, withdrawal, mobile width and both-case audio.`);
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1)});

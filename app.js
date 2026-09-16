@@ -8,7 +8,7 @@ const CORE = window.StudyCore;
 const CASES = window.StudyContent.cases;
 const NARRATION = window.StudyNarration;
 const CONSENT_VERSION = "research-use-2026-09-16";
-const PRESENTATION_PROTOCOL = "responsibility-dual-2026-09-16-v1";
+const PRESENTATION_PROTOCOL = "responsibility-dual-narration-2026-09-16-v2";
 const SESSION = window.StudySession;
 const LABELS = {
   roles: {lawyer:'律师专业视角',litigant:'当事人视角',public:'公众视角'},
