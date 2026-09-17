@@ -9,7 +9,7 @@
   const RESPONSIBILITY_VERSION = 'independent-and-allocation-2026-09-16-v1';
   const MIN_READING_MS = 5000;
   const DOSSIER_TABS = ['overview','evidence','task'];
-  const SCREENING_VERSION = 'legal-industry-occupation-2026-09-16-v2';
+  const SCREENING_VERSION = 'judicial-team-industry-2026-09-17-v3';
   const ROLES = ['judge', 'lawyer', 'litigant', 'public'];
   const CONDITIONS = ['none', 'procedural', 'substantive', 'decisional'];
   const CASE_TYPES = ['natural', 'statutory'];
@@ -41,11 +41,12 @@
     const other = detail === 'other' ? String(background.legalOccupationOther || '').trim() : null;
     if (occupation === 'other' && (!['corporate','judge_assistant','court_support','prosecution','lawyer_assistant','academic','other'].includes(detail) || (detail === 'other' && (!other || other.length > 80)))) throw new Error('请完成所有背景问题。');
     const lawyerBranch = occupation === 'lawyer';
-    if (!lawyerBranch && (!yesNo(background.judgeCaseExperience) || (background.judgeCaseExperience === 'no' && !yesNo(background.litigationExperience)))) throw new Error('请完成所有背景问题。');
-    if (!options.sessionId) throw new Error('缺少体验编号。');
+    const currentJudicial = occupation === 'judge' || detail === 'judge_assistant';
+    if (!lawyerBranch && !currentJudicial && (!yesNo(background.judgeCaseExperience) || (background.judgeCaseExperience === 'no' && !yesNo(background.litigationExperience)))) throw new Error('请完成所有背景问题。');
+    if (!options.sessionId) throw new Error('缺少实验编号。');
     const draw = options.choose || choose;
-    const judgeBranch = !lawyerBranch && background.judgeCaseExperience === 'yes';
-    const facts = {legalIndustry:background.legalIndustry,legalOccupation:occupation,legalOccupationDetail:detail,legalOccupationOther:other,judgeCaseExperience:lawyerBranch ? null : background.judgeCaseExperience, judgeCaseExperienceStatus:lawyerBranch ? 'not_asked_lawyer_branch' : 'answered', practicingLawyer:lawyerBranch ? 'yes' : 'no', legalDegree:background.legalDegree,
+    const judgeBranch = currentJudicial || (!lawyerBranch && background.judgeCaseExperience === 'yes');
+    const facts = {legalIndustry:background.legalIndustry,legalOccupation:occupation,legalOccupationDetail:detail,legalOccupationOther:other,judgeCaseExperience:lawyerBranch || currentJudicial ? null : background.judgeCaseExperience, judgeCaseExperienceStatus:lawyerBranch ? 'not_asked_lawyer_branch' : currentJudicial ? 'not_asked_current_judicial_branch' : 'answered', practicingLawyer:lawyerBranch ? 'yes' : 'no', legalDegree:background.legalDegree,
       licenseActive:null,
       litigationExperience:lawyerBranch || judgeBranch ? null : background.litigationExperience,
       litigationExperienceStatus:lawyerBranch ? 'not_asked_lawyer_branch' : judgeBranch ? 'not_asked_judge_branch' : 'answered'};

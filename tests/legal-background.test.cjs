@@ -12,7 +12,7 @@ test('industry first, actual profession second; degree is recorded but never use
 test('other legal work requires specific occupation and free text when other is selected',()=>{
  for(const detail of ['corporate','judge_assistant','court_support','prosecution','lawyer_assistant','academic','other']){
   const a=make({legalIndustry:'yes',legalOccupation:'other',legalOccupationDetail:detail,legalOccupationOther:detail==='other'?'法律援助机构行政工作':''});
-  assert.equal(a.background.legalOccupationDetail,detail);assert.equal(a.backgroundGroup,'public');
+  assert.equal(a.background.legalOccupationDetail,detail);assert.equal(a.backgroundGroup,detail==='judge_assistant'?'judge':'public');
  }
  assert.throws(()=>make({legalIndustry:'yes',legalOccupation:'other'}));assert.throws(()=>make({legalIndustry:'yes',legalOccupation:'other',legalOccupationDetail:'other',legalOccupationOther:'   '}));
 });
@@ -20,4 +20,11 @@ test('hidden fields are discarded, prior judge experience remains eligible, publ
  const a=make({legalOccupation:'lawyer',legalOccupationDetail:'corporate',legalOccupationOther:'旧答案'});assert.equal(a.role,'litigant');assert.equal(a.background.legalOccupation,null);assert.equal(a.background.legalOccupationDetail,null);assert.equal(a.background.legalOccupationOther,null);
  assert.equal(make({judgeCaseExperience:'yes'}).role,'judge');
  assert.equal(make({}, {choose:x=>x.at(-1)}).role,'public');
+});
+
+test('judges and judge assistants share one group without requiring prior judge experience',()=>{
+ for(const judgeCaseExperience of ['no',null]){
+  assert.equal(make({legalIndustry:'yes',legalOccupation:'judge',judgeCaseExperience}).role,'judge');
+  assert.equal(make({legalIndustry:'yes',legalOccupation:'other',legalOccupationDetail:'judge_assistant',judgeCaseExperience}).role,'judge');
+ }
 });

@@ -1,3 +1,4 @@
+const {fillBackground}=require('./browser-helpers.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const{chromium}=require(process.env.PLAYWRIGHT_PATH||'playwright');
 const base=process.env.STUDY_TEST_URL||'http://127.0.0.1:8766',recordsKey='judicial_ai_responsibility_prototype_records_v1';
@@ -8,14 +9,14 @@ async function fill(p,kind,values){for(const id of ids)await p.locator(`#respons
 async function surveyFixture(p){await p.evaluate(()=>{
  document.querySelector('#role-dialog').close();state.orientation[state.caseType]={version:STUDY_ROLE_MEDIA.version,completed:true,videoCompleted:true,videoMax:18,visibleMs:18000};
  state.reading=Object.fromEntries(StudyCore.DOSSIER_TABS.map(k=>[k,{confirmed:true,reachedEnd:true,visibleMs:6000}]));
- state.replay={mode:'text',version:StudyNarration.VERSION,completed:true,textReachedEnd:true,textVisibleMs:40000};
+ state.replay={mode:'text',version:StudyNarration.VERSION,presentationVersion:StudyPlayback.VERSION,textRevealCompleted:true,completed:true,textReachedEnd:true,textVisibleMs:40000};
  document.querySelector('#transcript-confirm').checked=true;updatePlaybackGate();setStep('survey');
  });}
-async function otherAnswers(p){await p.locator('[name=manipulationCheck]').selectOption('none');await p.locator('[name=finalSigner]').selectOption('judge');for(const n of ['fairness','control','clarity','judgeOwnership','aiTrust','legitimacy','acceptance','unease','involvement'])await p.locator(`[name=${n}][value="4"]`).check();await p.locator('[name=honestConfirm]').check();}
+async function otherAnswers(p){await p.locator('[name=manipulationCheck]').selectOption('none');await p.locator('[name=finalSigner]').selectOption('judge');for(const n of ['fairness','control','clarity','judgeOwnership','aiTrust','legitimacy','acceptance','unease','involvement'])await p.locator(`[data-rating=${n}] [data-score="4"]`).click();await p.locator('[name=honestConfirm]').check();}
 function parseCsv(text){const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i];if(ch==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++;}else quoted=!quoted;}else if(ch===','&&!quoted){row.push(cell);cell='';}else if(ch==='\n'&&!quoted){row.push(cell.replace(/\r$/,''));rows.push(row);row=[];cell='';}else cell+=ch;}if(cell||row.length){row.push(cell);rows.push(row);}return rows;}
 (async()=>{const b=await chromium.launch({headless:true});try{
  const c=await b.newContext({viewport:{width:390,height:844}}),p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
- await p.goto(base+'/?view=participant&preview=1&role=public&condition=none&case=natural');await p.locator('#consent-checkbox').check();await p.locator('#start-study').click();await surveyFixture(p);
+ await p.goto(base+'/?view=participant&preview=1&role=public&condition=none&case=natural');await fillBackground(p);await p.locator('#consent-checkbox').check();await p.locator('#start-study').click();await surveyFixture(p);
  const assignment=await p.evaluate(()=>state.assignment),order=await p.evaluate(()=>state.responsibilityOrder);
  assert.equal(await p.locator('#ranking-list').count(),0);assert.equal(await p.locator('#responsibility-score-list input').count(),4);assert.equal(await p.locator('#responsibility-allocation').isVisible(),false);assert.equal(await p.locator('#to-allocation').isDisabled(),true);
  assert.deepEqual(await p.locator('#responsibility-score-list input').evaluateAll(xs=>xs.map(x=>x.value)),['','','','']);
@@ -40,13 +41,13 @@ function parseCsv(text){const rows=[];let row=[],cell='',quoted=false;for(let i=
  assert.equal(rows[0].legal_industry,'no');assert.equal(rows[0].legal_occupation,'');assert.equal(rows[0].responsibility_score_judge,'95');assert.equal(rows[0].responsibility_allocation_judge,'70');assert.equal(rows[1].responsibility_allocation_judge,'0');assert.equal(rows[2].responsibility_measure,'ranking_legacy');assert.equal(rows[2].responsibility_score_judge,'');assert.deepEqual(JSON.parse(rows[2].ranking_ids),legacy.rankingIds);assert.deepEqual(await p.evaluate(k=>JSON.parse(localStorage.getItem(k)).at(-1),recordsKey),legacy);
  assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.deepEqual(errors,[]);await c.close();
  // A draft from the immediately preceding ranking version keeps exposure and other answers.
- const c2=await b.newContext(),p2=await c2.newPage();await p2.goto(base+'/?view=participant&preview=1&role=lawyer&condition=substantive&case=statutory');await p2.locator('#consent-checkbox').check();await p2.locator('#start-study').click();await surveyFixture(p2);
+ const c2=await b.newContext(),p2=await c2.newPage();await p2.goto(base+'/?view=participant&preview=1&role=lawyer&condition=substantive&case=statutory');await fillBackground(p2);await p2.locator('#consent-checkbox').check();await p2.locator('#start-study').click();await surveyFixture(p2);
  const legacyDraft=await p2.evaluate(()=>{
    const d=snapshot(),oldEpoch='ranking-before-dual-test';d.epoch=oldEpoch;
    delete d.responsibilityMeasure;delete d.responsibilityOrder;delete d.responsibilityStage;
    d.ranking=['system','provider','court','judge'];d.rankingInitial=['court','judge','provider','system'];d.formValues={fairness:'6',rankingConfirm:true};
    sessionStorage.setItem(draftKey,JSON.stringify(d));localStorage.setItem(EPOCH_KEY,oldEpoch);localStorage.setItem(PROTOCOL_KEY,JSON.stringify({protocol:'case-role-broll-2026-09-16-v5',phase:'complete'}));return d;
  });
- await p2.reload();await p2.locator('#screen-survey.active').waitFor();assert.equal(await p2.locator('#role-dialog').evaluate(d=>d.open),false);assert.deepEqual(await p2.evaluate(()=>state.assignment),legacyDraft.assignment);assert.deepEqual(await p2.evaluate(()=>state.reading),legacyDraft.reading);assert.equal(await p2.locator('[name=fairness][value="6"]').isChecked(),true);assert.equal(await p2.evaluate(()=>state.responsibilityStage),'independent');assert.deepEqual(await p2.evaluate(()=>state.responsibilityOrder),legacyDraft.rankingInitial);assert.deepEqual(await p2.locator('#responsibility-score-list input').evaluateAll(xs=>xs.map(x=>x.value)),['','','','']);await c2.close();
+ await p2.reload();await p2.locator('#screen-survey.active').waitFor();assert.equal(await p2.locator('#role-dialog').evaluate(d=>d.open),false);assert.deepEqual(await p2.evaluate(()=>state.assignment),legacyDraft.assignment);assert.deepEqual(await p2.evaluate(()=>state.reading),legacyDraft.reading);assert.equal(await p2.locator('[name=fairness]').inputValue(),'6');assert.equal(await p2.evaluate(()=>state.responsibilityStage),'independent');assert.deepEqual(await p2.evaluate(()=>state.responsibilityOrder),legacyDraft.rankingInitial);assert.deepEqual(await p2.locator('#responsibility-score-list input').evaluateAll(xs=>xs.map(x=>x.value)),['','','','']);await c2.close();
  console.log('Passed: sequential scales, blank/zero distinction, 99/100/101 gating, submit validation, refresh/back, fresh second case, exact saved scores and allocations, CSV and unchanged legacy ranking.');
 }finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});

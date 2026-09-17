@@ -26,10 +26,13 @@
     return /[\uD800-\uDBFF]$/.test(text) ? text.slice(0, -1) : text;
   }
 
-  function create({ textarea, startButton, stopButton, status, interim, onChange }) {
+  function create({ textarea, startButton, stopButton, keyboardButton, status, interim, onChange }) {
     const host = typeof window !== "undefined" ? window : null;
     const Recognition = host && (host.SpeechRecognition || host.webkitSpeechRecognition);
-    const supported = typeof Recognition === "function";
+    const wechat = /MicroMessenger/i.test(host?.navigator?.userAgent || '');
+    const supported = !wechat && typeof Recognition === "function";
+    let keyboardHintsUsed = 0;
+    if(keyboardButton){keyboardButton.classList.toggle('hidden',!wechat&&supported);startButton.classList.toggle('hidden',wechat);stopButton.classList.toggle('hidden',wechat);}
     const limit = Number.isInteger(textarea.maxLength) && textarea.maxLength >= 0
       ? Math.min(800, textarea.maxLength) : 800;
     const errors = [];
@@ -40,7 +43,7 @@
     let speechUsed = false;
     let limitReached = textarea.value.length >= limit;
     let limitNotice = limitReached;
-    let idleMessage = supported
+    let idleMessage = wechat ? "微信内请使用手机键盘的语音输入：点击下方输入入口，再点击键盘上的麦克风。也可以直接打字。" : supported
       ? "中文语音输入可用。点击开始后才会请求麦克风权限，也可直接手动输入。"
       : "当前浏览器不支持语音识别，请直接手动输入。";
     textarea.maxLength = limit;
@@ -50,6 +53,7 @@
     function getMetadata() {
       return {
         supported,
+        environment:wechat?'wechat':'browser',keyboardHintsUsed,
         language: "zh-CN",
         inputMethod: speechUsed ? (textUsed ? "mixed" : "speech") : "text",
         attempts,
@@ -243,9 +247,11 @@
       render();
     }
 
+    function keyboardInput(event){event.preventDefault();if(destroyed)return;keyboardHintsUsed+=1;textarea.focus();idleMessage='请在手机键盘上点击麦克风（若有），说出回答；结束后核对文字。没有麦克风按钮时可直接打字。';render();}
     function destroy() {
       if (destroyed) return;
       destroyed = true;
+      keyboardButton?.removeEventListener("click", keyboardInput);
       startButton.removeEventListener("click", start);
       stopButton.removeEventListener("click", handleStop);
       textarea.removeEventListener("input", handleInput);
@@ -253,6 +259,7 @@
       release();
     }
 
+    keyboardButton?.addEventListener("click", keyboardInput);
     startButton.addEventListener("click", start);
     stopButton.addEventListener("click", handleStop);
     textarea.addEventListener("input", handleInput);
