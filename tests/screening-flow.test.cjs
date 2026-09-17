@@ -6,9 +6,9 @@ const base=process.env.STUDY_TEST_URL||'http://127.0.0.1:8766';
   await p.locator('#consent-checkbox').check();await p.locator('[name=legalIndustry][value=no]').check();assert.equal(await p.locator('#judge-question').isVisible(),true);
   await p.locator('[name=judgeCaseExperience][value=no]').check();await p.locator('[name=litigationExperience][value=yes]').check();
   if(kind==='lawyer'){await p.locator('[name=legalIndustry][value=yes]').check();await p.locator('[name=legalOccupation][value=lawyer]').check();assert.equal(await p.locator('#judge-question').isVisible(),false);assert.equal(await p.locator('[name=litigationExperience][value=yes]').isChecked(),false);}
-  if(kind==='judge'){await p.locator('[name=legalIndustry][value=yes]').check();await p.locator('[name=legalOccupation][value=judge]').check();await p.locator('[name=judgeCaseExperience][value=yes]').check();assert.equal(await p.locator('#litigation-question').isVisible(),false);}
+  if(kind==='judge'){await p.locator('[name=legalIndustry][value=yes]').check();await p.locator('[name=legalOccupation][value=judge]').check();assert.equal(await p.locator('#judge-question').isVisible(),false);assert.equal(await p.locator('#litigation-question').isVisible(),false);}
   if(kind==='other'){
-   await p.locator('[name=legalIndustry][value=yes]').check();await p.locator('[name=legalOccupation][value=other]').check();assert.equal(await p.locator('[name=legalOccupationDetail]').count(),7);
+   await p.locator('[name=legalIndustry][value=yes]').check();await p.locator('[name=legalOccupation][value=other]').check();assert.equal(await p.locator('[name=legalOccupationDetail]').count(),6);
    await p.locator('[name=legalOccupationDetail][value=other]').check();assert.equal(await p.locator('#occupation-other-field').isVisible(),true);
    await p.locator('[name=judgeCaseExperience][value=no]').check();await p.locator('[name=litigationExperience][value=no]').check();await p.locator('[name=legalDegree][value=no]').check();
    await p.locator('#start-study').click();assert.match(await p.locator('#intro-error').textContent(),/完成所有背景/);
@@ -40,8 +40,8 @@ const base=process.env.STUDY_TEST_URL||'http://127.0.0.1:8766';
  // Old unsubmitted lay participant gets the missing judge question; condition/order/ID survive.
  const c=await b.newContext(),p=await c.newPage();await p.goto(base+'/?view=participant');
  const old=await p.evaluate(()=>{const a=StudyCore.assignParticipant({legalIndustry:'no',practicingLawyer:'no',judgeCaseExperience:'no',legalDegree:'yes',litigationExperience:'no'},{sessionId:'MIGRATE',choose:x=>x[0]});delete a.screeningVersion;delete a.background.legalIndustry;delete a.background.legalOccupation;delete a.background.judgeCaseExperience;localStorage.setItem(DRAFT_KEY,JSON.stringify({epoch:storageEpoch,version:StudyCore.VERSION,assignment:a,session:StudySession.create(a),step:'dossier'}));return a;});
- await p.reload();await p.locator('#screen-intro.active').waitFor();assert.match(await p.locator('#intro-error').textContent(),/法律相关从业情况/);
- await p.locator('#consent-checkbox').check();await p.locator('[name=legalIndustry][value=no]').check();await p.locator('[name=judgeCaseExperience][value=yes]').check();await p.locator('#start-study').click();await p.locator('#role-dialog[open]').waitFor();
+ await p.reload();await p.locator('#screen-intro.active').waitFor();assert.match(await p.locator('#intro-error').textContent(),/重新填写背景信息/);
+ await p.locator('#consent-checkbox').check();await p.locator('[name=legalIndustry][value=no]').check();await p.locator('[name=judgeCaseExperience][value=yes]').check();await p.locator('[name=legalDegree][value=yes]').check();await p.locator('#start-study').click();await p.locator('#role-dialog[open]').waitFor();
  const upgraded=await p.evaluate(()=>state.assignment);assert.equal(upgraded.role,'judge');for(const k of ['sessionId','condition','caseType'])assert.equal(upgraded[k],old[k]);
  // Once a case has been submitted, its old assignment and answer are retained.
  const saved=await p.evaluate(()=>{const a={...state.assignment};delete a.screeningVersion;const response={...a,caseType:a.caseType,openResponse:'已提交的原回答',submittedAt:new Date().toISOString()};const session=StudySession.create(a);session.responses=[response];localStorage.setItem(DRAFT_KEY,JSON.stringify({...snapshot(),assignment:a,session,response,step:'between'}));return response;});
