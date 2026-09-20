@@ -124,7 +124,13 @@ function setupParticipant(){
   qs('#survey-form').addEventListener('change',()=>{updateResponsibilityUI();captureForm();saveDraft();updateRatingFeedback();});
   qs('#dossier-confirm').addEventListener('change',()=>{
     const progress=state.reading[state.activeDossierTab];
-    if(progress?.reachedEnd&&progress.visibleMs>=CORE.MIN_READING_MS)progress.confirmed=qs('#dossier-confirm').checked;
+    if(progress?.reachedEnd&&progress.visibleMs>=CORE.MIN_READING_MS&&qs('#dossier-confirm').checked){
+      progress.confirmed=true;
+      updateReadingUI();saveDraft();
+      advanceDossier();
+      return;
+    }
+    if(progress)progress.confirmed=false;
     updateReadingUI();saveDraft();
   });
   qs('#dossier-content').addEventListener('scroll',checkReadingEnd);
@@ -338,12 +344,13 @@ function checkReadingEnd(){
 function updateReadingUI(){
   const labels={overview:'案件总览',evidence:'主要证据',task:'裁判任务'};
   const progress=state.reading[state.activeDossierTab]||{};
+  const index=CORE.DOSSIER_TABS.indexOf(state.activeDossierTab),last=index===CORE.DOSSIER_TABS.length-1;
   qs('#dossier-confirm').disabled=!progress.reachedEnd||!(progress.visibleMs>=CORE.MIN_READING_MS);qs('#dossier-confirm').checked=Boolean(progress.confirmed);
   qs('#dossier-confirm-label').textContent=`我已完整阅读${labels[state.activeDossierTab]}。`;
-  qs('#reading-hint').textContent=!(progress.visibleMs>=CORE.MIN_READING_MS)?`请阅读本栏，至少还需 ${Math.ceil((CORE.MIN_READING_MS-(progress.visibleMs||0))/1000)} 秒。`:progress.confirmed?'本部分已确认，请点击下方按钮继续。':progress.reachedEnd?'已到本栏末尾，请勾选下方确认。':'请在材料框内向下滚动，阅读至本栏末尾后确认。';
+  const confirmedText=last?'本部分已确认，正在进入裁判形成记录。':'本部分已确认，正在进入下一部分。';
+  qs('#reading-hint').textContent=!(progress.visibleMs>=CORE.MIN_READING_MS)?`请阅读本栏，至少还需 ${Math.ceil((CORE.MIN_READING_MS-(progress.visibleMs||0))/1000)} 秒。`:progress.confirmed?confirmedText:progress.reachedEnd?'已到本栏末尾，请勾选下方确认。':'请在材料框内向下滚动，阅读至本栏末尾后确认。';
   const count=CORE.DOSSIER_TABS.filter(tab=>state.reading[tab]?.reachedEnd&&state.reading[tab]?.confirmed).length;
   qs('#reading-progress').textContent=`已完成 ${count} / 3 栏`;
-  const index=CORE.DOSSIER_TABS.indexOf(state.activeDossierTab),last=index===CORE.DOSSIER_TABS.length-1;
   qs('#to-replay').disabled=last?!CORE.readingComplete(state.reading):!progress.confirmed;
   qs('#to-replay').textContent=last?'进入裁判形成记录 →':`下一部分：${labels[CORE.DOSSIER_TABS[index+1]]} →`;
   qsa('.dossier-tabs button').forEach((button,index)=>{button.disabled=CORE.DOSSIER_TABS.slice(0,index).some(k=>!state.reading[k]?.confirmed);const done=state.reading[button.dataset.tab]?.confirmed;button.textContent=labels[button.dataset.tab]+(done?' ✓':'');});
@@ -622,7 +629,7 @@ function orientationReady(){const o=orientation();return o.visibleMs>=NARRATION.
 function updateOrientation(){
  const o=orientation();qs('#role-continue').disabled=!orientationReady();
  const seconds=Math.max(0,Math.ceil((NARRATION.MIN_ROLE_MS-o.visibleMs)/1000));
- qs('#role-status').textContent=o.videoError?'短片暂时无法播放，请点击播放重试或刷新页面。':seconds?`请代入以上情境，至少阅读 ${seconds} 秒。`:roleMediaReady()&&!o.videoCompleted?`请完整观看 ${window.STUDY_ROLE_MEDIA.durationSeconds} 秒情境短片，再进入案件材料。`:!state.consent&&!qs('#updated-consent-checkbox').checked?'请确认更新后的研究用途说明。':'请保持这一视角，开始阅读本案材料。';
+ qs('#role-status').textContent=o.videoError?'短片暂时无法播放，请点击播放重试或刷新页面。':seconds?`请代入以上情境，至少阅读 ${seconds} 秒。`:roleMediaReady()&&!o.videoCompleted?'请先观看情境短片，再进入案件材料。':!state.consent&&!qs('#updated-consent-checkbox').checked?'请确认更新后的研究用途说明。':'请保持这一视角，开始阅读本案材料。';
 }
 function openOrientation(){
  if(state.deleted||state.response||orientation().completed&&state.consent)return;
