@@ -28,3 +28,24 @@ test('judges and judge assistants share one group without requiring prior judge 
   assert.equal(make({legalIndustry:'yes',legalOccupation:'other',legalOccupationDetail:'judge_assistant',judgeCaseExperience}).role,'judge');
  }
 });
+
+test('four-choice screening maps legal backgrounds and randomizes only the public perspective pool',()=>{
+ const choices=['judge','legal_other','lawyer','other'];
+ for(const backgroundChoice of choices){
+  const a=core.assignParticipant({backgroundChoice},{sessionId:'FOUR',choose:x=>x[0]});
+  assert.equal(a.background.backgroundChoice,backgroundChoice);
+  assert.equal(a.backgroundGroup,backgroundChoice==='judge'?'judge':backgroundChoice==='lawyer'?'lawyer':'public');
+  assert.equal(a.role,backgroundChoice==='judge'?'judge':backgroundChoice==='lawyer'?'lawyer':'litigant');
+ }
+ const publicRole=core.assignParticipant({backgroundChoice:'other'},{sessionId:'FOUR-P',choose:x=>x.at(-1)});
+ assert.equal(publicRole.role,'public');
+ assert.throws(()=>core.assignParticipant({backgroundChoice:'unknown'},{sessionId:'BAD'}));
+});
+
+test('new dossier reading gate is eight seconds',()=>{
+ assert.equal(core.MIN_READING_MS,8000);
+ const progress=Object.fromEntries(core.DOSSIER_TABS.map(k=>[k,{reachedEnd:true,confirmed:true,visibleMs:7999}]));
+ assert.equal(core.readingComplete(progress),false);
+ for(const tab of core.DOSSIER_TABS)progress[tab].visibleMs=8000;
+ assert.equal(core.readingComplete(progress),true);
+});

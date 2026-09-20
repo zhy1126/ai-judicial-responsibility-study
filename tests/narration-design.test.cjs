@@ -15,7 +15,19 @@ test('all AI conditions use the same four responsibility actors',()=>{
  for(const condition of core.CONDITIONS){assert.deepEqual(core.subjectsFor(condition).map(x=>x.id),['judge','court','provider','system']);assert.equal(core.validRanking(['judge','court'],condition),false);}
 });
 test('reading must include minimum foreground exposure for each section',()=>{
- const progress=Object.fromEntries(core.DOSSIER_TABS.map(k=>[k,{reachedEnd:true,confirmed:true,visibleMs:5000}]));
+ const progress=Object.fromEntries(core.DOSSIER_TABS.map(k=>[k,{reachedEnd:true,confirmed:true,visibleMs:8000}]));
  assert.equal(core.readingComplete(progress),true);
  assert.equal(core.readingComplete({...progress,task:{reachedEnd:true,confirmed:true,visibleMs:0}}),false);
+});
+
+const narration=require('../study-narration.js');
+test('AI participation nodes are condition-specific and do not replace the supplied narration',()=>{
+ const body=narration.paragraphsFor('natural');
+ for(const condition of ['none','procedural','substantive','decisional']){
+  const nodes=narration.participationNodesFor(condition,'natural');
+  assert.ok(nodes.length>=1);
+  assert.ok(nodes.every(node=>Number.isInteger(node.paragraph)&&node.paragraph>=0&&typeof node.label==='string'&&node.label.length>0));
+ }
+ assert.match(narration.participationNodesFor('none','natural')[0].label,/无 AI/);
+ assert.deepEqual(narration.paragraphsFor('natural'),body);
 });

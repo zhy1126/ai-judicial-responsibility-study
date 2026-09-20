@@ -2,22 +2,21 @@ const assert=require('node:assert/strict'),{chromium}=require(process.env.PLAYWR
 const expected=require('./fixtures/narration-0916.json'),base=process.env.STUDY_TEST_URL||'http://127.0.0.1:8766';
 async function background(p,role='public'){
  assert.equal(await p.locator('.screening-section input:checked').count(),0);
- await p.locator('#consent-checkbox').check();await p.locator(`[name=legalIndustry][value=${role==='public'?'no':'yes'}]`).check();
- if(role!=='public')await p.locator(`[name=legalOccupation][value=${role}]`).check();
- else{await p.locator('[name=judgeCaseExperience][value=no]').check();await p.locator('[name=litigationExperience][value=no]').check();}
- await p.locator('[name=legalDegree][value=no]').check();await p.locator('#start-study').click();await p.locator('#role-dialog[open]').waitFor();
+ assert.equal(await p.locator('[name=backgroundChoice]').count(),4);
+ await p.locator('#consent-checkbox').check();await p.locator(`[name=backgroundChoice][value=${role==='judge'?'judge':role==='lawyer'?'lawyer':'other'}]`).check();await p.locator('#start-study').click();await p.locator('#role-dialog[open]').waitFor();
 }
 async function orient(p){await p.evaluate(()=>{document.querySelector('#role-dialog').close();state.orientation[state.caseType]={version:STUDY_ROLE_MEDIA.version,completed:true,videoCompleted:true,videoMax:18,visibleMs:18000};});}
 async function dossier(p){
  for(const tab of ['overview','evidence','task']){
   assert.equal(await p.evaluate(()=>state.activeDossierTab),tab);
   assert.doesNotMatch(await p.locator('#dossier-content').textContent(),/未提供|不补造|原材料|原始案号/);
-  await p.locator('#dossier-content').evaluate(e=>{e.scrollTop=e.scrollHeight;e.dispatchEvent(new Event('scroll'));});await p.clock.runFor(5250);await p.locator('#dossier-confirm').check();assert.equal(await p.locator('#to-replay').isEnabled(),true);await p.locator('#to-replay').click();
+  await p.locator('#dossier-content').evaluate(e=>{e.scrollTop=e.scrollHeight;e.dispatchEvent(new Event('scroll'));});await p.clock.runFor(8250);await p.locator('#dossier-confirm').check();assert.equal(await p.locator('#to-replay').isEnabled(),true);await p.locator('#to-replay').click();
  }
  await p.locator('#screen-replay.active').waitFor();
 }
 async function finish(p){
  await p.locator('#transcript-confirm').check();await p.locator('#to-decision').click();await p.locator('#to-survey').click();
+ await p.locator('#review-ai-participation').click();await p.locator('#screen-replay.active').waitFor();assert.equal(await p.locator('#condition-disclosure').isVisible(),true);assert.equal(await p.locator('.ai-inline-node').count()>0,true);await p.locator('#return-to-survey').click();await p.locator('#screen-survey.active').waitFor();
  assert.equal(await p.locator('input[name=fairness]').inputValue(),'');assert.equal(await p.locator('input[name=involvement]').inputValue(),'');assert.equal(await p.locator('[data-rating=fairness]').evaluate(e=>e.scrollWidth<=e.clientWidth+1),true);assert.ok((await p.locator('[data-rating=fairness] .unsure-option').boundingBox()).y>(await p.locator('[data-rating=fairness] .range-shell').boundingBox()).y);
  for(const id of ['judge','court','provider','system'])await p.locator('#responsibility-score-'+id).fill('50');await p.locator('#to-allocation').click();
  for(const id of ['judge','court','provider','system'])await p.locator('#responsibility-allocation-'+id).fill('25');
