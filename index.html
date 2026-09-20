@@ -118,7 +118,7 @@
               <ol class="flow-list">
                 <li><span>01</span><div><strong>同意与身份</strong><small>背景群体筛查</small></div></li>
                 <li><span>02</span><div><strong>阅读案卷</strong><small>事实、证据、法律任务</small></div></li>
-                <li><span>03</span><div><strong>裁判说明</strong><small>按顺序完整观看或收听</small></div></li>
+                <li><span>03</span><div><strong>裁判说明</strong><small>按顺序了解裁判形成过程</small></div></li>
                 <li><span>04</span><div><strong>裁判结果</strong><small>查看人类复核与签署</small></div></li>
                 <li><span>05</span><div><strong>责任与感受</strong><small>独立评分、100分分配、量表与开放回答</small></div></li>
                 <li><span>06</span><div><strong>事后说明</strong><small>解释随机条件与研究用途</small></div></li>
@@ -205,7 +205,7 @@
             <section id="screen-dossier" class="study-screen">
               <div class="screen-kicker"><span class="stage-badge">第 1 部分</span><span id="case-category-badge" class="category-badge"></span></div>
               <h1>请先阅读案件材料</h1>
-              <p class="lead">材料分为三个部分。每部分至少阅读 8 秒、滚动至末尾并勾选“已完整阅读”，再点击底部“下一部分”。完成第三部分后进入裁判形成记录。</p>
+              <p class="lead">材料分为三个部分。请阅读每部分并滚动至末尾，勾选“已完整阅读”后会自动进入下一部分。完成第三部分后进入裁判形成记录。</p>
               <p id="role-perspective" class="role-perspective"></p><div class="dossier-shell">
                 <div class="dossier-tabs" role="tablist" aria-label="案卷栏目">
                   <button role="tab" aria-selected="true" id="tab-overview" aria-controls="dossier-content" data-tab="overview">案件总览</button>
@@ -217,7 +217,7 @@
               <p id="reading-progress" class="reading-progress" role="status">已完成 0 / 3 栏</p>
               <p id="reading-hint" class="helper-text">请在材料框内向下滚动，阅读至本栏末尾后确认。</p>
               <label class="check-row read-confirm"><input id="dossier-confirm" type="checkbox" disabled /><span id="dossier-confirm-label">我已完整阅读案件总览。</span></label>
-              <div class="screen-actions"><span id="dossier-error" class="form-error" role="alert"></span><button id="to-replay" class="button button-primary" type="button" disabled>查看裁判形成记录 <span>→</span></button></div>
+              <div class="screen-actions"><span id="dossier-error" class="form-error" role="alert"></span><button id="to-replay" class="button button-primary hidden" type="button" disabled aria-hidden="true" tabindex="-1">查看裁判形成记录 <span>→</span></button></div>
             </section>
 
             <section id="screen-replay" class="study-screen replay-screen">
