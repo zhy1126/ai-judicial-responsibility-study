@@ -12,7 +12,7 @@ async function surveyFixture(p){await p.evaluate(()=>{
  state.replay={mode:'text',version:StudyNarration.VERSION,presentationVersion:StudyPlayback.VERSION,textRevealCompleted:true,completed:true,textReachedEnd:true,textVisibleMs:40000};
  document.querySelector('#transcript-confirm').checked=true;updatePlaybackGate();setStep('survey');
  });}
-async function otherAnswers(p){await p.locator('[name=manipulationCheck]').selectOption('none');await p.locator('[name=finalSigner]').selectOption('judge');for(const n of ['fairness','control','clarity','judgeOwnership','aiTrust','legitimacy','acceptance','unease','involvement'])await p.locator(`[data-rating=${n}] [data-score="4"]`).click();await p.locator('[name=honestConfirm]').check();}
+async function otherAnswers(p){await p.locator('[name=manipulationCheck]').selectOption('none');await p.locator('[name=finalSigner]').selectOption('judge');for(const n of ['fairness','control','clarity','judgeOwnership','aiTrust','legitimacy','acceptance','unease','perceivedHarm','involvement'])await p.locator(`[data-rating=${n}] [data-score="4"]`).click();await p.locator('[name=honestConfirm]').check();}
 function parseCsv(text){const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const ch=text[i];if(ch==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++;}else quoted=!quoted;}else if(ch===','&&!quoted){row.push(cell);cell='';}else if(ch==='\n'&&!quoted){row.push(cell.replace(/\r$/,''));rows.push(row);row=[];cell='';}else cell+=ch;}if(cell||row.length){row.push(cell);rows.push(row);}return rows;}
 (async()=>{const b=await chromium.launch({headless:true});try{
  const c=await b.newContext({viewport:{width:390,height:844}}),p=await c.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));

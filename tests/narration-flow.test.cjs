@@ -28,7 +28,7 @@ async function finish(p,audio=false){
  for(const id of ['judge','court','provider','system'])await p.locator(`#responsibility-score-${id}`).fill('50');
  await p.locator('#to-allocation').click();
  for(const id of ['judge','court','provider','system'])await p.locator(`#responsibility-allocation-${id}`).fill('25');
- for(const n of ['fairness','control','clarity','judgeOwnership','aiTrust','legitimacy','acceptance','unease'])await p.locator(`[data-rating=${n}] [data-score="4"]`).click();
+ for(const n of ['fairness','control','clarity','judgeOwnership','aiTrust','legitimacy','acceptance','unease','perceivedHarm'])await p.locator(`[data-rating=${n}] [data-score="4"]`).click();
  await p.locator('[name=involvement][value="4"]').check();await p.locator('[name=honestConfirm]').check();await p.locator('#submit-evaluation').click();
 }
 function wav(){const size=32000,b=Buffer.alloc(44+size);b.write('RIFF');b.writeUInt32LE(36+size,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(8000,24);b.writeUInt32LE(16000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(size,40);return b;}
