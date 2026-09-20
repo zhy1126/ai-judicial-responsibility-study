@@ -7,9 +7,15 @@
   'use strict';
   const VERSION = '2.2.0';
   const RESPONSIBILITY_VERSION = 'independent-and-allocation-2026-09-16-v1';
-  const MIN_READING_MS = 5000;
+  const MIN_READING_MS = 8000;
   const DOSSIER_TABS = ['overview','evidence','task'];
-  const SCREENING_VERSION = 'judicial-team-industry-2026-09-17-v3';
+  const SCREENING_VERSION = 'four-choice-background-2026-09-20-v1';
+  const SCREENING_CHOICES = [
+    {id:'judge',label:'法官／法官助理'},
+    {id:'legal_other',label:'其他法律相关人员（法学生、法务、法学研究人员等）'},
+    {id:'lawyer',label:'律师'},
+    {id:'other',label:'其他'},
+  ];
   const ROLES = ['judge', 'lawyer', 'litigant', 'public'];
   const CONDITIONS = ['none', 'procedural', 'substantive', 'decisional'];
   const CASE_TYPES = ['natural', 'statutory'];
@@ -32,6 +38,17 @@
   function assignParticipant(background, options = {}) {
     const existing = validAssignment(options.existing) ? options.existing : null;
     if (existing && !options.rescreen) return existing;
+    const choice = background?.backgroundChoice;
+    if (choice) {
+      const selected = SCREENING_CHOICES.find(item=>item.id===choice);
+      if (!selected) throw new Error('请完成所有背景问题。');
+      if (!options.sessionId) throw new Error('缺少实验编号。');
+      const draw = options.choose || choose;
+      const preview = options.preview;
+      const role = preview && ROLES.includes(preview.role) ? preview.role : choice === 'judge' ? 'judge' : choice === 'lawyer' ? 'lawyer' : existing && ['litigant','public'].includes(existing.role) ? existing.role : draw(['litigant','public']);
+      const facts = {backgroundChoice:choice,backgroundChoiceLabel:selected.label,legalIndustry:choice==='other'?'no':'yes',legalOccupation:choice==='judge'?'judge':choice==='lawyer'?'lawyer':choice==='legal_other'?'other':null,legalOccupationDetail:null,legalOccupationOther:null,judgeCaseExperience:null,judgeCaseExperienceStatus:'not_asked_four_choice',practicingLawyer:choice==='lawyer'?'yes':'no',licenseActive:null,legalDegree:null,litigationExperience:null,litigationExperienceStatus:'not_asked_four_choice'};
+      return {version:VERSION,screeningVersion:SCREENING_VERSION,backgroundGroup:choice==='judge'?'judge':choice==='lawyer'?'lawyer':'public',sessionId:existing?.sessionId||options.sessionId,background:facts,role,condition:preview&&CONDITIONS.includes(preview.condition)?preview.condition:existing?.condition||draw(CONDITIONS),caseType:preview&&CASE_TYPES.includes(preview.caseType)?preview.caseType:existing?.caseType||draw(CASE_TYPES),roleAssignment:preview?'researcher_preview':choice==='lawyer'?'screened_lawyer':choice==='judge'?'screened_judge':'randomized_perspective',preview:Boolean(preview),assignedAt:new Date().toISOString()};
+    }
     const yesNo = value => value === 'yes' || value === 'no';
     if (!background || !yesNo(background.legalIndustry) || !yesNo(background.legalDegree)) throw new Error('请完成所有背景问题。');
     const industry = background.legalIndustry === 'yes';
@@ -90,5 +107,5 @@
     if (allocation && Object.values(values).reduce((sum,value)=>sum+value,0)!==100) throw new Error('责任分配必须合计 100 分。');
     return values;
   }
-  return {VERSION,SCREENING_VERSION,RESPONSIBILITY_VERSION,MIN_READING_MS,DOSSIER_TABS,ROLES,CONDITIONS,CASE_TYPES,SCALE,SUBJECTS,choose,shuffle,validAssignment,assignParticipant,readingComplete,subjectsFor,validRanking,ratingValue,responsibilityValues};
+  return {VERSION,SCREENING_VERSION,SCREENING_CHOICES,RESPONSIBILITY_VERSION,MIN_READING_MS,DOSSIER_TABS,ROLES,CONDITIONS,CASE_TYPES,SCALE,SUBJECTS,choose,shuffle,validAssignment,assignParticipant,readingComplete,subjectsFor,validRanking,ratingValue,responsibilityValues};
 });

@@ -32,7 +32,7 @@ test('lawyer branch skips litigation history; switching to a non-lawyer requires
   assert.throws(()=>core.assignParticipant({...answers,legalDegree:undefined,legalEducation:'yes'},{sessionId:'C'}),'old education does not imply a degree');
 });
 test('reading requires each distinct section to reach its end and be confirmed',()=>{
-  const complete={overview:{reachedEnd:true,confirmed:true,visibleMs:5000},evidence:{reachedEnd:true,confirmed:true,visibleMs:5000},task:{reachedEnd:true,confirmed:true,visibleMs:5000}};
+  const complete={overview:{reachedEnd:true,confirmed:true,visibleMs:8000},evidence:{reachedEnd:true,confirmed:true,visibleMs:8000},task:{reachedEnd:true,confirmed:true,visibleMs:8000}};
   assert.equal(core.readingComplete(complete),true);
   assert.equal(core.readingComplete({...complete,evidence:{reachedEnd:false,confirmed:true}}),false);
   assert.equal(core.readingComplete({...complete,task:{reachedEnd:true,confirmed:false}}),false);

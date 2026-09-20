@@ -24,8 +24,15 @@
  substantive:'AI 参与程度：实质性参与。AI 协助分析证据和法律适用，但未提出裁判结果建议或生成裁判主文草案。',
  decisional:'AI 参与程度：决定性参与。AI 协助分析证据和法律适用，并提出裁判结果建议、生成裁判主文草案。'
  };
+ const participationNodes={
+  none:[{paragraph:0,kind:'none',label:'AI 参与节点：无 AI。本案裁判形成过程未使用 AI。'}],
+  procedural:[{paragraph:0,kind:'procedural',label:'AI 参与节点：整理材料、核对流程。未参与证据分析或裁判建议。'}],
+  substantive:[{paragraph:1,kind:'substantive',label:'AI 参与节点：协助分析证据与法律适用。未提出裁判结果建议。'}],
+  decisional:[{paragraph:2,kind:'decisional',label:'AI 参与节点：提出裁判结果建议，并生成裁判主文草案。'}]
+ };
  function paragraphsFor(caseType){if(!scripts[caseType])throw Error('未知案件');return [...scripts[caseType]];}
  function conditionLine(condition){if(!lines[condition])throw Error('未知 AI 条件');return lines[condition];}
+ function participationNodesFor(condition,caseType){if(!scripts[caseType]||!participationNodes[condition])throw Error('未知 AI 条件或案件');return participationNodes[condition].map(node=>({...node}));}
  function rolePrompt(role,caseType){
  if(!scripts[caseType])throw Error('未知案件');
  if(role==='judge')return '请设想您是审理本案的法官。您将审阅案件材料，了解裁判形成过程，并对裁判承担审判职责。接下来，请结合您参与审判工作的经验，从本案承办法官的视角作答。';
@@ -34,5 +41,5 @@
  if(role==='litigant')return caseType==='natural'?'请设想您是本案被害人的近亲属。您的亲人在冲突中死亡，您正在了解这起案件的裁判过程。接下来，请从被害人亲属的处境出发，评价这份涉及您家庭的裁判。':'请设想您代表本案中被侵权的软件著作权方参与诉讼。您所代表的权利方因软件被未经授权传播而受到侵害。接下来，请从这一权利方的处境出发，评价涉及自身权益的裁判。';
  throw Error('未知角色');
  }
- return {VERSION,paragraphsFor,conditionLine,rolePrompt,MIN_ROLE_MS:5000,MIN_TEXT_MS:15000};
+ return {VERSION,paragraphsFor,conditionLine,participationNodesFor,rolePrompt,MIN_ROLE_MS:5000,MIN_TEXT_MS:15000};
 });
