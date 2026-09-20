@@ -21,7 +21,7 @@ const RATINGS = [
   ['aiTrust','我愿意信任本案对是否使用 AI 及如何使用 AI 的安排。'], ['legitimacy','我认为这份裁判具有正当性。'],
   ['acceptance','如果该裁判对我具有约束力，我愿意遵从。'], ['unease','本案关于 AI 使用的安排使我感到不安。'],
 ];
-const HARM_SCALE = ['完全没有伤害','很轻微','较轻','中等','较重','很重','伤害极大'];
+const HARM_SCALE = ['完全没有伤害','很轻微','较轻','中等程度的伤害','较重','很重','极大程度的伤害'];
 const STEPS = ['intro','dossier','replay','decision','survey','debrief','between'];
 const qs = (selector,root=document)=>root.querySelector(selector);
 const qsa = (selector,root=document)=>[...root.querySelectorAll(selector)];
@@ -496,7 +496,7 @@ function ratingControl(name,unsure=true,options={}){
 function renderRatings(){
  qs('#involvement-options').innerHTML=ratingControl('involvement',false);qs('#involvement-options').dataset.rating='involvement';
  qs('#rating-list').innerHTML=RATINGS.map(([name,label])=>`<fieldset class="likert-question rating-control" data-rating="${name}"><legend>${label}</legend>${ratingControl(name)}</fieldset>`).join('');
- qs('#harm-rating').innerHTML=`<fieldset class="likert-question rating-control" data-rating="perceivedHarm"><legend>您认为本案对自己的伤害程度如何？</legend><p class="helper-text">请按 1–7 分评价，1 分表示完全没有伤害，7 分表示伤害极大。</p>${ratingControl('perceivedHarm',false,{labels:HARM_SCALE,ariaLabel:'本案对自己的伤害程度',anchors:['1 完全没有伤害','4 中等','7 伤害极大']})}</fieldset>`;
+ qs('#harm-rating').innerHTML=`<fieldset class="likert-question rating-control" data-rating="perceivedHarm"><legend>请代入刚才情境中您的角色：您觉得这起案件给您个人带来的伤害有多大？</legend><p class="helper-text">请根据您的感受作答；如果您觉得没有受到伤害，可以选择“1 分”。</p>${ratingControl('perceivedHarm',false,{labels:HARM_SCALE,ariaLabel:'请代入刚才情境中您的角色：您觉得这起案件给您个人带来的伤害有多大？',anchors:['1 完全没有伤害','4 中等程度的伤害','7 极大程度的伤害']})}</fieldset>`;
  qsa('[data-rating]').forEach(field=>{
   const name=field.dataset.rating,range=qs('[data-range]',field),answer=qs(`input[name="${name}"]`,field);
   const select=value=>{answer.value=value;updateRatingFeedback();answer.dispatchEvent(new Event('input',{bubbles:true}));};
