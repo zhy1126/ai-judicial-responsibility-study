@@ -368,12 +368,12 @@ function beginReplay(){
   qs('#dossier-error').textContent='';setStep('replay');
 }
 function renderTranscript(){
- const completeAudio=window.STUDY_AUDIO_VERSION===NARRATION.VERSION&&CORE.CASE_TYPES.every(k=>{try{const value=window.STUDY_AUDIO?.[k];return typeof value==='string'&&Boolean(value)&&new URL(value,location.href).origin===location.origin;}catch{return false;}});
+ const completeAudio=StudyPlayback.audioReady(window.STUDY_AUDIO,window.STUDY_AUDIO_VERSION,NARRATION.VERSION,location.href);
  const mode=completeAudio?'audio':'text';
- const changed=state.replay.version!==NARRATION.VERSION||state.replay.mode!==mode||state.replay.presentationVersion!==StudyPlayback.VERSION;
+ const changed=state.replay.version!==NARRATION.VERSION||state.replay.mode!==mode||state.replay.presentationVersion!==StudyPlayback.VERSION||state.replay.condition!==state.condition;
  if(changed){
   const materialChanged=Boolean(state.replay.version||state.replay.mode);
-  state.replay={mode,version:NARRATION.VERSION,presentationVersion:StudyPlayback.VERSION,completed:false,textReachedEnd:false,textVisibleMs:0,materialChanged};
+  state.replay={mode,version:NARRATION.VERSION,presentationVersion:StudyPlayback.VERSION,condition:state.condition,completed:false,textReachedEnd:false,textVisibleMs:0,materialChanged};
   state.audio={status:'not_supplied',started:false,completed:false,maxPositionSeconds:0,positionSeconds:0};
   state.replayExposureMs=0;state.replayEnteredAt=null;qs('#transcript-confirm').checked=false;
   if(materialChanged&&!state.response){state.formValues={};state.speechMetadata=null;qs('#survey-form').reset();state.responsibilityStage='independent';}
@@ -384,7 +384,8 @@ function renderTranscript(){
  qs('#playback-confirm-label').textContent=mode==='audio'?'我已完整收听并了解这份裁判形成记录。':'我已完整阅读并了解这份裁判形成记录。';
  qs('#playback-source').textContent=mode==='audio'?'请收听法官陈述，文字会随播放进度逐步呈现。':'录音尚未加入。请阅读下方逐步呈现的法官陈述。';
  if(mode==='audio'){
-  pendingAudioPosition=state.audio.positionSeconds||0;qs('#judgment-audio').src=new URL(window.STUDY_AUDIO[state.caseType],location.href).href;
+  pendingAudioPosition=state.audio.positionSeconds||0;const clip=window.STUDY_AUDIO[state.caseType][state.condition];
+  qs('#judgment-audio').src=new URL(clip.src,location.href).href;state.audio.src=clip.src;state.audio.version=window.STUDY_AUDIO_VERSION;
   state.audio.status='configured';state.replay.completed=Boolean(state.audio.completed);updateAudioUI();
  }else{pendingAudioPosition=null;qs('#judgment-audio').removeAttribute('src');state.audio.status='not_supplied';}
  updatePlaybackGate();
@@ -392,9 +393,9 @@ function renderTranscript(){
 function renderNarrationProgress(){
  const audio=qs('#judgment-audio'),el=qs('#narration-text');
  const ratio=state.replay.mode==='audio'?StudyPlayback.fraction(state.audio.positionSeconds||0,Number.isFinite(audio.duration)?audio.duration:state.audio.durationSeconds,Boolean(state.audio.completed)):StudyPlayback.fraction(state.replay.textVisibleMs||0,NARRATION.MIN_TEXT_MS);
- const paragraphs=NARRATION.paragraphsFor(state.caseType),parts=StudyPlayback.reveal(paragraphs,ratio),nodes=NARRATION.participationNodesFor(state.condition,state.caseType);
- const nodeAfter=(index)=>nodes.filter(node=>node.paragraph===index&&parts[index]===paragraphs[index]).map(node=>`<div class="ai-inline-node ai-node-${escapeHtml(node.kind)}"><span>${escapeHtml(node.label)}</span></div>`).join('');
- const html=parts.length?parts.map((p,index)=>`<p>${escapeHtml(p)}</p>${nodeAfter(index)}`).join(''):'<p class="narration-waiting">'+(state.replay.mode==='audio'?'点击“开始播放”，文字将随录音逐步呈现。':'法官陈述即将逐步呈现…')+'</p>';
+ const paragraphs=NARRATION.paragraphsFor(state.caseType,state.condition);
+ const parts=state.replay.mode==='audio'?StudyPlayback.revealTimed(paragraphs,window.STUDY_AUDIO?.[state.caseType]?.[state.condition]?.cues,state.audio.positionSeconds||0,Boolean(state.audio.completed)):StudyPlayback.reveal(paragraphs,ratio);
+ const html=parts.length?parts.map((p,index)=>`<p${index===0?` class="ai-inline-node ai-node-${escapeHtml(state.condition)}"`:''}>${escapeHtml(p)}</p>`).join(''):'<p class="narration-waiting">'+(state.replay.mode==='audio'?'点击“开始播放”，文字将随录音逐步呈现。':'法官陈述即将逐步呈现…')+'</p>';
  if(el.innerHTML!==html){const follow=el.scrollHeight-el.scrollTop-el.clientHeight<48;el.innerHTML=html;if(follow)el.scrollTop=el.scrollHeight;}
  state.replay.textRevealCompleted=ratio>=1;
 }
@@ -531,7 +532,7 @@ function submitSurvey(event){
     const responsibilityScores=CORE.responsibilityValues(responsibilityInput('score'));
     const responsibilityAllocation=CORE.responsibilityValues(responsibilityInput('allocation'),true);
     stopExposure();captureForm();
-    const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,narrationVersion:NARRATION.VERSION,conditionLine:NARRATION.conditionLine(state.condition),consent:state.consent,orientation:structuredClone(state.orientation[state.caseType]||{}),sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.screeningVersion||state.assignment.version,backgroundGroup:state.assignment.backgroundGroup||null,backgroundChoice:state.assignment.background?.backgroundChoice||null,backgroundChoiceLabel:state.assignment.background?.backgroundChoiceLabel||null,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'shared_audio_progressive_text':'shared_progressive_text',playback:{...state.replay},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:[...state.responsibilityOrder],responsibilityScores,responsibilityAllocation,responsibilityAllocationTotal:Object.values(responsibilityAllocation).reduce((sum,value)=>sum+value,0),ratings,ratingStatus,ratingPresentation:'seven-point-slider-2026-09-17',perceivedHarm:perceivedHarm.value,involvement:CORE.ratingValue(data.get('involvement')).value,openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:true,submittedAt:new Date().toISOString(),prototype:true};
+    const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,narrationVersion:NARRATION.VERSION,conditionLine:NARRATION.conditionLine(state.condition),consent:state.consent,orientation:structuredClone(state.orientation[state.caseType]||{}),sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.screeningVersion||state.assignment.version,backgroundGroup:state.assignment.backgroundGroup||null,backgroundChoice:state.assignment.background?.backgroundChoice||null,backgroundChoiceLabel:state.assignment.background?.backgroundChoiceLabel||null,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'condition_audio_progressive_text':'condition_progressive_text',playback:{...state.replay},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:[...state.responsibilityOrder],responsibilityScores,responsibilityAllocation,responsibilityAllocationTotal:Object.values(responsibilityAllocation).reduce((sum,value)=>sum+value,0),ratings,ratingStatus,ratingPresentation:'seven-point-slider-2026-09-17',perceivedHarm:perceivedHarm.value,involvement:CORE.ratingValue(data.get('involvement')).value,openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:true,submittedAt:new Date().toISOString(),prototype:true};
     const session=SESSION.submit(state.session,response,state.assignment);
     updateSavedResponse(SESSION.record(session,state.assignment,true));state.retained=true;state.session=session;state.response=response;setStep(SESSION.complete(session)?'debrief':'between');
   }catch(error){qs('#survey-error').textContent=`未提交：${error.message}`;}

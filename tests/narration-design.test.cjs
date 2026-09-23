@@ -28,6 +28,6 @@ test('AI participation nodes are condition-specific and do not replace the suppl
   assert.ok(nodes.length>=1);
   assert.ok(nodes.every(node=>Number.isInteger(node.paragraph)&&node.paragraph>=0&&typeof node.label==='string'&&node.label.length>0));
  }
- assert.match(narration.participationNodesFor('none','natural')[0].label,/无 AI/);
+ assert.match(narration.participationNodesFor('none','natural')[0].label,/没有使用 AI/);
  assert.deepEqual(narration.paragraphsFor('natural'),body);
 });

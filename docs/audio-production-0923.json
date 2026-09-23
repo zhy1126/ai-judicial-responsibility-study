@@ -1,0 +1,62 @@
+{
+  "version": "condition-narration-2026-09-23-v1",
+  "sources": {
+    "intro": {
+      "filename": "download-1790149215384.mp3",
+      "sha256": "a9ba44d8e76f382b70d01e73162f0aa99e7fcd182ff8f033ac994d8a716f45b6"
+    },
+    "natural": {
+      "filename": "download-1789621302281.mp3",
+      "sha256": "74a069f6349ef2bb905b6b96cc19a744be35ad8ee6076b9532563337b86af381"
+    },
+    "statutory": {
+      "filename": "download-1789621365506.mp3",
+      "sha256": "043b47b287e52753cddd60c8778ce5c1b8e738525aa79f26ac4ed939c9277c40"
+    }
+  },
+  "cutSeconds": [
+    0,
+    8.289,
+    17.361,
+    28.37,
+    38.784
+  ],
+  "gapSeconds": 0.5,
+  "sampleRate": 24000,
+  "timingMethod": "Local ASR paragraph boundaries; intro cuts at measured silence midpoints. Paragraph text reveals linearly within each cue, not word-level forced alignment.",
+  "gain": "Unchanged: original means -17.2/-17.5 dBFS and intro -17.7 dBFS.",
+  "outputs": {
+    "./audio/recordings/natural-none-0923.mp3": {
+      "sha256": "4a437c127afe2f66dd0f299908334746b542662e6f0316ef91b95ddaaca70104",
+      "duration": 142.157
+    },
+    "./audio/recordings/natural-procedural-0923.mp3": {
+      "sha256": "5581094e445cc3b5077bd029ee4fb0072cd7875792e2fe2a5a7939f3ef087088",
+      "duration": 142.94
+    },
+    "./audio/recordings/natural-substantive-0923.mp3": {
+      "sha256": "7ff2d68e9c1740ea35431925030a870437d987774983c6d3b60260dffff631ad",
+      "duration": 144.877
+    },
+    "./audio/recordings/natural-decisional-0923.mp3": {
+      "sha256": "6f7ff7e8960b4fa43b768bfea318ee3e71a0baed2fffe94ed4067bb95f85f43f",
+      "duration": 144.282
+    },
+    "./audio/recordings/statutory-none-0923.mp3": {
+      "sha256": "f1e85e8d21a56ecc7fe6c2e20daff2fbc8171f00e679855c7050954d93c97eb1",
+      "duration": 145.373
+    },
+    "./audio/recordings/statutory-procedural-0923.mp3": {
+      "sha256": "a70d0186564b25670243ce316e2711cb6055313ace2e6c95bcdbd49ed08c070f",
+      "duration": 146.156
+    },
+    "./audio/recordings/statutory-substantive-0923.mp3": {
+      "sha256": "c375c24e209f8839d77d3378af33c213d900937035d42ce85cef3c043f84bbbd",
+      "duration": 148.093
+    },
+    "./audio/recordings/statutory-decisional-0923.mp3": {
+      "sha256": "8c00a7a787fcc8af3706f1810ecfcf431723381769f07e344ceea9214272b6d9",
+      "duration": 147.498
+    }
+  }
+}
