@@ -1,6 +1,6 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.StudyNarration=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
  'use strict';
- const VERSION='shared-narration-2026-09-16-v2';
+ const VERSION='condition-narration-2026-09-23-v1';
  const scripts={
   "natural": [
     "先来梳理案件的基本案情与法律事实。吴某某酒后因琐事与陈某某发生口角，随后双方互殴。在这个过程中，吴某某持刀扎刺陈某某，伤及心脏，造成陈某某失血性休克死亡。我把证人证言、现场和物证材料、鉴定意见，以及吴某某的供述放在一起审查，重点看这些证据能不能相互印证。结果是可以得到印证，双方对此无争议。",
@@ -24,15 +24,15 @@
  substantive:'AI 参与程度：实质性参与。AI 协助分析证据和法律适用，但未提出裁判结果建议或生成裁判主文草案。',
  decisional:'AI 参与程度：决定性参与。AI 协助分析证据和法律适用，并提出裁判结果建议、生成裁判主文草案。'
  };
- const participationNodes={
-  none:[{paragraph:0,kind:'none',label:'AI 参与节点：无 AI。本案裁判形成过程未使用 AI。'}],
-  procedural:[{paragraph:0,kind:'procedural',label:'AI 参与节点：整理材料、核对流程。未参与证据分析或裁判建议。'}],
-  substantive:[{paragraph:1,kind:'substantive',label:'AI 参与节点：协助分析证据与法律适用。未提出裁判结果建议。'}],
-  decisional:[{paragraph:2,kind:'decisional',label:'AI 参与节点：提出裁判结果建议，并生成裁判主文草案。'}]
+ const intros={
+ none:'审理这个案件时，我没有使用 AI。这些材料的整理、证据分析和裁判判断，都是由我完成的。',
+ procedural:'审理这个案件时，我使用 AI 整理材料、核对流程。证据分析、法律适用和裁判判断，由我完成。',
+ substantive:'审理这个案件时，我使用 AI 辅助分析证据和法律适用。我结合这些分析，确定裁判结果，AI 没有提供具体的裁判结果建议。',
+ decisional:'审理这个案件时，我使用 AI 分析证据和法律适用，并参考它提出的裁判结果建议和裁判主文草案，形成最终裁判。'
  };
- function paragraphsFor(caseType){if(!scripts[caseType])throw Error('未知案件');return [...scripts[caseType]];}
+ function paragraphsFor(caseType,condition){if(!scripts[caseType])throw Error('未知案件');if(condition===undefined)return [...scripts[caseType]];if(!intros[condition])throw Error('未知 AI 条件');return [intros[condition],...scripts[caseType]];}
  function conditionLine(condition){if(!lines[condition])throw Error('未知 AI 条件');return lines[condition];}
- function participationNodesFor(condition,caseType){if(!scripts[caseType]||!participationNodes[condition])throw Error('未知 AI 条件或案件');return participationNodes[condition].map(node=>({...node}));}
+ function participationNodesFor(condition,caseType){if(!scripts[caseType]||!intros[condition])throw Error('未知 AI 条件或案件');return [{paragraph:0,kind:condition,label:intros[condition]}];}
  function rolePrompt(role,caseType){
  if(!scripts[caseType])throw Error('未知案件');
  if(role==='judge')return '请设想您是审理本案的法官。您将审阅案件材料，了解裁判形成过程，并对裁判承担审判职责。接下来，请结合您参与审判工作的经验，从本案承办法官的视角作答。';
