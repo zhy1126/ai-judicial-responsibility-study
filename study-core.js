@@ -91,8 +91,7 @@
   }
   function ratingValue(raw, applicable = true) {
     if (!applicable) return {value:null,status:'not_applicable'};
-    if (raw === 'unsure') return {value:null,status:'unsure'};
-    if (!/^[1-7]$/.test(String(raw))) throw new Error('请完成所有适用的感受题。');
+    if (!/^[1-7]$/.test(String(raw))) throw new Error('请为每道感受题选择 1–7 分。');
     return {value:Number(raw),status:'answered'};
   }
   function responsibilityValues(raw, allocation = false) {

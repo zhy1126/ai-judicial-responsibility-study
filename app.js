@@ -312,6 +312,12 @@ function captureForm(){
   state.formValues=Object.fromEntries([...qs('#survey-form').elements].filter(el=>el.name&&(el.type!=='radio'||el.checked)).map(el=>[el.name,el.type==='checkbox'?el.checked:el.value]));
 }
 function restoreForm(){
+  // Only unfinished ratings are migrated. Previously submitted responses stay untouched.
+  if(!state.response){
+    for(const name of [...RATINGS.map(([name])=>name),'perceivedHarm','involvement']){
+      if(name in state.formValues&&!/^[1-7]$/.test(String(state.formValues[name])))state.formValues[name]='';
+    }
+  }
   for(const el of qs('#survey-form').elements){if(!el.name||!(el.name in state.formValues))continue;
     if(el.type==='checkbox')el.checked=Boolean(state.formValues[el.name]);
     else if(el.type==='radio')el.checked=el.value===state.formValues[el.name];
@@ -499,30 +505,28 @@ function changeResponsibilityStage(stage){
 
 function ratingApplicable(){return true;}
 
-function ratingControl(name,unsure=true,options={}){
+function ratingControl(name,options={}){
  const labels=options.labels||CORE.SCALE,ariaLabel=options.ariaLabel||(name==='involvement'?'情境代入程度':RATINGS.find(x=>x[0]===name)?.[1]),anchors=options.anchors||['1 完全不同意','4 中立','7 完全同意'];
- return `<input type="hidden" name="${name}" value=""><div class="range-shell"><input class="rating-range" data-range="${name}" type="range" min="1" max="7" step="1" value="4" aria-label="${ariaLabel}" aria-describedby="feedback-${name}" aria-valuetext="尚未选择"><div class="range-ticks">${labels.map((label,i)=>`<button type="button" data-score="${i+1}" aria-label="${i+1} 分：${label}">${i+1}</button>`).join('')}</div><div class="range-anchors">${anchors.map(anchor=>`<span>${anchor}</span>`).join('')}</div></div>${unsure?'<label class="unsure-option"><input type="checkbox" data-unsure>无法判断</label>':''}<p id="feedback-${name}" class="rating-feedback" role="status">尚未选择，请拖动滑块或点击数字</p>`;
+ return `<input type="hidden" name="${name}" value=""><div class="range-shell"><input class="rating-range" data-range="${name}" type="range" min="1" max="7" step="1" value="4" aria-label="${ariaLabel}" aria-describedby="feedback-${name}" aria-valuetext="尚未选择"><div class="range-ticks">${labels.map((label,i)=>`<button type="button" data-score="${i+1}" aria-label="${i+1} 分：${label}">${i+1}</button>`).join('')}</div><div class="range-anchors">${anchors.map(anchor=>`<span>${anchor}</span>`).join('')}</div></div><p id="feedback-${name}" class="rating-feedback" role="status">尚未选择，请拖动滑块或点击数字</p>`;
 }
 function renderRatings(){
- qs('#involvement-options').innerHTML=ratingControl('involvement',false);qs('#involvement-options').dataset.rating='involvement';
+ qs('#involvement-options').innerHTML=ratingControl('involvement');qs('#involvement-options').dataset.rating='involvement';
  qs('#rating-list').innerHTML=RATINGS.map(([name,label])=>`<fieldset class="likert-question rating-control" data-rating="${name}"><legend>${label}</legend>${ratingControl(name)}</fieldset>`).join('');
- qs('#harm-rating').innerHTML=`<fieldset class="likert-question rating-control" data-rating="perceivedHarm"><legend>请代入刚才情境中您的角色：您觉得这起案件给您个人带来的伤害有多大？</legend><p class="helper-text">请根据您的感受作答；如果您觉得没有受到伤害，可以选择“1 分”。</p>${ratingControl('perceivedHarm',false,{labels:HARM_SCALE,ariaLabel:'请代入刚才情境中您的角色：您觉得这起案件给您个人带来的伤害有多大？',anchors:['1 完全没有伤害','4 中等程度的伤害','7 极大程度的伤害']})}</fieldset>`;
+ qs('#harm-rating').innerHTML=`<fieldset class="likert-question rating-control" data-rating="perceivedHarm"><legend>请代入刚才情境中您的角色：您觉得这起案件给您个人带来的伤害有多大？</legend><p class="helper-text">请根据您的感受作答；如果您觉得没有受到伤害，可以选择“1 分”。</p>${ratingControl('perceivedHarm',{labels:HARM_SCALE,ariaLabel:'请代入刚才情境中您的角色：您觉得这起案件给您个人带来的伤害有多大？',anchors:['1 完全没有伤害','4 中等程度的伤害','7 极大程度的伤害']})}</fieldset>`;
  qsa('[data-rating]').forEach(field=>{
   const name=field.dataset.rating,range=qs('[data-range]',field),answer=qs(`input[name="${name}"]`,field);
   const select=value=>{answer.value=value;updateRatingFeedback();answer.dispatchEvent(new Event('input',{bubbles:true}));};
   range.addEventListener('input',()=>select(range.value));range.addEventListener('pointerup',()=>select(range.value));range.addEventListener('keyup',e=>{if(['Enter',' '].includes(e.key))select(range.value);});
   qsa('[data-score]',field).forEach(button=>button.addEventListener('click',()=>select(button.dataset.score)));
-  qs('[data-unsure]',field)?.addEventListener('input',e=>select(e.target.checked?'unsure':''));
  });
  updateRatingFeedback();
 }
 function updateRatingFeedback(){
  for(const field of qsa('[data-rating]')){
   const name=field.dataset.rating,value=qs(`input[name="${name}"]`,field).value,answered=/^[1-7]$/.test(value),range=qs('[data-range]',field),labels=name==='perceivedHarm'?HARM_SCALE:CORE.SCALE;
-  range.value=answered?value:'4';field.classList.toggle('has-rating',answered);range.setAttribute('aria-valuetext',answered?`${value} 分：${labels[Number(value)-1]}`:value==='unsure'?'无法判断':'尚未选择');
-  const unsure=qs('[data-unsure]',field);if(unsure)unsure.checked=value==='unsure';
+  range.value=answered?value:'4';field.classList.toggle('has-rating',answered);range.setAttribute('aria-valuetext',answered?`${value} 分：${labels[Number(value)-1]}`:'尚未选择');
   qsa('[data-score]',field).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.score===value)));
-  qs('.rating-feedback',field).textContent=answered?`您选择了：${value} 分，${labels[Number(value)-1]}`:value==='unsure'?'您选择了：无法判断':'尚未选择，请拖动滑块或点击数字';
+  qs('.rating-feedback',field).textContent=answered?`您选择了：${value} 分，${labels[Number(value)-1]}`:'尚未选择，请拖动滑块或点击数字';
  }
 }
 function updateOpenResponse(){const hasText=qs('#open-response').value.trim().length>0;qs('#char-count').textContent=qs('#open-response').value.length;qs('#open-response-confirm-row').classList.toggle('hidden',!hasText);qs('#open-response-confirm').required=hasText;}
@@ -541,7 +545,7 @@ function submitSurvey(event){
     const responsibilityScores=CORE.responsibilityValues(responsibilityInput('score'));
     const responsibilityAllocation=CORE.responsibilityValues(responsibilityInput('allocation'),true);
     stopExposure();captureForm();
-    const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,narrationVersion:NARRATION.VERSION,conditionLine:NARRATION.conditionLine(state.condition),consent:state.consent,orientation:structuredClone(state.orientation[state.caseType]||{}),sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.screeningVersion||state.assignment.version,backgroundGroup:state.assignment.backgroundGroup||null,backgroundChoice:state.assignment.background?.backgroundChoice||null,backgroundChoiceLabel:state.assignment.background?.backgroundChoiceLabel||null,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'condition_audio_fast_text':'condition_fast_text',playback:{...state.replay},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:[...state.responsibilityOrder],responsibilityScores,responsibilityAllocation,responsibilityAllocationTotal:Object.values(responsibilityAllocation).reduce((sum,value)=>sum+value,0),ratings,ratingStatus,ratingPresentation:'seven-point-slider-2026-09-17',perceivedHarm:perceivedHarm.value,involvement:CORE.ratingValue(data.get('involvement')).value,openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:true,submittedAt:new Date().toISOString(),prototype:true};
+    const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,narrationVersion:NARRATION.VERSION,conditionLine:NARRATION.conditionLine(state.condition),consent:state.consent,orientation:structuredClone(state.orientation[state.caseType]||{}),sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.screeningVersion||state.assignment.version,backgroundGroup:state.assignment.backgroundGroup||null,backgroundChoice:state.assignment.background?.backgroundChoice||null,backgroundChoiceLabel:state.assignment.background?.backgroundChoiceLabel||null,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'condition_audio_fast_text':'condition_fast_text',playback:{...state.replay},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:[...state.responsibilityOrder],responsibilityScores,responsibilityAllocation,responsibilityAllocationTotal:Object.values(responsibilityAllocation).reduce((sum,value)=>sum+value,0),ratings,ratingStatus,ratingPresentation:'required-seven-point-slider-2026-09-25-v1',perceivedHarm:perceivedHarm.value,involvement:CORE.ratingValue(data.get('involvement')).value,openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:true,submittedAt:new Date().toISOString(),prototype:true};
     const session=SESSION.submit(state.session,response,state.assignment);
     updateSavedResponse(SESSION.record(session,state.assignment,true));state.retained=true;state.session=session;state.response=response;setStep(SESSION.complete(session)?'debrief':'between');
   }catch(error){qs('#survey-error').textContent=`未提交：${error.message}`;}

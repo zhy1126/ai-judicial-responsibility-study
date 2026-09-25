@@ -43,10 +43,11 @@ test('every condition includes the system and its provider as separate actors',(
   assert.deepEqual(core.subjectsFor('none').map(x=>x.id),['judge','court','provider','system']);
   assert.deepEqual(core.subjectsFor('decisional').map(x=>x.id),['judge','court','provider','system']);
 });
-test('unknown, not applicable and neutral have distinct encodings; blank is invalid',()=>{
+test('required ratings accept explicit 1-7 scores and reject unsure, blank and out-of-range answers',()=>{
   assert.equal(typeof core.ratingValue,'function');
   assert.deepEqual(core.ratingValue('4'),{value:4,status:'answered'});
-  assert.deepEqual(core.ratingValue('unsure'),{value:null,status:'unsure'});
+  for(const value of ['unsure','',null,undefined,'0','8','4.5',false])assert.throws(()=>core.ratingValue(value));
+  for(let n=1;n<=7;n++)assert.deepEqual(core.ratingValue(String(n)),{value:n,status:'answered'});
   assert.deepEqual(core.ratingValue(null,false),{value:null,status:'not_applicable'});
   assert.throws(()=>core.ratingValue(null));
   assert.throws(()=>core.ratingValue('8'));
