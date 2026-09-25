@@ -1,5 +1,6 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.StudyPlayback=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
  'use strict';
+ function playbackRate(value){const rate=Number(value);return [1,1.25,1.5].includes(rate)?rate:1.5;}
  function fraction(position,duration,completed=false){return completed?1:Number.isFinite(duration)&&duration>0?Math.max(0,Math.min(1,(Number(position)||0)/duration)):0;}
  function reveal(paragraphs,progress){const parts=paragraphs.map(p=>Array.from(p));let remaining=Math.floor(parts.reduce((n,p)=>n+p.length,0)*Math.max(0,Math.min(1,Number(progress)||0)));const result=[];for(const p of parts){if(remaining<=0)break;result.push(p.slice(0,remaining).join(''));remaining-=p.length;}return result;}
  function validCues(cues){return Array.isArray(cues)&&cues.length>1&&cues.every((c,i)=>Number.isFinite(c.start)&&Number.isFinite(c.end)&&c.start>=0&&c.end>c.start&&(!i||c.start>=cues[i-1].end));}
@@ -18,5 +19,5 @@
    if(position<c.end)break;
   }return result;
  }
- return {VERSION:'condition-timed-narration-2026-09-23-v1',fraction,reveal,validCues,audioReady,revealTimed};
+ return {VERSION:'independent-reading-audio-2026-09-25-v1',playbackRate,fraction,reveal,validCues,audioReady,revealTimed};
 });

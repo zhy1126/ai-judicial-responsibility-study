@@ -6,3 +6,6 @@ test('text reveals progressively without exposing the full narrative in advance'
 test('audio only reveals a fraction while playing; unknown duration never reveals prematurely',()=>{
  assert.equal(P.fraction(0,90),0);assert.equal(P.fraction(45,90),.5);assert.equal(P.fraction(90,NaN),0);assert.equal(P.fraction(0,0,true),1);assert.equal(P.fraction(100,90),1);
 });
+test('listening defaults to 1.5x and restricts saved speed to available choices',()=>{
+ assert.equal(P.playbackRate(),1.5);assert.equal(P.playbackRate(null),1.5);assert.equal(P.playbackRate('1'),1);assert.equal(P.playbackRate('1.25'),1.25);assert.equal(P.playbackRate(1.5),1.5);assert.equal(P.playbackRate(16),1.5);
+});
