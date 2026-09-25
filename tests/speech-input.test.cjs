@@ -70,7 +70,7 @@ test('starts Chinese recognition only on a click and blocks rapid duplicate star
   const f = setup(t);
   assert.equal(f.instances.length, 0);
   assert.equal(f.controller.isBusy(), false);
-  assert.match(f.status.textContent, /可用/);
+  assert.match(f.status.textContent, /可尝试/);
   f.startButton.click();
   f.startButton.click();
   assert.equal(f.instances.length, 1);
@@ -377,4 +377,17 @@ test('plain browser script exposes the StudySpeech global', () => {
   const context = { window: {} };
   vm.runInNewContext(fs.readFileSync(modulePath, 'utf8'), context);
   assert.equal(typeof context.window.StudySpeech.create, 'function');
+});
+test('unresponsive recognition startup times out without changing the answer or accepting stale results',t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const f=setup(t,{value:'保留回答'});f.startButton.click();const r=f.instances[0],late=r.onresult;
+ t.mock.timers.tick(11999);assert.equal(f.controller.isBusy(),true);t.mock.timers.tick(1);assert.equal(f.controller.isBusy(),false);assert.equal(r.abortCalls,1);assert.match(f.status.textContent,/启动超时/);assert.equal(f.startButton.disabled,false);
+ late({results:[Object.assign([{transcript:'迟到内容'}],{isFinal:true})]});assert.equal(f.textarea.value,'保留回答');assert.deepEqual(f.controller.getMetadata().errors,['start-timeout']);
+});
+test('stopping during startup cancels startup timeout and retains normal stop handling',t=>{
+ t.mock.timers.enable({apis:['setTimeout']});const f=setup(t);f.startButton.click();t.mock.timers.tick(10000);f.controller.stop();t.mock.timers.tick(2500);assert.equal(f.controller.isBusy(),true);f.instances[0].emit('end');t.mock.timers.tick(10000);assert.equal(f.controller.isBusy(),false);assert.deepEqual(f.controller.getMetadata().errors,[]);
+});
+test('desktop Safari receives Mac dictation guidance rather than phone-keyboard instructions',()=>{
+ const a=StudySpeech.inputHelp('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15');assert.equal(a.safari,true);assert.match(a.label,/Mac/);assert.match(a.help,/系统设置.*键盘.*听写/);assert.match(a.help,/Siri/);assert.doesNotMatch(a.help,/手机键盘/);
+ const w=StudySpeech.inputHelp('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130 Safari/537.36');assert.equal(w.safari,false);assert.match(w.help,/Win.*H/);
+ assert.match(StudySpeech.inputHelp('Mozilla/5.0 iPhone Mobile Safari/604 MicroMessenger').help,/手机键盘/);
 });
