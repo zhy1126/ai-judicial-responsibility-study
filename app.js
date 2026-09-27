@@ -644,8 +644,8 @@ function markDeleted(){
   qs('#delete-response').disabled=true;qs('#download-response').disabled=true;
 }
 function purgeLocalSession(sessionId){
- const ids=deletedSessions();if(!ids.includes(sessionId))ids.push(sessionId);localStorage.setItem(DELETED_KEY,JSON.stringify(ids));
  localStorage.setItem(STORAGE_KEY,JSON.stringify(readRecords().filter(x=>x.sessionId!==sessionId)));
+ const ids=deletedSessions();if(!ids.includes(sessionId))ids.push(sessionId);localStorage.setItem(DELETED_KEY,JSON.stringify(ids));
  state.response=null;state.session=null;state.retained=null;state.formValues={};state.speechMetadata=null;state.collectionPending=null;state.deleted=true;
  qs('#survey-form').reset();speech.destroy();qs('#open-response').value='';
  draftStorage().removeItem(draftKey);setStep('debrief');saveDraft();markDeleted();
