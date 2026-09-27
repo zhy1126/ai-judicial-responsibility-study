@@ -32,7 +32,34 @@
  };
  function paragraphsFor(caseType,condition){if(!scripts[caseType])throw Error('未知案件');if(condition===undefined)return [...scripts[caseType]];if(!intros[condition])throw Error('未知 AI 条件');return [intros[condition],...scripts[caseType]];}
  function conditionLine(condition){if(!lines[condition])throw Error('未知 AI 条件');return lines[condition];}
- function participationNodesFor(condition,caseType){if(!scripts[caseType]||!intros[condition])throw Error('未知 AI 条件或案件');return [{paragraph:0,kind:condition,label:intros[condition]}];}
+ const stageNotes={
+  none:[
+   '本环节未使用 AI，由法官整理案卷材料并核对相关信息。',
+   '本环节未使用 AI，由法官分析证据并判断法律适用。',
+   '本环节未使用 AI，由法官综合量刑情节，形成裁判结果。'
+  ],
+  procedural:[
+   'AI 协助整理案卷材料、核对流程，法官核实整理后的材料。',
+   'AI 未参与本环节。证据如何评价、法律如何适用，由法官独立分析。',
+   'AI 没有提出裁判结果建议。法官自行衡量量刑情节，确定本案裁判。'
+  ],
+  substantive:[
+   '法官先核对案情与材料，随后结合 AI 的辅助分析审查证据。',
+   'AI 辅助分析证据和法律适用，法官结合这些分析作出判断。',
+   'AI 没有提出具体裁判结果建议，也未生成裁判主文草案；法官综合上述分析确定裁判结果。'
+  ],
+  decisional:[
+   '法官先核对案情与材料，再使用 AI 辅助分析证据。',
+   'AI 辅助分析证据和法律适用，法官结合这些分析审查案件。',
+   'AI 提出裁判结果建议并生成裁判主文草案，法官参考这些建议和草案形成最终裁判。'
+  ]
+ };
+ function participationNodesFor(condition,caseType){
+  if(!scripts[caseType]||!intros[condition])throw Error('未知 AI 条件或案件');
+  const positions=caseType==='natural'?[1,2,5]:[1,3,6];
+  const stages=['materials','analysis','result'],titles=['材料整理','证据与法律分析','裁判结果形成'];
+  return [{paragraph:0,kind:condition,label:intros[condition]},...positions.map((paragraph,i)=>({paragraph,kind:condition,stage:stages[i],title:titles[i],label:stageNotes[condition][i]}))];
+ }
  function rolePrompt(role,caseType){
  if(!scripts[caseType])throw Error('未知案件');
  if(role==='judge')return '请设想您是审理本案的法官。您将审阅案件材料，了解裁判形成过程，并对裁判承担审判职责。接下来，请结合您参与审判工作的经验，从本案承办法官的视角作答。';
@@ -41,5 +68,5 @@
  if(role==='litigant')return caseType==='natural'?'请设想您是本案被害人的近亲属。您的亲人在冲突中死亡，您正在了解这起案件的裁判过程。接下来，请从被害人亲属的处境出发，评价这份涉及您家庭的裁判。':'请设想您代表本案中被侵权的软件著作权方参与诉讼。您所代表的权利方因软件被未经授权传播而受到侵害。接下来，请从这一权利方的处境出发，评价涉及自身权益的裁判。';
  throw Error('未知角色');
  }
- return {VERSION,paragraphsFor,conditionLine,participationNodesFor,rolePrompt,MIN_ROLE_MS:5000,MIN_TEXT_MS:15000};
+ return {VERSION,PARTICIPATION_VERSION:'stage-disclosure-2026-09-27-v1',paragraphsFor,conditionLine,participationNodesFor,rolePrompt,MIN_ROLE_MS:3000,MIN_TEXT_MS:15000};
 });
