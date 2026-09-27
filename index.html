@@ -8,7 +8,7 @@
       content="人机协同裁判司法责任研究：交互式调查原型"
     />
     <meta name="robots" content="noindex, nofollow, noarchive" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://judicial-study-data.crimemap1126.chatgpt.site; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
     <meta name="theme-color" content="#12233f" />
     <title>人机协同裁判与司法责任 · 情境调查</title>
     <link rel="stylesheet" href="./styles.css" />
@@ -128,7 +128,7 @@
           </section>
 
           <section id="data-panel" class="dashboard-section panel data-panel">
-            <div class="panel-head"><div><p class="eyebrow">PROTOTYPE DATA</p><h2>当前浏览器中的测试记录</h2></div><div class="data-actions"><button id="export-csv" class="button button-secondary" type="button">导出 CSV</button><button id="clear-data" class="text-button danger" type="button">清空测试记录</button></div></div>
+            <div class="panel-head"><div><p class="eyebrow">PROTOTYPE DATA</p><h2>当前浏览器中的测试记录</h2></div><div class="data-actions"><a id="central-admin" class="button button-secondary hidden" target="_blank" rel="noopener">集中数据管理</a><button id="export-csv" class="button button-secondary" type="button">导出 CSV</button><button id="clear-data" class="text-button danger" type="button">清空测试记录</button></div></div>
             <div class="metrics-row">
               <article><span>两案均完成的人数</span><strong id="metric-complete">0</strong></article>
               <article><span>平均程序公正</span><strong id="metric-fairness">—</strong></article>
@@ -181,11 +181,12 @@
               <div class="study-facts">
                 <article><span>◷</span><div><strong>两个案件，分别作答</strong><small>可按自己的速度阅读</small></div></article>
                 <article><span>▤</span><div><strong>两宗改编案例</strong><small>不考查法律知识</small></div></article>
-                <article><span>◎</span><div><strong>匿名研究编号</strong><small>当前回答保存在本机</small></div></article>
+                <article><span>◎</span><div><strong>匿名研究编号</strong><small id="storage-fact">当前回答保存在本机</small></div></article>
               </div>
+              <p id="collection-note" class="helper-text hidden" role="status"></p>
               <div class="consent-card">
                 <h2>开始前，请确认</h2>
-                <ul><li>我已年满 18 周岁并能够阅读中文；</li><li>我理解参与完全自愿，可以随时退出；本机进度会保存，第一案完成后可选择删除两案进度并退出；</li><li>我同意研究者保留并分析我的回答，用于科学研究及去标识化的研究结果报告；当前原型仅在此浏览器保存回答，尚未自动上传至研究者；</li><li>我不会在开放题中填写可识别个人身份的信息。</li></ul>
+                <ul><li>我已年满 18 周岁并能够阅读中文；</li><li>我理解参与完全自愿，可以随时退出；本机进度会保存，第一案完成后可选择删除两案进度并退出；</li><li id="storage-consent">我同意研究者保留并分析我的回答，用于科学研究及去标识化的研究结果报告；当前原型仅在此浏览器保存回答，尚未自动上传至研究者；</li><li>我不会在开放题中填写可识别个人身份的信息。</li></ul>
                 <label class="check-row"><input id="consent-checkbox" type="checkbox" /><span>我已阅读以上说明，并同意参加本次实验。</span></label>
               </div>
               <section class="screening-section" aria-labelledby="screening-title">
@@ -316,7 +317,7 @@
 
             <section id="screen-debrief" class="study-screen debrief-screen">
               <div class="completion-mark">✓</div><p class="eyebrow">COMPLETED</p><h1>感谢您的参与</h1><p class="lead">您已完成两个案件，全部回答已经保存在当前浏览器中。</p>
-              <div class="debrief-card"><h2>关于本研究的完整说明</h2><p>本研究比较法官及法官助理、律师、模拟当事人与无关群众的责任判断及主观感受。开始时四选一的背景回答用于分组：法官／法官助理进入法官组，律师进入律师组；其他法律相关人员与其他参与者记录为大众背景，并以相同概率随机分配到模拟当事人或无关群众视角。每人完成故意伤害与侵犯著作权两案，顺序随机，角色和 AI 条件保持不变。</p><p>同一案件在不同 AI 条件下使用不同的第一人称开场说明及录音，并在材料整理、证据与法律分析、裁判结果形成三个环节以文字提示分工。案件事实、法官陈述的案件正文、裁判结果与同角色视频相同。角色视频按案件和身份分别制作，当事人组采用第一人称视角，画面为 AI 生成的非暴力模拟场景，法官陈述为依据案例编写的研究材料，并非真实法官的工作记录或原声。</p><p>您的回答将依开始时的知情同意用于科学研究。当前原型仅保存在此浏览器，尚未自动上传；您仍可撤回并删除本次回答。</p></div>
+              <div class="debrief-card"><h2>关于本研究的完整说明</h2><p>本研究比较法官及法官助理、律师、模拟当事人与无关群众的责任判断及主观感受。开始时四选一的背景回答用于分组：法官／法官助理进入法官组，律师进入律师组；其他法律相关人员与其他参与者记录为大众背景，并以相同概率随机分配到模拟当事人或无关群众视角。每人完成故意伤害与侵犯著作权两案，顺序随机，角色和 AI 条件保持不变。</p><p>同一案件在不同 AI 条件下使用不同的第一人称开场说明及录音，并在材料整理、证据与法律分析、裁判结果形成三个环节以文字提示分工。案件事实、法官陈述的案件正文、裁判结果与同角色视频相同。角色视频按案件和身份分别制作，当事人组采用第一人称视角，画面为 AI 生成的非暴力模拟场景，法官陈述为依据案例编写的研究材料，并非真实法官的工作记录或原声。</p><p id="storage-debrief">您的回答将依开始时的知情同意用于科学研究。当前原型仅保存在此浏览器，尚未自动上传；您仍可撤回并删除本次回答。</p></div>
               <div class="completion-actions"><button id="delete-response" class="text-button danger" type="button">撤回并删除本次回答</button></div>
               <p id="retain-status" class="retain-status" role="status"></p>
               <div class="completion-actions"><button id="download-response" class="button button-secondary" type="button">下载本次回答 JSON</button><a id="finish-link" class="button button-primary hidden" href="./?view=researcher">返回研究设计台</a></div>
@@ -341,6 +342,8 @@
     <script defer src="./role-media.js"></script>
     <script defer src="./audio-config.js"></script>
     <script defer src="./speech-input.js"></script>
+    <script defer src="./collection-config.js"></script>
+    <script defer src="./collection-client.js"></script>
     <script defer src="./app.js"></script>
   </body>
 </html>

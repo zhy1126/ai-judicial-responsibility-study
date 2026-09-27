@@ -7,7 +7,7 @@ const PROTOCOL_KEY = 'judicial_ai_responsibility_protocol_v1';
 const CORE = window.StudyCore;
 const CASES = window.StudyContent.cases;
 const NARRATION = window.StudyNarration;
-const CONSENT_VERSION = "research-use-2026-09-16";
+const CONSENT_VERSION = window.StudyCollection?.CONSENT || 'research-use-2026-09-16';
 const PRESENTATION_PROTOCOL = "mobile-streaming-sliders-2026-09-17-v1";
 const SESSION = window.StudySession;
 const LABELS = {
@@ -39,15 +39,45 @@ if(state.preview){
   state.caseType=valid(params.get('case'),CORE.CASE_TYPES,'natural');
 }
 const previewSelection={role:state.role,condition:state.condition,caseType:state.caseType};
-const draftKey=state.preview?`${DRAFT_KEY}_preview_${state.role}_${state.condition}_${state.caseType}`:DRAFT_KEY;
+const collectionSettings=window.STUDY_COLLECTION||{};
+const central=Boolean(collectionSettings.enabled&&!state.preview);
+const draftKey=state.preview?`${DRAFT_KEY}_preview_${state.role}_${state.condition}_${state.caseType}`:central?`${DRAFT_KEY}_central_v1_${collectionSettings.mode}`:DRAFT_KEY;
+const collection=central?StudyCollection.create({baseUrl:collectionSettings.baseUrl,storage:localStorage,key:draftKey+'_credential'}):null;
 init();
 
 function init(){
   prepareProtocol();
+  prepareCollectionUI();
   const view=params.get('view')==='participant'?'participant':'researcher';
   qs(`#${view}-view`).classList.remove('hidden');
   bindResearcher(); renderRecords();
   if(view==='participant')setupParticipant();
+}
+function prepareCollectionUI(){
+ const link=qs('#central-admin');if(collectionSettings.enabled){link.href=collectionSettings.baseUrl;link.classList.remove('hidden');qs('.sidebar-note small').textContent='全体数据请进入集中数据管理';qs('.researcher-footer span:last-child').textContent='当前试运行；正式收集尚未开放';qs('#data-panel h2').textContent='本机副本与预览记录（非全体样本）';}
+ if(!central)return;
+ qs('#collection-note').textContent=collectionSettings.mode==='pilot'?'当前为试运行，提交后集中保存为测试记录，不计入正式样本。':'提交后由研究者集中保存；未提交的进度仅保存在本机。';
+ qs('#collection-note').classList.remove('hidden');
+ qs('#storage-fact').textContent='提交后集中保存';
+ qs('#storage-consent').textContent='我同意研究者集中保存并分析我的回答，用于科学研究及去标识化的研究结果报告。提交后的答卷保存在研究数据库，并加密备份；我可通过本浏览器的撤回按钮删除本次回答。';
+ qs('#screen-debrief .lead').textContent='您已完成两个案件，研究后台已确认保存全部回答。';
+ qs('#storage-debrief').textContent='您的回答已按开始时的知情同意集中保存，用于科学研究。您仍可使用下方按钮撤回并删除本次回答。请保留本浏览器进度，以便识别和撤回本次作答。';
+ qs('#updated-consent span').textContent='我同意研究者集中保存本次回答用于科学研究，可在结束时撤回删除。';
+}
+function cacheCentralRecord(record){
+ try{const records=readRecords(),index=records.findIndex(r=>r.sessionId===record.sessionId);if(index<0)records.push(record);else records[index]=record;localStorage.setItem(STORAGE_KEY,JSON.stringify(records));}catch{toast('后台已保存；本机副本未更新，请保留页面。');}
+}
+async function reconcileCentralSession(){
+ if(!central||!state.assignment||state.deleted)return;
+ try{
+  const {record}=await collection.session();
+  if(record.sessionId!==state.assignment.sessionId)throw Error('作答凭证不一致，请联系研究者。');
+  state.collectionPending=StudyCollection.pendingForSession(state.collectionPending,{...record,caseIndex:state.session.caseIndex});setPendingUI();saveDraft();
+  if(record.responses.length>state.session.responses.length){
+   cacheCentralRecord(record);state.session=SESSION.restore(state.assignment,{session:record});state.caseType=state.session.caseOrder[state.session.caseIndex];state.response=state.session.responses[state.session.caseIndex];state.collectionPending=null;setPendingUI();state.retained=true;
+   initializeAssignedUI();setStep(record.completed?'debrief':'between');
+  }
+ }catch(error){if(error.status===410){try{purgeLocalSession(state.assignment.sessionId)}catch{toast('后台已撤回，但本机副本尚未清除，请保持此页并重试。')}}else toast(error.message);}
 }
 function prepareProtocol(){
   try{
@@ -168,7 +198,7 @@ function setupSpeechInput(){
   }});
  }
 function nextCase(){
-  if(state.step!=='between'||state.deleted)return;
+  if(state.step!=='between'||state.deleted||state.withdrawBusy)return;
   try{
     if(!currentEpoch()||isDeleted(state.assignment.sessionId))throw Error('本次数据已被清空或删除，请刷新页面。');
     if(newerDraftExists())throw Error('另一页面已进入后续案件，请刷新当前页面以恢复最新进度。');
@@ -191,14 +221,15 @@ function renderCaseProgress(){
   qs('#case-progress-label').textContent=done?'已完成 2 / 2 个案件':between?'已完成 1 / 2 个案件':`第 ${session.caseIndex+1} / 2 个案件 · ${LABELS.cases[state.caseType]}`;
   qs('#case-progress-detail').textContent=done?'两案评价均已提交':between?'继续完成第二案后结束本次研究':'每个案件都需分别完成阅读、回放和评价';
   qs('#next-case-name').textContent=LABELS.cases[session.caseOrder[1]];
-  qs('#submit-evaluation').textContent=session.caseIndex===0?'提交本案评价，继续第二案 →':'提交第二案，完成研究 →';
+  qs('#submit-evaluation').textContent=session.caseIndex===0?'提交本案评价，继续第二案 →':'提交第二案，完成研究 →';setPendingUI();
   if(state.preview)qs('#preview-condition-label').textContent=`${LABELS.roles[state.role]} · ${LABELS.conditions[state.condition]} · 第 ${session.caseIndex+1} 案：${LABELS.cases[state.caseType]}`;
 }
 function updateScreening(){
  if(!state.preview)qs('#screening-note').textContent='';
 }
 
-function startStudy(){
+async function startStudy(){
+  if(state.startBusy)return;
   qs('#intro-error').textContent='';
   if(draftBlocked){qs('#intro-error').textContent='已有进度无法读取，请联系研究者处理后再继续。';return;}
   if(!qs('#consent-checkbox').checked){qs('#intro-error').textContent='请先确认同意参加。';return;}
@@ -210,24 +241,30 @@ function startStudy(){
     const prior=raw?JSON.parse(raw):null;
     const existing=prior?.epoch===storageEpoch?prior.assignment:state.assignment;
     if(state.needsRescreen&&(prior?.session?.responses?.length||readRecords().some(r=>r.sessionId===existing?.sessionId))){state.needsRescreen=false;restoreDraft();return;}
-    state.assignment=CORE.assignParticipant(background,{existing,rescreen:Boolean(state.needsRescreen),sessionId:`JR-${token(8).toUpperCase()}`,preview:state.preview?previewSelection:null});
+    if(!background.backgroundChoice)throw Error('请选择您的背景类别。');
+    state.startBusy=true;qs('#start-study').disabled=true;
+    let serverRecord;
+    if(central){const result=await collection.start(background.backgroundChoice,collectionSettings.mode==='pilot');state.assignment=result.assignment;serverRecord=result.record;if(serverRecord.responses.length)cacheCentralRecord(serverRecord);}
+    else state.assignment=CORE.assignParticipant(background,{existing,rescreen:Boolean(state.needsRescreen),sessionId:`JR-${token(8).toUpperCase()}`,preview:state.preview?previewSelection:null});
     Object.assign(state,{role:state.assignment.role,condition:state.assignment.condition,caseType:state.assignment.caseType});
     if(raw&&CORE.validAssignment(existing)&&!state.needsRescreen){restoreDraft();return;}
     if(state.needsRescreen){state.needsRescreen=false;state.reading={};state.orientation={};state.formValues={};state.replay={mode:null,completed:false};state.replayReturnStep=null;state.replayExposureMs=0;state.audio={status:'not_supplied',started:false,completed:false,maxPositionSeconds:0};state.speechMetadata=null;}
     state.consent={version:CONSENT_VERSION,acceptedAt:new Date().toISOString()};state.retained=true;
-    state.session=SESSION.create(state.assignment);
+    state.session=serverRecord?SESSION.restore(state.assignment,{session:serverRecord}):SESSION.create(state.assignment);
+    state.response=state.session.responses[state.session.caseIndex]||null;
     state.responsibilityOrder=CORE.shuffle(CORE.subjectsFor(state.condition).map(x=>x.id));state.responsibilityStage='independent';
-    state.step='dossier';
+    state.step=state.response?(SESSION.complete(state.session)?'debrief':'between'):'dossier';
     draftStorage().setItem(draftKey,JSON.stringify(snapshot()));
-    initializeAssignedUI();setStep('dossier');
-  }catch(error){state.step='intro';qs('#intro-error').textContent=error.message==='请完成所有背景问题。'?error.message:'无法保存本次分组，请允许浏览器保存本机数据后再试。';}
+    initializeAssignedUI();setStep(state.step);
+  }catch(error){state.step='intro';qs('#intro-error').textContent=error.message||'无法保存本次分组，请允许浏览器保存本机数据后再试。';}
+  finally{state.startBusy=false;qs('#start-study').disabled=false;}
 }
 function initializeAssignedUI(){
   initializingUI=true;
   try{
   qs('#session-code').textContent=`实验编号：${state.assignment.sessionId}`;renderCaseProgress();
   qs('#role-perspective').textContent=NARRATION.rolePrompt(state.role,state.caseType);
-  renderDossier();renderTranscript();renderDecision();renderResponsibility();renderRatings();restoreForm();updateResponsibilityUI();updateOpenResponse();
+  renderDossier();renderTranscript();renderDecision();renderResponsibility();renderRatings();restoreForm();updateResponsibilityUI();updateOpenResponse();setPendingUI();
   }finally{initializingUI=false;}
 }
 function restoreDraft(){
@@ -240,6 +277,7 @@ function restoreDraft(){
     if(draft.deleted||isDeleted(draft.assignment?.sessionId)){draftStorage().setItem(draftKey,JSON.stringify(deletionMarker(draft.sessionId||draft.assignment.sessionId)));state.deleted=true;state.response=null;state.formValues={};qs('#session-code').textContent='本次回答已删除';markDeleted();setStep('debrief',false);return;}
     if(![CORE.VERSION,'2.1.0','2.0.0'].includes(draft.version)||!CORE.validAssignment(draft.assignment)||!STEPS.includes(draft.step))throw Error('invalid draft');
     Object.assign(state,{assignment:draft.assignment,role:draft.assignment.role,condition:draft.assignment.condition,caseType:draft.assignment.caseType,step:draft.step,reading:draft.version===CORE.VERSION?(draft.reading||{}):{},activeDossierTab:draft.activeDossierTab||'overview',formValues:draft.formValues||{},replayExposureMs:draft.replayExposureMs||0,response:draft.response||null,deleted:Boolean(draft.deleted),audio:draft.audio||state.audio,speechMetadata:draft.speechMetadata||null,replayReturnStep:draft.replayReturnStep||null,replay:draft.replay||{mode:null,version:'legacy_monologue',stream:null,completed:false}});
+    state.collectionPending=draft.collectionPending||null;
     state.orientation=draft.orientation||{};state.consent=draft.consent||null;
     state.session=SESSION.restore(state.assignment,draft);state.retained=draft.retained??null;
     // A saved answer wins if the following draft write was interrupted or another tab finished first.
@@ -252,6 +290,7 @@ function restoreDraft(){
       const legacy=SESSION.restore(state.assignment,{response:stored});
       state.session=state.session.responses.length?{...state.session,responses:[stored,...state.session.responses.slice(1)],migratedFrom:legacy.migratedFrom}:legacy;
     }
+    if(central)state.collectionPending=StudyCollection.pendingForSession(state.collectionPending,state.session);
     state.caseType=state.session.caseOrder[state.session.caseIndex];
     state.response=state.session.responses[state.session.caseIndex]||null;
     if(state.response)state.step=SESSION.complete(state.session)?'debrief':'between';
@@ -283,7 +322,7 @@ function restoreDraft(){
       if(!CORE.readingComplete(state.reading))state.step='dossier';
       else if((!state.replay.completed||!qs('#transcript-confirm').checked)&&['decision','survey'].includes(state.step))state.step='replay';
     }
-    if(state.deleted)markDeleted();setStep(state.step,false);saveDraft();
+    if(state.deleted)markDeleted();setStep(state.step,false);saveDraft();if(central)void reconcileCentralSession();
   }catch{draftBlocked=true;qs('#intro-error').textContent='已有进度无法读取，请联系研究者处理后再继续。';}
 }
 function exposure(){return state.replayExposureMs+(state.replayEnteredAt?Math.max(0,Date.now()-state.replayEnteredAt):0);}
@@ -298,7 +337,7 @@ function deletionMarker(sessionId){return {version:CORE.VERSION,epoch:storageEpo
 function deletedSessions(){const raw=localStorage.getItem(DELETED_KEY);const ids=raw?JSON.parse(raw):[];if(!Array.isArray(ids))throw Error('删除状态无法读取。');return ids;}
 function isDeleted(id){return Boolean(id&&deletedSessions().includes(id));}
 function currentEpoch(){return (localStorage.getItem(EPOCH_KEY)||'')===storageEpoch;}
-function snapshot(){if(state.deleted)return deletionMarker(state.assignment?.sessionId);return {epoch:storageEpoch,version:CORE.VERSION,assignment:state.assignment,session:state.session,retained:state.retained,consent:state.consent,orientation:state.orientation,step:state.step,responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:state.responsibilityOrder,responsibilityStage:state.responsibilityStage,reading:state.reading,activeDossierTab:state.activeDossierTab,formValues:state.formValues,replayExposureMs:exposure(),transcriptConfirmed:qs('#transcript-confirm').checked,response:state.response,deleted:state.deleted,audio:state.audio,replayReturnStep:state.replayReturnStep,replay:{...state.replay},speechMetadata:mergedSpeechMetadata()};}
+function snapshot(){if(state.deleted)return deletionMarker(state.assignment?.sessionId);return {epoch:storageEpoch,version:CORE.VERSION,assignment:state.assignment,session:state.session,collectionPending:state.collectionPending||null,retained:state.retained,consent:state.consent,orientation:state.orientation,step:state.step,responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:state.responsibilityOrder,responsibilityStage:state.responsibilityStage,reading:state.reading,activeDossierTab:state.activeDossierTab,formValues:state.formValues,replayExposureMs:exposure(),transcriptConfirmed:qs('#transcript-confirm').checked,response:state.response,deleted:state.deleted,audio:state.audio,replayReturnStep:state.replayReturnStep,replay:{...state.replay},speechMetadata:mergedSpeechMetadata()};}
 function saveDraft(){
   if(!state.assignment||state.needsRescreen||draftBlocked||initializingUI)return;
   try{
@@ -540,8 +579,38 @@ function updateRatingFeedback(){
  }
 }
 function updateOpenResponse(){const hasText=qs('#open-response').value.trim().length>0;qs('#char-count').textContent=qs('#open-response').value.length;qs('#open-response-confirm-row').classList.toggle('hidden',!hasText);qs('#open-response-confirm').required=hasText;}
-function submitSurvey(event){
-  event.preventDefault();qs('#survey-error').textContent='';
+function setPendingUI(){
+ const pending=Boolean(central&&state.collectionPending);
+ for(const el of qs('#survey-form').elements){
+  if(el.id==='submit-evaluation')continue;
+  if(pending){if(el.dataset.beforePending===undefined)el.dataset.beforePending=String(el.disabled);el.disabled=true;}
+  else if(el.dataset.beforePending!==undefined){el.disabled=el.dataset.beforePending==='true';delete el.dataset.beforePending;}
+ }
+ if(pending&&!state.submitBusy){qs('#submit-evaluation').textContent='重新确认保存 →';if(!qs('#survey-error').textContent)qs('#survey-error').textContent='上次提交尚未确认，回答已暂时锁定以避免重复或覆盖。请点击“重新确认保存”。';}
+}
+async function sendCentralPending(){
+ const pending=StudyCollection.pendingForSession(state.collectionPending,state.session);
+ if(!pending)throw Error('本案已确认保存，请刷新进入下一案。');
+ const saved=await collection.submit(pending);
+ cacheCentralRecord(saved.record);state.collectionPending=null;setPendingUI();
+ state.retained=true;state.session=SESSION.restore(state.assignment,{session:saved.record});state.response=saved.response;
+ setStep(SESSION.complete(state.session)?'debrief':'between');
+}
+async function handleSubmitError(error){
+ if(central&&error.status===409){qs('#survey-error').textContent='检测到另一个页面已经提交，正在恢复后台记录…';await reconcileCentralSession();if(state.collectionPending)qs('#survey-error').textContent='此案件已有不同回答。请刷新页面恢复后台已保存的进度。';return;}
+ if(central&&error.status===410){try{purgeLocalSession(state.assignment.sessionId)}catch{qs('#survey-error').textContent='后台已撤回，本机清理未完成，请刷新重试。'}return;}
+ if(error.status===400){state.collectionPending=null;setPendingUI();saveDraft();}
+ qs('#survey-error').textContent=`尚未确认保存：${error.message}${state.collectionPending?' 回答已暂时锁定，请重新确认保存。':''}`;
+}
+async function retryCentralPending(){
+ state.submitBusy=true;qs('#submit-evaluation').disabled=true;qs('#survey-error').textContent='正在确认后台保存结果…';
+ try{await sendCentralPending();}
+ catch(error){await handleSubmitError(error);}
+ finally{state.submitBusy=false;qs('#submit-evaluation').disabled=false;renderCaseProgress();}
+}
+async function submitSurvey(event){
+  if(state.submitBusy){event.preventDefault();return;}
+  event.preventDefault();if(central&&state.collectionPending){await retryCentralPending();return;}qs('#survey-error').textContent='';
   if(!orientation().completed||!state.consent){qs('#survey-error').textContent='请先完成情境说明。';return;}
   if(speech.isBusy()){qs('#survey-error').textContent='请先停止语音输入，等待识别结束并核对文字后提交。';return;}
   if(state.response||state.deleted)return;
@@ -555,30 +624,42 @@ function submitSurvey(event){
     const responsibilityScores=CORE.responsibilityValues(responsibilityInput('score'));
     const responsibilityAllocation=CORE.responsibilityValues(responsibilityInput('allocation'),true);
     stopExposure();captureForm();
-    const response={version:CORE.VERSION,caseVersion:window.StudyContent.version,narrationVersion:NARRATION.VERSION,participationPresentation:state.replay.participationVersion,conditionLine:NARRATION.conditionLine(state.condition),consent:state.consent,orientation:{...structuredClone(state.orientation[state.caseType]||{}),minimumReadingMs:state.orientation[state.caseType]?.minimumReadingMs??null},sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.screeningVersion||state.assignment.version,backgroundGroup:state.assignment.backgroundGroup||null,backgroundChoice:state.assignment.background?.backgroundChoice||null,backgroundChoiceLabel:state.assignment.background?.backgroundChoiceLabel||null,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'condition_audio_fast_text':'condition_fast_text',playback:{...state.replay},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:[...state.responsibilityOrder],responsibilityScores,responsibilityAllocation,responsibilityAllocationTotal:Object.values(responsibilityAllocation).reduce((sum,value)=>sum+value,0),ratings,ratingStatus,ratingPresentation:'required-seven-point-slider-2026-09-25-v1',perceivedHarm:perceivedHarm.value,involvement:CORE.ratingValue(data.get('involvement')).value,openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:true,submittedAt:new Date().toISOString(),prototype:true};
-    const session=SESSION.submit(state.session,response,state.assignment);
-    updateSavedResponse(SESSION.record(session,state.assignment,true));state.retained=true;state.session=session;state.response=response;setStep(SESSION.complete(session)?'debrief':'between');
-  }catch(error){qs('#survey-error').textContent=`未提交：${error.message}`;}
+    let response={version:CORE.VERSION,caseVersion:window.StudyContent.version,narrationVersion:NARRATION.VERSION,participationPresentation:state.replay.participationVersion,conditionLine:NARRATION.conditionLine(state.condition),consent:state.consent,orientation:{...structuredClone(state.orientation[state.caseType]||{}),minimumReadingMs:state.orientation[state.caseType]?.minimumReadingMs??null},sessionId:state.assignment.sessionId,role:state.role,screeningVersion:state.assignment.screeningVersion||state.assignment.version,backgroundGroup:state.assignment.backgroundGroup||null,backgroundChoice:state.assignment.background?.backgroundChoice||null,backgroundChoiceLabel:state.assignment.background?.backgroundChoiceLabel||null,reading:structuredClone(state.reading),background:state.assignment.background,roleAssignment:state.assignment.roleAssignment,condition:state.condition,caseType:state.caseType,preview:state.preview,assignment:state.assignment,replayCompleted:state.replay.completed&&qs('#transcript-confirm').checked,replayExposureMs:state.replayExposureMs,presentation:state.replay.mode==='audio'?'condition_audio_fast_text':'condition_fast_text',playback:{...state.replay},audio:{...state.audio},manipulationCheck:data.get('manipulationCheck'),finalSigner:data.get('finalSigner'),responsibilityMeasure:CORE.RESPONSIBILITY_VERSION,responsibilityOrder:[...state.responsibilityOrder],responsibilityScores,responsibilityAllocation,responsibilityAllocationTotal:Object.values(responsibilityAllocation).reduce((sum,value)=>sum+value,0),ratings,ratingStatus,ratingPresentation:'required-seven-point-slider-2026-09-25-v1',perceivedHarm:perceivedHarm.value,involvement:CORE.ratingValue(data.get('involvement')).value,openResponse:String(data.get('openResponse')||''),speech:mergedSpeechMetadata(),retained:true,submittedAt:new Date().toISOString(),prototype:true};
+    state.submitBusy=true;qs('#submit-evaluation').disabled=true;qs('#submit-evaluation').textContent='正在保存，请稍候…';
+    let session;
+    if(central){
+      state.collectionPending=state.collectionPending||response;
+      draftStorage().setItem(draftKey,JSON.stringify(snapshot()));
+      setPendingUI();await sendCentralPending();return;
+    }else{session=SESSION.submit(state.session,response,state.assignment);updateSavedResponse(SESSION.record(session,state.assignment,true));}
+    state.retained=true;state.session=session;state.response=response;setStep(SESSION.complete(session)?'debrief':'between');
+  }catch(error){await handleSubmitError(error);}
+  finally{state.submitBusy=false;qs('#submit-evaluation').disabled=false;renderCaseProgress();}
 }
 
 
 function markDeleted(){
-  qs('#case-progress').classList.add('hidden');qs('#screen-debrief h1').textContent='本次作答已退出';qs('#screen-debrief .lead').textContent='本次两个案件的回答及未完成进度已从当前浏览器删除。';
-  qs('#retain-status').textContent='本次回答和未完成内容已从当前浏览器删除。';
+  qs('#case-progress').classList.add('hidden');qs('#screen-debrief h1').textContent='本次作答已退出';qs('#screen-debrief .lead').textContent=central?'本次回答已从研究数据库删除，本机作答进度也已清除。':'本次两个案件的回答及未完成进度已从当前浏览器删除。';
+  qs('#retain-status').textContent=central?'本次回答已撤回，后续导出和备份将不再包含本次答卷。':'本次回答和未完成内容已从当前浏览器删除。';
   qs('#delete-response').disabled=true;qs('#download-response').disabled=true;
 }
-function deleteResponse(){
-  if(!state.response||state.deleted)return;
-  try{
-    if(!currentEpoch())throw Error('测试数据已经清空。');
-    const sessionId=state.response.sessionId;
-    const ids=deletedSessions();if(!ids.includes(sessionId))ids.push(sessionId);localStorage.setItem(DELETED_KEY,JSON.stringify(ids));
-    const records=readRecords().filter(x=>x.sessionId!==sessionId);localStorage.setItem(STORAGE_KEY,JSON.stringify(records));
-    // Keep only assignment and completion marker to prevent refresh from resurrecting deleted answers.
-    state.response=null;state.session=null;state.retained=null;state.formValues={};state.speechMetadata=null;state.deleted=true;
-    qs('#survey-form').reset();speech.destroy();qs('#open-response').value='';
-    draftStorage().removeItem(draftKey);setStep('debrief');saveDraft();markDeleted();
-  }catch{qs(state.step==='between'?'#between-error':'#retain-status').textContent='删除未完成，请重试。';}
+function purgeLocalSession(sessionId){
+ const ids=deletedSessions();if(!ids.includes(sessionId))ids.push(sessionId);localStorage.setItem(DELETED_KEY,JSON.stringify(ids));
+ localStorage.setItem(STORAGE_KEY,JSON.stringify(readRecords().filter(x=>x.sessionId!==sessionId)));
+ state.response=null;state.session=null;state.retained=null;state.formValues={};state.speechMetadata=null;state.collectionPending=null;state.deleted=true;
+ qs('#survey-form').reset();speech.destroy();qs('#open-response').value='';
+ draftStorage().removeItem(draftKey);setStep('debrief');saveDraft();markDeleted();
+}
+async function deleteResponse(){
+ if(!state.response||state.deleted||state.withdrawBusy)return;
+ const sessionId=state.response.sessionId;
+ try{
+  if(!currentEpoch())throw Error('测试数据已经清空。');
+  state.withdrawBusy=true;qs('#next-case').disabled=true;qs('#delete-partial').disabled=true;qs('#delete-response').disabled=true;
+  if(central)await collection.withdraw();
+  purgeLocalSession(sessionId);
+ }catch{qs(state.step==='between'?'#between-error':'#retain-status').textContent='删除尚未确认，请保持此页并重试。';}
+ finally{state.withdrawBusy=false;qs('#next-case').disabled=false;qs('#delete-partial').disabled=false;qs('#delete-response').disabled=state.deleted;}
 }
 function downloadResponse(){if(!state.response||state.deleted)return;try{if(!currentEpoch()||isDeleted(state.response.sessionId)){qs('#retain-status').textContent='本次数据已被删除或清空，不能下载。';return;}downloadBlob(JSON.stringify(SESSION.record(state.session,state.assignment,state.retained),null,2),`${state.response.sessionId}.json`,'application/json');}catch{qs('#retain-status').textContent='无法确认数据状态，请刷新页面后重试。';}}
 function setStep(step,persist=true){
