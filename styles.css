@@ -298,6 +298,7 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 /* Keep the experimental disclosure visible while the monologue scrolls. */
 .narration-record{border:1px solid #aac5bf;border-radius:14px;overflow:hidden;background:#fff;margin:24px 0}
 .narration-record .condition-disclosure{margin:0;border:0;border-bottom:1px solid #aac5bf;font-weight:600}
+.audio-reading-status{margin:16px 0 0;padding:12px 14px;border-radius:8px;background:#edf5f3;color:#183e39;font-size:16px;line-height:1.7;font-weight:600}
 .narration-record .narration-text{border:0;border-radius:0}
 
 @media(max-width:600px){.segmented{grid-template-columns:repeat(2,1fr)}}

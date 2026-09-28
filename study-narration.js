@@ -68,5 +68,5 @@
  if(role==='litigant')return caseType==='natural'?'请设想您是本案被害人的近亲属。您的亲人在冲突中死亡，您正在了解这起案件的裁判过程。接下来，请从被害人亲属的处境出发，评价这份涉及您家庭的裁判。':'请设想您代表本案中被侵权的软件著作权方参与诉讼。您所代表的权利方因软件被未经授权传播而受到侵害。接下来，请从这一权利方的处境出发，评价涉及自身权益的裁判。';
  throw Error('未知角色');
  }
- return {VERSION,PARTICIPATION_VERSION:'stage-disclosure-2026-09-27-v1',paragraphsFor,conditionLine,participationNodesFor,rolePrompt,MIN_ROLE_MS:3000,MIN_TEXT_MS:15000};
+ return {VERSION,PARTICIPATION_VERSION:'stage-disclosure-2026-09-27-v1',paragraphsFor,conditionLine,participationNodesFor,rolePrompt,MIN_ROLE_MS:3000,MIN_TEXT_MS:8000};
 });
