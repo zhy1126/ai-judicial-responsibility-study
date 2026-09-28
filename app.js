@@ -427,7 +427,7 @@ function renderTranscript(){
  renderNarrationProgress();
  qs('#audio-panel').classList.toggle('hidden',mode!=='audio');
  qs('#playback-confirm-label').textContent='我已完整阅读并了解这份裁判形成记录。';
- qs('#playback-source').textContent=mode==='audio'?'文字会快速展开，可边听边读。读完并确认后即可继续，不必等录音结束。':'录音尚未加入。请阅读下方逐步呈现的法官陈述。';
+ qs('#playback-source').textContent=mode==='audio'?'无需等录音结束。下方文字会快速展开，读到末尾并勾选确认，即可查看最终裁判。':'录音尚未加入。请阅读下方逐步呈现的法官陈述。';
  if(mode==='audio'){
   pendingAudioPosition=state.audio.positionSeconds||0;const clip=window.STUDY_AUDIO[state.caseType][state.condition];
   qs('#judgment-audio').src=new URL(clip.src,location.href).href;state.audio.src=clip.src;state.audio.version=window.STUDY_AUDIO_VERSION;
@@ -437,7 +437,7 @@ function renderTranscript(){
  updatePlaybackGate();
 }
 function renderNarrationProgress(){
- const audio=qs('#judgment-audio'),el=qs('#narration-text');
+ const el=qs('#narration-text');
  const ratio=StudyPlayback.fraction(state.replay.textVisibleMs||0,NARRATION.MIN_TEXT_MS);
  const paragraphs=NARRATION.paragraphsFor(state.caseType,state.condition);
  const parts=StudyPlayback.reveal(paragraphs,ratio);
@@ -458,7 +458,10 @@ function checkNarrationEnd(){
 function updatePlaybackGate(){
   state.replay.minTextMs=NARRATION.MIN_TEXT_MS;
   state.replay.completed=Boolean(state.replay.textRevealCompleted&&state.replay.textReachedEnd&&state.replay.textVisibleMs>=NARRATION.MIN_TEXT_MS);
-  qs('#narration-reading-status').textContent=state.replay.completed?'全文已阅读，请勾选确认后继续。':`请将正文阅读至末尾，并至少阅读 ${NARRATION.MIN_TEXT_MS/1000} 秒。${state.replay.textVisibleMs<NARRATION.MIN_TEXT_MS?'还需 '+Math.ceil((NARRATION.MIN_TEXT_MS-(state.replay.textVisibleMs||0))/1000)+' 秒。':''}`;
+  const remaining=Math.max(0,Math.ceil((NARRATION.MIN_TEXT_MS-(state.replay.textVisibleMs||0))/1000));
+  const hint=remaining?`文字正在展开（还需 ${remaining} 秒），请边看边向下阅读。`:!state.replay.textReachedEnd?'文字已全部展开，请在正文框内向下滚动至末尾。':qs('#transcript-confirm').checked?'已确认，可点击「查看最终裁判」继续。':'已到正文末尾，请勾选下方阅读确认，即可查看最终裁判。';
+  qs('#narration-reading-status').textContent=hint+' 无需等录音结束。';
+  qs('#audio-reading-status').textContent=hint+' 无需等录音结束。';
   qs('#dialogue-update-note').classList.toggle('hidden',!state.replay.materialChanged||state.replay.completed||Boolean(state.response));
   qs('#transcript-confirm').disabled=!state.replay.completed;
   if(!state.replay.completed)qs('#transcript-confirm').checked=false;
