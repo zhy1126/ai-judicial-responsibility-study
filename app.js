@@ -27,7 +27,7 @@ const qs = (selector,root=document)=>root.querySelector(selector);
 const qsa = (selector,root=document)=>[...root.querySelectorAll(selector)];
 const state = {preview:false,role:'public',condition:'procedural',caseType:'natural',assignment:null,session:null,retained:null,step:'intro',responsibilityOrder:[],responsibilityStage:'independent',reading:{},activeDossierTab:"overview",formValues:{},replayExposureMs:0,replayEnteredAt:null,response:null,deleted:false,audio:{status:'not_supplied',started:false,completed:false,maxPositionSeconds:0},speechMetadata:null,replayReturnStep:null,replay:{mode:null,stream:null,completed:false}};
 let initializingUI=false,pendingAudioPosition=null,exposureTick=performance.now(),lastExposureSave=0;
-let speech, toastTimer, draftBlocked=false, speechChanged=false;
+let roleVideoPlayer, speech, toastTimer, draftBlocked=false, speechChanged=false;
 let storageEpoch='';
 try{storageEpoch=localStorage.getItem(EPOCH_KEY)||'';}catch{}
 state.orientation={};state.consent=null;
@@ -149,8 +149,6 @@ function setupParticipant(){
   qs('#return-to-survey').addEventListener('click',()=>{state.replayReturnStep=null;setStep('survey');});
   qsa('[data-back]').forEach(button=>button.addEventListener('click',()=>setStep(button.dataset.back)));
   qs('#survey-form').addEventListener('submit',submitSurvey);
-  qs('#to-allocation').addEventListener('click',()=>changeResponsibilityStage('allocation'));
-  qs('#back-to-scores').addEventListener('click',()=>changeResponsibilityStage('independent'));
   qs('#survey-form').addEventListener('input',()=>{updateResponsibilityUI();captureForm();saveDraft();updateRatingFeedback();});
   qs('#survey-form').addEventListener('change',()=>{updateResponsibilityUI();captureForm();saveDraft();updateRatingFeedback();});
   qs('#dossier-confirm').addEventListener('change',()=>{
@@ -184,8 +182,8 @@ function setupParticipant(){
   audio.addEventListener('ended',()=>{state.audio.completed=true;updateAudioUI();saveDraft();});
   audio.addEventListener('seeking',()=>{if(pendingAudioPosition===null&&audio.currentTime>(state.audio.maxPositionSeconds||0)+0.5)audio.currentTime=state.audio.maxPositionSeconds||0;});
   audio.addEventListener('error',()=>{if(state.replay.mode!=='audio')return;state.audio.status='error';updateAudioUI();saveDraft();});
-  window.addEventListener('pagehide',()=>{pausePlayback();stopExposure();captureForm();saveDraft();});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){pausePlayback();stopExposure();}else if(state.step==='replay')state.replayEnteredAt=Date.now();saveDraft();});
+  window.addEventListener('pagehide',()=>{roleVideoPlayer?.pause();pausePlayback();stopExposure();captureForm();saveDraft();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){roleVideoPlayer?.pause();pausePlayback();stopExposure();}else if(state.step==='replay')state.replayEnteredAt=Date.now();saveDraft();});
   setupOrientation();
   setInterval(tickExposure,250);
   qs('#narration-text').addEventListener('scroll',checkNarrationEnd);
@@ -221,7 +219,7 @@ function renderCaseProgress(){
   qs('#case-progress-label').textContent=done?'已完成 2 / 2 个案件':between?'已完成 1 / 2 个案件':`第 ${session.caseIndex+1} / 2 个案件 · ${LABELS.cases[state.caseType]}`;
   qs('#case-progress-detail').textContent=done?'两案评价均已提交':between?'继续完成第二案后结束本次研究':'每个案件都需分别完成阅读、回放和评价';
   qs('#next-case-name').textContent=LABELS.cases[session.caseOrder[1]];
-  qs('#submit-evaluation').textContent=session.caseIndex===0?'提交本案评价，继续第二案 →':'提交第二案，完成研究 →';setPendingUI();
+  qs('#submit-evaluation').textContent=session.caseIndex===0?'我已完成，提交本案并继续 →':'我已完成，提交并结束 →';setPendingUI();
   if(state.preview)qs('#preview-condition-label').textContent=`${LABELS.roles[state.role]} · ${LABELS.conditions[state.condition]} · 第 ${session.caseIndex+1} 案：${LABELS.cases[state.caseType]}`;
 }
 function updateScreening(){
@@ -530,26 +528,22 @@ function responsibilityInput(kind){return Object.fromEntries(CORE.SUBJECTS.map(s
 function validResponsibility(kind){try{return CORE.responsibilityValues(responsibilityInput(kind),kind==='allocation');}catch{return null;}}
 function updateResponsibilityUI(){
   const scores=validResponsibility('score');
-  if(!scores)state.responsibilityStage='independent';
-  const allocationStage=state.responsibilityStage==='allocation';
-  for(const [id,active] of [['independent',!allocationStage],['allocation',allocationStage]]){
-    const field=qs(`#responsibility-${id}`);field.classList.toggle('hidden',!active);field.disabled=!active;
-  }
-  qs('#to-allocation').disabled=!scores;
+  state.responsibilityStage=scores?'allocation':'independent';
+  // Keep both measurements visible. The second waits for valid independent scores.
+  qs('#responsibility-independent').classList.remove('hidden');
+  qs('#responsibility-allocation').classList.remove('hidden');
+  qs('#responsibility-allocation').disabled=!scores;
+  qs('#allocation-prerequisite').classList.toggle('hidden',Boolean(scores));
   const filled=Object.values(responsibilityInput('score')).filter(v=>v!=='').length;
-  qs('#score-status').textContent=scores?'四项评分已填写，可以进入责任分配。':`已填写 ${filled} / 4 项，请为每项填写 0–100 的整数。`;
+  qs('#score-status').textContent=scores?'第 1 题已填写。请继续填写下方第 2 题，以上分数会保留。':`已填写 ${filled} / 4 项，请为每项填写 0–100 的整数。`;
   const allocation=validResponsibility('allocation'),raw=responsibilityInput('allocation');
   const numbers=Object.values(raw).map(v=>/^\d{1,3}$/.test(v)&&Number(v)<=100?Number(v):null);
   const total=numbers.reduce((sum,v)=>sum+(v??0),0),missing=numbers.filter(v=>v===null).length;
   const balance=total<100?`还差 ${100-total} 分`:total>100?`超出 ${total-100} 分`:'合计已达 100 分';
   qs('#allocation-status').textContent=`已分配 ${total} / 100 分 · ${balance}${missing?`；还有 ${missing} 项未填写或无效，没有责任请填 0。`:allocation?'，可以继续作答。':'，请调整后继续。'}`;
   qs('#allocation-status').classList.toggle('complete',Boolean(allocation));
-  qs('#submit-evaluation').disabled=!(scores&&allocationStage&&allocation);
-}
-function changeResponsibilityStage(stage){
-  if(stage==='allocation'&&!validResponsibility('score'))return;
-  state.responsibilityStage=stage;updateResponsibilityUI();captureForm();saveDraft();
-  const field=qs(`#responsibility-${stage}`);field.scrollIntoView({behavior:'smooth',block:'start'});qs('input',field)?.focus({preventScroll:true});
+  qs('#submit-evaluation').disabled=Boolean(state.submitBusy);
+  updateSubmitGuidance();
 }
 
 function ratingApplicable(){return true;}
@@ -579,6 +573,39 @@ function updateRatingFeedback(){
  }
 }
 function updateOpenResponse(){const hasText=qs('#open-response').value.trim().length>0;qs('#char-count').textContent=qs('#open-response').value.length;qs('#open-response-confirm-row').classList.toggle('hidden',!hasText);qs('#open-response-confirm').required=hasText;}
+function surveyIssue(){
+  if(!qs('[name="manipulationCheck"]').value)return {message:'请回答本案的 AI 参与方式。',selector:'[name="manipulationCheck"]'};
+  if(!qs('[name="finalSigner"]').value)return {message:'请回答最终核对和签署裁判的是谁。',selector:'[name="finalSigner"]'};
+  for(const kind of ['score','allocation']){
+    for(const subject of CORE.SUBJECTS){
+      const selector=`#responsibility-${kind}-${subject.id}`,raw=qs(selector).value;
+      if(!/^\d{1,3}$/.test(raw)||Number(raw)>100)return {message:`请填写${kind==='score'?'第 1 题独立评分':'第 2 题责任分配'}中“${subject.label}”的 0–100 分整数；没有责任请填 0。`,selector};
+    }
+    if(kind==='allocation'){
+      const total=Object.values(responsibilityInput(kind)).reduce((sum,v)=>sum+Number(v),0);
+      if(total!==100)return {message:`第 2 题责任分配目前合计 ${total} 分，请调整为 100 分。`,selector:'#responsibility-allocation'};
+    }
+  }
+  for(const [name,label]of [['perceivedHarm','案件给您个人带来的伤害'],...RATINGS,['involvement','情境代入程度']]){
+    if(!/^[1-7]$/.test(qs(`[name="${name}"]`).value))return {message:`请为“${label}”选择 1–7 分。`,selector:`[data-rating="${name}"]`};
+  }
+  if(qs('#open-response').value.trim()&&!qs('#open-response-confirm').checked)return {message:'请确认开放题中的文字准确表达了您的回答。',selector:'#open-response-confirm'};
+  if(!qs('[name="honestConfirm"]').checked)return {message:'请勾选“我已根据自己的真实感受完成作答”。',selector:'[name="honestConfirm"]'};
+  return null;
+}
+function updateSubmitGuidance(){
+  const hint=qs('#survey-completion');if(!hint)return;
+  const issue=surveyIssue();hint.textContent=state.collectionPending?'回答已暂存，请重新确认后台保存结果。':issue?'还有题目未完成。点击提交可定位需要补充的位置。':'必答项已完成，可以提交。';
+}
+function showSurveyIssue(issue){
+  qs('#survey-error').textContent=issue.message;
+  qsa('.needs-answer').forEach(el=>el.classList.remove('needs-answer'));
+  const target=qs(issue.selector);if(!target)return;
+  const container=target.closest('.rating-control, .responsibility-item, .responsibility-stage, .form-label, .check-row')||target;
+  container.classList.add('needs-answer');container.scrollIntoView({behavior:'smooth',block:'center'});
+  const focus=target.matches('input,select,textarea,button')?target:qs('input:not([type="hidden"]):not(:disabled),select,button',target);
+  focus?.focus({preventScroll:true});toast(issue.message);
+}
 function setPendingUI(){
  const pending=Boolean(central&&state.collectionPending);
  for(const el of qs('#survey-form').elements){
@@ -615,7 +642,7 @@ async function submitSurvey(event){
   if(speech.isBusy()){qs('#survey-error').textContent='请先停止语音输入，等待识别结束并核对文字后提交。';return;}
   if(state.response||state.deleted)return;
   if(!CORE.readingComplete(state.reading)||!state.replay.completed||!qs('#transcript-confirm').checked){qs('#survey-error').textContent='请先完成三栏材料及裁判形成记录的阅读确认。';return;}
-  const form=event.currentTarget;if(!form.reportValidity()){qs('#survey-error').textContent='请完成所有必答题和确认项。';return;}
+  const form=event.currentTarget,issue=surveyIssue();if(issue){showSurveyIssue(issue);return;}
   try{
     const data=new FormData(form),ratings={},ratingStatus={};
     for(const [name]of RATINGS){const result=CORE.ratingValue(data.get(name),ratingApplicable(name));ratings[name]=result.value;ratingStatus[name]=result.status;}
@@ -718,13 +745,13 @@ function orientation(){
 function roleMediaReady(){return CORE.CASE_TYPES.every(caseType=>CORE.ROLES.every(role=>{try{const asset=window.STUDY_ROLE_MEDIA?.cases?.[caseType]?.[role];return asset?.src&&new URL(asset.src,location.href).origin===location.origin;}catch{return false;}}));}
 function setupOrientation(){
  const dialog=qs('#role-dialog'),video=qs('#role-video');
- for(const event of ['play','pause','ended'])video.addEventListener(event,()=>{qs('#role-video-play').textContent=video.ended?'重新观看':video.paused?(video.currentTime?'继续播放':'播放情境短片'):'暂停播放';});
+ roleVideoPlayer=StudyRoleVideo.create({video,button:qs('#role-video-play'),status:qs('#role-video-status'),onStatus:status=>{
+  const o=orientation();o.videoStatus=status;o.videoError=status==='error'||status==='slow';
+  if(status==='playing')o.videoStarted=true;
+  if(status==='ended')o.videoCompleted=true;
+  updateOrientation();saveDraft();
+ }});
  dialog.addEventListener('cancel',e=>e.preventDefault());
- qs('#role-video-play').addEventListener('click',async()=>{
-  if(!video.paused){video.pause();qs('#role-video-play').textContent='继续播放';return;}
-  try{if(video.error)video.load();await video.play();orientation().videoError=false;qs('#role-video-play').textContent='暂停播放';}catch{orientation().videoError=true;updateOrientation();}
- });
- video.addEventListener('ended',()=>{orientation().videoCompleted=true;qs('#role-video-play').textContent='重新观看';updateOrientation();saveDraft();});
  video.addEventListener('timeupdate',()=>{orientation().videoMax=Math.max(orientation().videoMax||0,video.currentTime||0);});
  video.addEventListener('seeking',()=>{if(video.currentTime>(orientation().videoMax||0)+.5)video.currentTime=orientation().videoMax||0;});
  video.addEventListener('error',()=>{orientation().videoError=true;updateOrientation();});
@@ -732,7 +759,7 @@ function setupOrientation(){
  qs('#role-continue').addEventListener('click',()=>{
   if(!orientationReady())return;
   if(!state.consent)state.consent={version:CONSENT_VERSION,acceptedAt:new Date().toISOString()};
-  orientation().completed=true;state.retained=true;video.pause();dialog.close();exposureTick=performance.now();saveDraft();
+  orientation().completed=true;state.retained=true;roleVideoPlayer.stop();dialog.close();exposureTick=performance.now();saveDraft();
  });
 }
 function orientationReady(){const o=orientation();return o.visibleMs>=NARRATION.MIN_ROLE_MS&&Boolean(state.consent||qs('#updated-consent-checkbox').checked);}
@@ -748,7 +775,7 @@ function openOrientation(){
  qs('#role-title').textContent=LABELS.roles[state.role];qs('#role-description').textContent=NARRATION.rolePrompt(state.role,state.caseType);
  qs('#updated-consent').classList.toggle('hidden',Boolean(state.consent));
  qs('#role-video-panel').classList.toggle('hidden',!roleMediaReady());
- if(roleMediaReady()){const media=window.STUDY_ROLE_MEDIA.cases[state.caseType][state.role];video.src=media.src;video.poster=media.poster;qs('#role-video-play').textContent='播放情境短片';video.load();}
+ if(roleMediaReady()){const media=window.STUDY_ROLE_MEDIA.cases[state.caseType][state.role];roleVideoPlayer.stop();video.src=media.src;video.poster=media.poster;video.preload='auto';video.load();roleVideoPlayer.reset();}
  updateOrientation();if(!dialog.open)dialog.showModal();exposureTick=performance.now();
 }
 function tickExposure(){
