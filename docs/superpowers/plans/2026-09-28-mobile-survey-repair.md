@@ -14,10 +14,10 @@ User-authorized repair of confusing responsibility transition, mobile video feed
 4. Keep pilot central collection and private backup configuration unchanged.
 
 ## Execution
-- [ ] Add regression tests: responsibility values preserved, no hidden transition needed, field-specific submit errors, pending retry protection, video pending/stall/pause/retry/close lifecycle.
-- [ ] Run new tests against old behavior to confirm failures.
-- [ ] Implement app/index/styles and isolated role-video player; include build asset and CI tests.
-- [ ] Run regression suite, build, and browser-test via normal controls at mobile width; verify incomplete submission, independent-vs-allocation, refresh, both cases, video progress.
+- [x] Add regression tests: responsibility values preserved, no hidden transition needed, field-specific submit errors, pending retry protection, video pending/stall/pause/retry/close lifecycle.
+- [x] Run new tests against old behavior to confirm failures.
+- [x] Implement app/index/styles and isolated role-video player; include build asset and CI tests.
+- [x] Run regression suite, build, and browser-test via normal controls at mobile width; verify incomplete submission, independent-vs-allocation, refresh, both cases, video progress.
 - [ ] Independent code review per requesting-code-review skill, fix findings, PR, deploy and live smoke test. Save evidence in outputs.
 
 The existing repair and deployment authorization covers these changes; no experimental factor or data-access expansion is introduced.
