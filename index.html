@@ -262,7 +262,7 @@
               <div class="screen-kicker"><span class="stage-badge">第 4 部分</span><span class="category-badge">您的评价</span></div>
               <h1>谁应当对这份裁判负责？</h1>
               <p class="lead">这里没有标准答案。请依据您看到的形成过程作答。</p>
-              <form id="survey-form" autocomplete="off">
+              <form id="survey-form" autocomplete="off" novalidate>
                 <section class="survey-block">
                   <div class="question-number">A</div><div class="question-content"><h2>材料理解</h2><p>以下两题用于确认页面是否表达清楚。</p>
                     <button id="review-ai-participation" class="text-button review-ai-button" type="button">返回裁判形成记录，重新确认 AI 参与方式</button>
@@ -275,20 +275,19 @@
                   </div>
                 </section>
                 <section class="survey-block">
-                  <div class="question-number">B</div><div class="question-content"><h2>责任判断</h2><p>请评价四个主体对这份裁判的形成与后果应承担的责任。先分别评分，再在四个主体之间分配责任。</p>
+                  <div class="question-number">B</div><div class="question-content"><h2>责任判断</h2><p>请评价四个主体对这份裁判的形成与后果应承担的责任。请依次完成下面两题：第 1 题评价每个主体的责任大小，第 2 题分配他们各自承担的责任份额。</p>
                     <fieldset id="responsibility-independent" class="responsibility-stage">
-                      <legend>第一步：分别评分</legend>
+                      <legend>第 1 题 · 分别评价责任大小</legend>
                       <p id="independent-help">请分别填写 0–100 的整数。0 表示完全没有责任，100 表示责任极大。各主体可以同分，四项<strong>不需要合计 100</strong>。</p>
                       <div id="responsibility-score-list" class="responsibility-list"></div>
                       <p id="score-status" class="helper-text" role="status"></p>
-                      <button id="to-allocation" class="button button-primary" type="button" disabled>评分完成，开始分配 →</button>
                     </fieldset>
-                    <fieldset id="responsibility-allocation" class="responsibility-stage hidden" disabled>
-                      <legend>第二步：分配 100 分责任</legend>
-                      <p id="allocation-help">现在，把全部责任看作 100 分，分配给这四个主体。每项填写 0–100 的整数，<strong>四项必须合计 100</strong>；不分配责任的主体请填 0。</p>
+                    <fieldset id="responsibility-allocation" class="responsibility-stage" disabled>
+                      <legend>第 2 题 · 分配全部责任（合计 100 分）</legend>
+                      <p id="allocation-prerequisite" class="helper-text">请先填写上方第 1 题的四项评分，随后即可填写本题。</p>
+                      <p id="allocation-help">这是另一道题，上方评分会保留。现在，请把全部责任看作 100 分，分配给这四个主体。每项填写 0–100 的整数，<strong>四项必须合计 100</strong>；不分配责任的主体请填 0。</p>
                       <div id="responsibility-allocation-list" class="responsibility-list"></div>
                       <div id="allocation-status" class="allocation-status" role="status" aria-live="polite"></div>
-                      <button id="back-to-scores" class="text-button" type="button">返回修改独立评分</button>
                     </fieldset>
                   </div>
                 </section>
@@ -303,7 +302,7 @@
                     <label id="open-response-confirm-row" class="check-row hidden"><input id="open-response-confirm" name="openResponseConfirm" type="checkbox"><span>我已检查，文本框中的文字准确表达了我的回答。</span></label></div>
                 </section>
                 <section class="question-block"><div class="question-number">E</div><div class="question-content"><h2>情境体验</h2><p>回顾刚才的情境，我感到自己置身其中。</p><div id="involvement-options" class="rating-control"></div></div></section>
-                <button class="text-button" type="button" data-back="decision">返回裁判结果</button><div class="survey-submit"><label class="check-row"><input name="honestConfirm" type="checkbox" required /><span>我已根据自己的真实感受完成作答。</span></label><span id="survey-error" class="form-error" role="alert"></span><button id="submit-evaluation" class="button button-primary" type="submit">提交本案评价，继续第二案 <span>→</span></button></div>
+                <button class="text-button" type="button" data-back="decision">返回裁判结果</button><div class="survey-submit"><label class="check-row"><input name="honestConfirm" type="checkbox" required /><span>我已根据自己的真实感受完成作答。</span></label><p id="survey-completion" class="helper-text" role="status"></p><span id="survey-error" class="form-error" role="alert"></span><button id="submit-evaluation" class="button button-primary" type="submit">我已完成，提交本案并继续 <span>→</span></button></div>
               </form>
             </section>
 
@@ -329,7 +328,7 @@
 
     <dialog id="role-dialog" class="role-dialog" aria-labelledby="role-title" aria-describedby="role-description">
       <p class="eyebrow">进入本案情境</p><h2 id="role-title"></h2><p id="role-description" class="role-description"></p>
-      <div id="role-video-panel"><video id="role-video" playsinline muted preload="metadata" disablepictureinpicture aria-label="角色代入情境短片"></video><button id="role-video-play" type="button" class="button button-secondary">播放情境短片</button></div>
+      <div id="role-video-panel"><video id="role-video" controls playsinline webkit-playsinline muted preload="metadata" disablepictureinpicture aria-label="角色代入情境短片"></video><button id="role-video-play" type="button" class="button button-secondary">播放情境短片</button><p id="role-video-status" class="helper-text" role="status" aria-live="polite"></p></div>
       <label id="updated-consent" class="check-row hidden"><input id="updated-consent-checkbox" type="checkbox"><span>我同意保留本次回答用于科学研究。当前回答保存在此浏览器，可在结束时撤回删除。</span></label>
       <p id="role-status" class="helper-text" role="status"></p><button id="role-continue" class="button button-primary" type="button" disabled>进入案件材料 →</button>
     </dialog>
@@ -340,6 +339,7 @@
     <script defer src="./study-narration.js"></script>
     <script defer src="./study-playback.js"></script>
     <script defer src="./role-media.js"></script>
+    <script defer src="./role-video-player.js"></script>
     <script defer src="./audio-config.js"></script>
     <script defer src="./speech-input.js"></script>
     <script defer src="./collection-config.js"></script>

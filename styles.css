@@ -320,3 +320,10 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 .playback-speed{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:16px;font-size:14px}.playback-speed select{width:auto;min-width:100px;padding:8px 12px}.playback-speed span{color:var(--muted)}
 
 .speech-platform-help{display:block;margin-top:10px;line-height:1.8}
+
+/* Keep the two responsibility measures distinct and visible on mobile. */
+#responsibility-allocation { border-top:2px solid #cbd9d6; padding-top:24px; }
+#responsibility-allocation:disabled .responsibility-list { opacity:.6; }
+.needs-answer { outline:2px solid #a54537; outline-offset:6px; border-radius:8px; }
+.survey-submit { scroll-margin-bottom:24px; }
+#survey-completion { width:100%; margin:8px 0; }

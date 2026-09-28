@@ -43,14 +43,14 @@
 
 CSV 每案一行，同一人共享 session_id；记录 narration_version、participation_presentation、condition_line、consent、orientation、perceived_harm 与 involvement。orientation.minimumReadingMs记录本版情景最低阅读门槛。JSON 下载和删除针对整次会话。旧页面写入保护、删除标记和清空版本控制继续保留。
 
-正式进度保存在 localStorage；预览草稿保存在 sessionStorage。当前没有跨设备身份识别、服务器随机分配锁或中央数据库。新参与者应使用独立浏览器环境。设计台只能查看当前浏览器的数据。
+正式进度保存在 localStorage；预览草稿保存在 sessionStorage。试运行问卷已接入集中数据库及服务器分组，答卷加密备份到私有仓库；未完成草稿保留在本机。没有跨设备身份识别。全体数据须在集中管理后台登录查看，本机设计台仅展示本机副本。
 
 浏览器语音使用 SpeechRecognition，主动点击后才申请麦克风。微信内提供手机键盘语音入口及操作提示，避免显示不可用的网页识别按钮；这并非接入微信 JS-SDK 或云端转写。输入法未启用语音时仍可打字；键盘语音是否实际使用无法由网页识别，元数据只记录入口使用。仅保存核对后的文字与输入元数据，不保存原始录音。真实麦克风和目标手机仍需现场预测试，不需要把配音服务密钥放在网页里。
 
 ## 验证与发布
 
 ```sh
-node --test tests/condition-audio.test.cjs tests/playback-progress.test.cjs tests/legal-background.test.cjs tests/study-core.test.cjs tests/study-session.test.cjs tests/speech-input.test.cjs tests/narration-design.test.cjs tests/shared-narration.test.cjs tests/responsibility-scores.test.cjs tests/stage-participation.test.cjs
+node --test tests/mobile-survey-repair.test.cjs tests/role-video-player.test.cjs tests/collection-client.test.cjs tests/collection-flow.test.cjs tests/condition-audio.test.cjs tests/playback-progress.test.cjs tests/legal-background.test.cjs tests/study-core.test.cjs tests/study-session.test.cjs tests/speech-input.test.cjs tests/narration-design.test.cjs tests/shared-narration.test.cjs tests/responsibility-scores.test.cjs tests/stage-participation.test.cjs
 node scripts/build.mjs
 python3 -m http.server 8766 --directory _site
 # 另一个终端，需 Playwright + Chromium
@@ -66,3 +66,5 @@ STUDY_TEST_URL=http://127.0.0.1:8766 node tests/stage-draft-migration.test.cjs
 当前四选一背景版本为 `four-choice-background-2026-09-20-v1`。早期多道背景问题保留在旧数据兼容逻辑中，不作为当前界面设计。AI参与说明位于自述顶部，并在正文的对应环节再次说明。
 
 背景题不预选；继续已有会话保留分组及已提交答卷。0927更新缩短情景最低阅读时长、补充分工说明及修复加载中暂停的错误处理。尚未提交的旧版评价草稿需重新阅读新版分工提示并重新评价，避免没看过新提示的答卷被标成新版；已提交回答不改写。旧情景已完成但未记录最低阅读门槛的，保留未知值，不倒填成3秒。播放尚未加载完成时暂停会产生正常的AbortError取消；网页不再将它标为播放故障，因此续播不会因此重新下载录音。真实Safari和不同网络仍需预测试。
+
+0928 手机填写修复：两道责任题连续展示，独立评分完成后自动开放合计 100 的分配题，分数持续可见，不自动复制或换算。提交按钮只在保存请求期间停用；未填项和无效值给出具体提示并定位。情境短片显示真实的加载／播放／缓冲状态，支持原生控件及重试，文字阅读门槛仍为 3 秒。回归测试覆盖加载挂起、取消与重试、旧播放回调和缓冲中继续播放，实体 iPhone／微信网络仍需现场复测。
