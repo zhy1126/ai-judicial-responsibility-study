@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="人机协同裁判司法责任研究：交互式调查原型"
+      content="人机协同裁判与司法责任：情境调查研究"
     />
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://judicial-study-data.crimemap1126.chatgpt.site; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
@@ -37,7 +37,7 @@
               <h1 id="researcher-title">人机协同裁判司法责任研究</h1>
               <p class="header-copy">通过统一的裁判说明，比较不同参与方式下的责任判断与主观感受。</p>
             </div>
-            <button id="quick-preview" class="button button-primary" type="button">进入参与者预览 <span>↗</span></button>
+            <a id="participant-entry" class="button button-primary" href="./?view=participant">打开正式问卷 <span>↗</span></a>
           </header>
 
           <section id="research-overview" class="dashboard-section">
@@ -83,6 +83,7 @@
           <section id="preview-panel" class="dashboard-grid">
             <div class="panel preview-config-panel">
               <div class="panel-head compact"><div><p class="eyebrow">CONDITION PREVIEW</p><h2>生成一条预览路径</h2></div><span class="prototype-badge">研究者可见</span></div>
+              <p class="helper-text">以下仅供核对研究材料，不会上传答卷，也不计入正式样本。招募参与者请分享网站主链接或上方的正式问卷入口。</p>
               <form id="preview-config" class="preview-config">
                 <fieldset>
                   <legend>预览观察视角</legend>
@@ -155,7 +156,7 @@
         </header>
 
         <div id="preview-banner" class="preview-banner hidden" role="note">
-          <strong>研究者预览模式</strong><span id="preview-condition-label"></span><span>预览角色和条件由研究者指定；正式流程自动分配。</span>
+          <strong>研究者预览模式 · 不收集数据</strong><span id="preview-condition-label"></span><span>本页不会上传答卷，不计入正式样本。</span><a href="./?view=participant">进入正式问卷</a>
         </div>
 
         <div class="participant-frame">
