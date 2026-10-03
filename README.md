@@ -1,12 +1,12 @@
 # 人机协同裁判司法责任研究
 
-供合作者审阅和预测试的静态网站。当前版本为 2.2.0；参与者仍依次完成故意伤害与侵犯著作权两案。没有新增采集后台，回答仅保存在参与者当前浏览器。
+正式收集问卷。当前版本为 2.2.0；参与者依次完成故意伤害与侵犯著作权两案。主链接直接进入正式问卷，提交后由集中数据库保存，并加密备份到私有仓库。未提交草稿仍在作答浏览器中。
 
 ## 当前实验设计
 
 - 背景只问四选一：法官／法官助理、其他法律相关人员、律师、其他。法官及助理进入法官组，律师进入律师组；其他两类进入大众池，以 1∶1 概率随机分配当事人或公众视角。不再逐项询问法律行业、学位、执照或诉讼经历，不允许自选模拟视角。
 - 当事人视角：故意伤害案为被害人的近亲属；侵犯著作权案为代表被侵权的软件著作权方。
-- 四种 AI 条件：无 AI、程序性、实质性、决定性。第一人称开场录音与文字随条件变化；正文材料整理、证据与法律分析、裁判结果形成三个位置增加同样红色样式的分工提示。案件事实、录音正文、裁判结果及评价界面一致。当前各条件独立按25%概率随机；集中均衡分配尚未上线。
+- 四种 AI 条件：无 AI、程序性、实质性、决定性。第一人称开场录音与文字随条件变化；正文材料整理、证据与法律分析、裁判结果形成三个位置增加同样红色样式的分工提示。案件事实、录音正文、裁判结果及评价界面一致。服务器在各观察视角内按四人随机区组均衡分配四种条件；试填和正式样本各自独立计数。完成样本仍可能因退出而不完全均衡。
 - 每人完成两案，先后随机；角色和 AI 条件保持不变。律师身份来自职业自我报告，法官及法官助理身份来自职业自我报告，不能将四类视角差异全部解释为随机操纵的因果效果。
 - 每案开始播放与案件和角色对应的 18 秒情境 B-roll（六个 3 秒镜头；字幕仍每 6 秒一段），共八条。四类视角节奏、字幕样式、编码一致，无声音，无 AI 条件线索；同一案件及角色的视频在四种 AI 条件下相同。当事人采用近亲属／权利方代表的第一人称视角，公众从新闻旁观视角了解案件。角色文字在前台显示3秒即可继续，按钮显示剩余秒数；不再要求看完整条短片。视频未播放或加载失败都不会延长门槛。
 - 三部分材料每部分至少阅读8秒、滚动到末尾并勾选确认；勾选后自动进入下一部分，第三部分确认后自动进入裁判形成记录。
@@ -21,7 +21,7 @@
 
 [参与者入口](https://zhy1126.github.io/ai-judicial-responsibility-study/?view=participant)
 
-[研究者预览台](https://zhy1126.github.io/ai-judicial-responsibility-study/)
+[研究者预览台](https://zhy1126.github.io/ai-judicial-responsibility-study/?view=researcher)
 
 设计台有 32 条预览路径（4 角色 × 4 条件 × 2 起始案件）。例如 `/?view=participant&preview=1&role=public&condition=procedural&case=natural`。网址参数仅在预览模式生效，预览数据标记 `preview:true`，不能混入实际被试数据。
 
@@ -43,14 +43,14 @@
 
 CSV 每案一行，同一人共享 session_id；记录 narration_version、participation_presentation、condition_line、consent、orientation、perceived_harm 与 involvement。orientation.minimumReadingMs记录本版情景最低阅读门槛。JSON 下载和删除针对整次会话。旧页面写入保护、删除标记和清空版本控制继续保留。
 
-正式进度保存在 localStorage；预览草稿保存在 sessionStorage。试运行问卷已接入集中数据库及服务器分组，答卷加密备份到私有仓库；未完成草稿保留在本机。没有跨设备身份识别。全体数据须在集中管理后台登录查看，本机设计台仅展示本机副本。
+正式进度保存在 localStorage；预览草稿保存在 sessionStorage。正式问卷已接入集中数据库及服务器分组，答卷加密备份到私有仓库；未完成草稿保留在本机。没有跨设备身份识别。全体数据须在集中管理后台登录查看，本机设计台仅展示本机副本。
 
 浏览器语音使用 SpeechRecognition，主动点击后才申请麦克风。微信内提供手机键盘语音入口及操作提示，避免显示不可用的网页识别按钮；这并非接入微信 JS-SDK 或云端转写。输入法未启用语音时仍可打字；键盘语音是否实际使用无法由网页识别，元数据只记录入口使用。仅保存核对后的文字与输入元数据，不保存原始录音。真实麦克风和目标手机仍需现场预测试，不需要把配音服务密钥放在网页里。
 
 ## 验证与发布
 
 ```sh
-node --test tests/mobile-survey-repair.test.cjs tests/role-video-player.test.cjs tests/collection-client.test.cjs tests/collection-flow.test.cjs tests/condition-audio.test.cjs tests/playback-progress.test.cjs tests/legal-background.test.cjs tests/study-core.test.cjs tests/study-session.test.cjs tests/speech-input.test.cjs tests/narration-design.test.cjs tests/shared-narration.test.cjs tests/responsibility-scores.test.cjs tests/stage-participation.test.cjs
+node --test tests/formal-launch.test.cjs tests/narration-reading.test.cjs tests/mobile-survey-repair.test.cjs tests/role-video-player.test.cjs tests/collection-client.test.cjs tests/collection-flow.test.cjs tests/condition-audio.test.cjs tests/playback-progress.test.cjs tests/legal-background.test.cjs tests/study-core.test.cjs tests/study-session.test.cjs tests/speech-input.test.cjs tests/narration-design.test.cjs tests/shared-narration.test.cjs tests/responsibility-scores.test.cjs tests/stage-participation.test.cjs
 node scripts/build.mjs
 python3 -m http.server 8766 --directory _site
 # 另一个终端，需 Playwright + Chromium
@@ -68,3 +68,5 @@ STUDY_TEST_URL=http://127.0.0.1:8766 node tests/stage-draft-migration.test.cjs
 背景题不预选；继续已有会话保留分组及已提交答卷。0927更新缩短情景最低阅读时长、补充分工说明及修复加载中暂停的错误处理。尚未提交的旧版评价草稿需重新阅读新版分工提示并重新评价，避免没看过新提示的答卷被标成新版；已提交回答不改写。旧情景已完成但未记录最低阅读门槛的，保留未知值，不倒填成3秒。播放尚未加载完成时暂停会产生正常的AbortError取消；网页不再将它标为播放故障，因此续播不会因此重新下载录音。真实Safari和不同网络仍需预测试。
 
 0928 手机填写修复：两道责任题连续展示，独立评分完成后自动开放合计 100 的分配题，分数持续可见，不自动复制或换算。提交按钮只在保存请求期间停用；未填项和无效值给出具体提示并定位。情境短片显示真实的加载／播放／缓冲状态，支持原生控件及重试，文字阅读门槛仍为 3 秒。回归测试覆盖加载挂起、取消与重试、旧播放回调和缓冲中继续播放，实体 iPhone／微信网络仍需现场复测。
+
+1003 正式上线：主链接默认进入问卷，设计台仅由 `?view=researcher` 进入；预览明确提示不会上传。正式收集使用独立的本机凭证、草稿键及服务器分配区组，不迁移或改写历史试填。后台查看正式数据；试运行记录须另选测试筛选。不要向参与者发送含 `preview=1` 的材料预览链接。

@@ -48,13 +48,14 @@ init();
 function init(){
   prepareProtocol();
   prepareCollectionUI();
-  const view=params.get('view')==='participant'?'participant':'researcher';
+  const view=params.get('view')==='researcher'?'researcher':'participant';
   qs(`#${view}-view`).classList.remove('hidden');
   bindResearcher(); renderRecords();
   if(view==='participant')setupParticipant();
 }
 function prepareCollectionUI(){
- const link=qs('#central-admin');if(collectionSettings.enabled){link.href=collectionSettings.baseUrl;link.classList.remove('hidden');qs('.sidebar-note small').textContent='全体数据请进入集中数据管理';qs('.researcher-footer span:last-child').textContent='当前试运行；正式收集尚未开放';qs('#data-panel h2').textContent='本机副本与预览记录（非全体样本）';}
+ if(collectionSettings.enabled)qs('#clear-data').classList.add('hidden');
+ const link=qs('#central-admin');if(collectionSettings.enabled){link.href=collectionSettings.baseUrl;link.classList.remove('hidden');qs('.sidebar-note small').textContent='全体数据请进入集中数据管理';qs('.researcher-footer span:last-child').textContent=collectionSettings.mode==='pilot'?'当前试运行；正式收集尚未开放':'正式收集入口已启用；预览和试填记录不计入正式样本';qs('#data-panel h2').textContent='本机副本与预览记录（非全体样本）';}
  if(!central)return;
  qs('#collection-note').textContent=collectionSettings.mode==='pilot'?'当前为试运行，提交后集中保存为测试记录，不计入正式样本。':'提交后由研究者集中保存；未提交的进度仅保存在本机。';
  qs('#collection-note').classList.remove('hidden');
@@ -107,13 +108,13 @@ function bindResearcher(){
   qsa('.segmented button').forEach(button=>button.addEventListener('click',()=>{
     qsa('.segmented button').forEach(item=>item.classList.remove('selected'));button.classList.add('selected');
   }));
-  qs('#quick-preview').addEventListener('click',()=>openPreview('public','procedural','natural'));
   qs('#preview-config').addEventListener('submit',event=>{
     event.preventDefault();const data=new FormData(event.currentTarget);
     openPreview(qs('.segmented button.selected')?.dataset.value||'public',data.get('preview-condition'),data.get('preview-case'));
   });
   qs('#export-csv').addEventListener('click',exportCsv);
   qs('#clear-data').addEventListener('click',()=>{
+    if(collectionSettings.enabled){toast('集中收集期间不支持清空本机记录，以免丢失未提交进度。');return;}
     if(!confirm('确定清空当前浏览器中的全部测试记录和未完成进度吗？此操作无法撤销。'))return;
     try{
       localStorage.setItem(EPOCH_KEY,`${Date.now()}-${token(8)}`);storageEpoch=localStorage.getItem(EPOCH_KEY);
