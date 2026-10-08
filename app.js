@@ -55,7 +55,7 @@ function init(){
 }
 function prepareCollectionUI(){
  if(collectionSettings.enabled)qs('#clear-data').classList.add('hidden');
- const link=qs('#central-admin');if(collectionSettings.enabled){link.href=collectionSettings.baseUrl;link.classList.remove('hidden');qs('.sidebar-note small').textContent='全体数据请进入集中数据管理';qs('.researcher-footer span:last-child').textContent=collectionSettings.mode==='pilot'?'当前试运行；正式收集尚未开放':'正式收集入口已启用；预览和试填记录不计入正式样本';qs('#data-panel h2').textContent='本机副本与预览记录（非全体样本）';}
+ const link=qs('#central-admin');if(collectionSettings.enabled){link.href=collectionSettings.adminUrl||collectionSettings.baseUrl;link.classList.remove('hidden');qs('.sidebar-note small').textContent='全体数据请进入集中数据管理';qs('.researcher-footer span:last-child').textContent=collectionSettings.mode==='pilot'?'当前试运行；正式收集尚未开放':'正式收集入口已启用；预览和试填记录不计入正式样本';qs('#data-panel h2').textContent='本机副本与预览记录（非全体样本）';}
  if(!central)return;
  qs('#collection-note').textContent=collectionSettings.mode==='pilot'?'当前为试运行，提交后集中保存为测试记录，不计入正式样本。':'提交后由研究者集中保存；未提交的进度仅保存在本机。';
  qs('#collection-note').classList.remove('hidden');
