@@ -1,0 +1,2173 @@
+{
+  "source": "collection-site/lib/rules.mjs (original backend, 2026-10-08)",
+  "cases": [
+    {
+      "session": {
+        "id": "JR-0000000000000000",
+        "background": "judge",
+        "role": "judge",
+        "condition": "none",
+        "first_case": "statutory",
+        "test": 0,
+        "created_at": "2026-10-08T08:00:00.000Z"
+      },
+      "input": {
+        "sessionId": "JR-0000000000000000",
+        "role": "judge",
+        "condition": "none",
+        "caseType": "statutory",
+        "preview": false,
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "none",
+        "finalSigner": "judge",
+        "replayCompleted": true,
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "openResponse": "中文😀",
+        "replayExposureMs": 15000
+      },
+      "assignment": {
+        "version": "2.2.0",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "backgroundGroup": "judge",
+        "sessionId": "JR-0000000000000000",
+        "background": {
+          "backgroundChoice": "judge",
+          "backgroundChoiceLabel": "法官／法官助理",
+          "legalIndustry": "yes",
+          "legalOccupation": "judge",
+          "practicingLawyer": "no"
+        },
+        "role": "judge",
+        "condition": "none",
+        "caseType": "statutory",
+        "caseOrder": [
+          "statutory",
+          "natural"
+        ],
+        "roleAssignment": "screened_judge",
+        "preview": false,
+        "serverAssigned": true,
+        "assignmentProtocol": "server-blocks-2026-09-28-v1",
+        "test": false,
+        "assignedAt": "2026-10-08T08:00:00.000Z"
+      },
+      "normalized": {
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "sessionId": "JR-0000000000000000",
+        "caseType": "statutory",
+        "role": "judge",
+        "condition": "none",
+        "preview": false,
+        "test": false,
+        "assignment": {
+          "version": "2.2.0",
+          "screeningVersion": "four-choice-background-2026-09-20-v1",
+          "backgroundGroup": "judge",
+          "sessionId": "JR-0000000000000000",
+          "background": {
+            "backgroundChoice": "judge",
+            "backgroundChoiceLabel": "法官／法官助理",
+            "legalIndustry": "yes",
+            "legalOccupation": "judge",
+            "practicingLawyer": "no"
+          },
+          "role": "judge",
+          "condition": "none",
+          "caseType": "statutory",
+          "caseOrder": [
+            "statutory",
+            "natural"
+          ],
+          "roleAssignment": "screened_judge",
+          "preview": false,
+          "serverAssigned": true,
+          "assignmentProtocol": "server-blocks-2026-09-28-v1",
+          "test": false,
+          "assignedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "background": {
+          "backgroundChoice": "judge",
+          "backgroundChoiceLabel": "法官／法官助理",
+          "legalIndustry": "yes",
+          "legalOccupation": "judge",
+          "practicingLawyer": "no"
+        },
+        "backgroundGroup": "judge",
+        "backgroundChoice": "judge",
+        "backgroundChoiceLabel": "法官／法官助理",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "roleAssignment": "screened_judge",
+        "consent": {
+          "version": "central-research-2026-09-27-v1",
+          "acceptedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "responsibilityAllocationTotal": 100,
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "ratingStatus": {
+          "fairness": "answered",
+          "control": "answered",
+          "clarity": "answered",
+          "judgeOwnership": "answered",
+          "aiTrust": "answered",
+          "legitimacy": "answered",
+          "acceptance": "answered",
+          "unease": "answered",
+          "perceivedHarm": "answered"
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "none",
+        "finalSigner": "judge",
+        "openResponse": "中文😀",
+        "replayCompleted": true,
+        "replayExposureMs": 15000,
+        "retained": true,
+        "prototype": false
+      },
+      "digest": "163a3abfef6465187efd9e24f0f8d503ae646ef8d9ffc7d16da926b4ff86ce44"
+    },
+    {
+      "session": {
+        "id": "JR-0000000000000001",
+        "background": "judge",
+        "role": "judge",
+        "condition": "none",
+        "first_case": "statutory",
+        "test": 1,
+        "created_at": "2026-10-08T08:00:00.000Z"
+      },
+      "input": {
+        "sessionId": "JR-0000000000000001",
+        "role": "judge",
+        "condition": "none",
+        "caseType": "statutory",
+        "preview": false,
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "none",
+        "finalSigner": "judge",
+        "replayCompleted": true,
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "openResponse": "中文😀",
+        "replayExposureMs": 15000
+      },
+      "assignment": {
+        "version": "2.2.0",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "backgroundGroup": "judge",
+        "sessionId": "JR-0000000000000001",
+        "background": {
+          "backgroundChoice": "judge",
+          "backgroundChoiceLabel": "法官／法官助理",
+          "legalIndustry": "yes",
+          "legalOccupation": "judge",
+          "practicingLawyer": "no"
+        },
+        "role": "judge",
+        "condition": "none",
+        "caseType": "statutory",
+        "caseOrder": [
+          "statutory",
+          "natural"
+        ],
+        "roleAssignment": "screened_judge",
+        "preview": false,
+        "serverAssigned": true,
+        "assignmentProtocol": "server-blocks-2026-09-28-v1",
+        "test": true,
+        "assignedAt": "2026-10-08T08:00:00.000Z"
+      },
+      "normalized": {
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "sessionId": "JR-0000000000000001",
+        "caseType": "statutory",
+        "role": "judge",
+        "condition": "none",
+        "preview": false,
+        "test": true,
+        "assignment": {
+          "version": "2.2.0",
+          "screeningVersion": "four-choice-background-2026-09-20-v1",
+          "backgroundGroup": "judge",
+          "sessionId": "JR-0000000000000001",
+          "background": {
+            "backgroundChoice": "judge",
+            "backgroundChoiceLabel": "法官／法官助理",
+            "legalIndustry": "yes",
+            "legalOccupation": "judge",
+            "practicingLawyer": "no"
+          },
+          "role": "judge",
+          "condition": "none",
+          "caseType": "statutory",
+          "caseOrder": [
+            "statutory",
+            "natural"
+          ],
+          "roleAssignment": "screened_judge",
+          "preview": false,
+          "serverAssigned": true,
+          "assignmentProtocol": "server-blocks-2026-09-28-v1",
+          "test": true,
+          "assignedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "background": {
+          "backgroundChoice": "judge",
+          "backgroundChoiceLabel": "法官／法官助理",
+          "legalIndustry": "yes",
+          "legalOccupation": "judge",
+          "practicingLawyer": "no"
+        },
+        "backgroundGroup": "judge",
+        "backgroundChoice": "judge",
+        "backgroundChoiceLabel": "法官／法官助理",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "roleAssignment": "screened_judge",
+        "consent": {
+          "version": "central-research-2026-09-27-v1",
+          "acceptedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "responsibilityAllocationTotal": 100,
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "ratingStatus": {
+          "fairness": "answered",
+          "control": "answered",
+          "clarity": "answered",
+          "judgeOwnership": "answered",
+          "aiTrust": "answered",
+          "legitimacy": "answered",
+          "acceptance": "answered",
+          "unease": "answered",
+          "perceivedHarm": "answered"
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "none",
+        "finalSigner": "judge",
+        "openResponse": "中文😀",
+        "replayCompleted": true,
+        "replayExposureMs": 15000,
+        "retained": true,
+        "prototype": false
+      },
+      "digest": "38fd091bff4ed91b23d0035a5af8dee31a3777f6093aac31f8fa11ee27e9f280"
+    },
+    {
+      "session": {
+        "id": "JR-0000000000000002",
+        "background": "lawyer",
+        "role": "lawyer",
+        "condition": "procedural",
+        "first_case": "natural",
+        "test": 0,
+        "created_at": "2026-10-08T08:00:00.000Z"
+      },
+      "input": {
+        "sessionId": "JR-0000000000000002",
+        "role": "lawyer",
+        "condition": "procedural",
+        "caseType": "natural",
+        "preview": false,
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "procedural",
+        "finalSigner": "judge",
+        "replayCompleted": true,
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "openResponse": "中文😀",
+        "replayExposureMs": 15000
+      },
+      "assignment": {
+        "version": "2.2.0",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "backgroundGroup": "lawyer",
+        "sessionId": "JR-0000000000000002",
+        "background": {
+          "backgroundChoice": "lawyer",
+          "backgroundChoiceLabel": "律师",
+          "legalIndustry": "yes",
+          "legalOccupation": "lawyer",
+          "practicingLawyer": "yes"
+        },
+        "role": "lawyer",
+        "condition": "procedural",
+        "caseType": "natural",
+        "caseOrder": [
+          "natural",
+          "statutory"
+        ],
+        "roleAssignment": "screened_lawyer",
+        "preview": false,
+        "serverAssigned": true,
+        "assignmentProtocol": "server-blocks-2026-09-28-v1",
+        "test": false,
+        "assignedAt": "2026-10-08T08:00:00.000Z"
+      },
+      "normalized": {
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "sessionId": "JR-0000000000000002",
+        "caseType": "natural",
+        "role": "lawyer",
+        "condition": "procedural",
+        "preview": false,
+        "test": false,
+        "assignment": {
+          "version": "2.2.0",
+          "screeningVersion": "four-choice-background-2026-09-20-v1",
+          "backgroundGroup": "lawyer",
+          "sessionId": "JR-0000000000000002",
+          "background": {
+            "backgroundChoice": "lawyer",
+            "backgroundChoiceLabel": "律师",
+            "legalIndustry": "yes",
+            "legalOccupation": "lawyer",
+            "practicingLawyer": "yes"
+          },
+          "role": "lawyer",
+          "condition": "procedural",
+          "caseType": "natural",
+          "caseOrder": [
+            "natural",
+            "statutory"
+          ],
+          "roleAssignment": "screened_lawyer",
+          "preview": false,
+          "serverAssigned": true,
+          "assignmentProtocol": "server-blocks-2026-09-28-v1",
+          "test": false,
+          "assignedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "background": {
+          "backgroundChoice": "lawyer",
+          "backgroundChoiceLabel": "律师",
+          "legalIndustry": "yes",
+          "legalOccupation": "lawyer",
+          "practicingLawyer": "yes"
+        },
+        "backgroundGroup": "lawyer",
+        "backgroundChoice": "lawyer",
+        "backgroundChoiceLabel": "律师",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "roleAssignment": "screened_lawyer",
+        "consent": {
+          "version": "central-research-2026-09-27-v1",
+          "acceptedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "responsibilityAllocationTotal": 100,
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "ratingStatus": {
+          "fairness": "answered",
+          "control": "answered",
+          "clarity": "answered",
+          "judgeOwnership": "answered",
+          "aiTrust": "answered",
+          "legitimacy": "answered",
+          "acceptance": "answered",
+          "unease": "answered",
+          "perceivedHarm": "answered"
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "procedural",
+        "finalSigner": "judge",
+        "openResponse": "中文😀",
+        "replayCompleted": true,
+        "replayExposureMs": 15000,
+        "retained": true,
+        "prototype": false
+      },
+      "digest": "964d10d6ccd8fe81b171c691ed821857a04bca7965830760e734c6bed2549e69"
+    },
+    {
+      "session": {
+        "id": "JR-0000000000000003",
+        "background": "lawyer",
+        "role": "lawyer",
+        "condition": "procedural",
+        "first_case": "natural",
+        "test": 1,
+        "created_at": "2026-10-08T08:00:00.000Z"
+      },
+      "input": {
+        "sessionId": "JR-0000000000000003",
+        "role": "lawyer",
+        "condition": "procedural",
+        "caseType": "natural",
+        "preview": false,
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "procedural",
+        "finalSigner": "judge",
+        "replayCompleted": true,
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "openResponse": "中文😀",
+        "replayExposureMs": 15000
+      },
+      "assignment": {
+        "version": "2.2.0",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "backgroundGroup": "lawyer",
+        "sessionId": "JR-0000000000000003",
+        "background": {
+          "backgroundChoice": "lawyer",
+          "backgroundChoiceLabel": "律师",
+          "legalIndustry": "yes",
+          "legalOccupation": "lawyer",
+          "practicingLawyer": "yes"
+        },
+        "role": "lawyer",
+        "condition": "procedural",
+        "caseType": "natural",
+        "caseOrder": [
+          "natural",
+          "statutory"
+        ],
+        "roleAssignment": "screened_lawyer",
+        "preview": false,
+        "serverAssigned": true,
+        "assignmentProtocol": "server-blocks-2026-09-28-v1",
+        "test": true,
+        "assignedAt": "2026-10-08T08:00:00.000Z"
+      },
+      "normalized": {
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "sessionId": "JR-0000000000000003",
+        "caseType": "natural",
+        "role": "lawyer",
+        "condition": "procedural",
+        "preview": false,
+        "test": true,
+        "assignment": {
+          "version": "2.2.0",
+          "screeningVersion": "four-choice-background-2026-09-20-v1",
+          "backgroundGroup": "lawyer",
+          "sessionId": "JR-0000000000000003",
+          "background": {
+            "backgroundChoice": "lawyer",
+            "backgroundChoiceLabel": "律师",
+            "legalIndustry": "yes",
+            "legalOccupation": "lawyer",
+            "practicingLawyer": "yes"
+          },
+          "role": "lawyer",
+          "condition": "procedural",
+          "caseType": "natural",
+          "caseOrder": [
+            "natural",
+            "statutory"
+          ],
+          "roleAssignment": "screened_lawyer",
+          "preview": false,
+          "serverAssigned": true,
+          "assignmentProtocol": "server-blocks-2026-09-28-v1",
+          "test": true,
+          "assignedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "background": {
+          "backgroundChoice": "lawyer",
+          "backgroundChoiceLabel": "律师",
+          "legalIndustry": "yes",
+          "legalOccupation": "lawyer",
+          "practicingLawyer": "yes"
+        },
+        "backgroundGroup": "lawyer",
+        "backgroundChoice": "lawyer",
+        "backgroundChoiceLabel": "律师",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "roleAssignment": "screened_lawyer",
+        "consent": {
+          "version": "central-research-2026-09-27-v1",
+          "acceptedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "responsibilityAllocationTotal": 100,
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "ratingStatus": {
+          "fairness": "answered",
+          "control": "answered",
+          "clarity": "answered",
+          "judgeOwnership": "answered",
+          "aiTrust": "answered",
+          "legitimacy": "answered",
+          "acceptance": "answered",
+          "unease": "answered",
+          "perceivedHarm": "answered"
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "procedural",
+        "finalSigner": "judge",
+        "openResponse": "中文😀",
+        "replayCompleted": true,
+        "replayExposureMs": 15000,
+        "retained": true,
+        "prototype": false
+      },
+      "digest": "c64c048c018b822065e8cc8a6cf1751b9afb0929d927851c67bfab8d946d7ed1"
+    },
+    {
+      "session": {
+        "id": "JR-0000000000000004",
+        "background": "legal_other",
+        "role": "litigant",
+        "condition": "substantive",
+        "first_case": "statutory",
+        "test": 0,
+        "created_at": "2026-10-08T08:00:00.000Z"
+      },
+      "input": {
+        "sessionId": "JR-0000000000000004",
+        "role": "litigant",
+        "condition": "substantive",
+        "caseType": "statutory",
+        "preview": false,
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "substantive",
+        "finalSigner": "judge",
+        "replayCompleted": true,
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "openResponse": "中文😀",
+        "replayExposureMs": 15000
+      },
+      "assignment": {
+        "version": "2.2.0",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "backgroundGroup": "public",
+        "sessionId": "JR-0000000000000004",
+        "background": {
+          "backgroundChoice": "legal_other",
+          "backgroundChoiceLabel": "其他法律相关人员（法学生、法务、法学研究人员等）",
+          "legalIndustry": "yes",
+          "legalOccupation": "other",
+          "practicingLawyer": "no"
+        },
+        "role": "litigant",
+        "condition": "substantive",
+        "caseType": "statutory",
+        "caseOrder": [
+          "statutory",
+          "natural"
+        ],
+        "roleAssignment": "randomized_perspective",
+        "preview": false,
+        "serverAssigned": true,
+        "assignmentProtocol": "server-blocks-2026-09-28-v1",
+        "test": false,
+        "assignedAt": "2026-10-08T08:00:00.000Z"
+      },
+      "normalized": {
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "sessionId": "JR-0000000000000004",
+        "caseType": "statutory",
+        "role": "litigant",
+        "condition": "substantive",
+        "preview": false,
+        "test": false,
+        "assignment": {
+          "version": "2.2.0",
+          "screeningVersion": "four-choice-background-2026-09-20-v1",
+          "backgroundGroup": "public",
+          "sessionId": "JR-0000000000000004",
+          "background": {
+            "backgroundChoice": "legal_other",
+            "backgroundChoiceLabel": "其他法律相关人员（法学生、法务、法学研究人员等）",
+            "legalIndustry": "yes",
+            "legalOccupation": "other",
+            "practicingLawyer": "no"
+          },
+          "role": "litigant",
+          "condition": "substantive",
+          "caseType": "statutory",
+          "caseOrder": [
+            "statutory",
+            "natural"
+          ],
+          "roleAssignment": "randomized_perspective",
+          "preview": false,
+          "serverAssigned": true,
+          "assignmentProtocol": "server-blocks-2026-09-28-v1",
+          "test": false,
+          "assignedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "background": {
+          "backgroundChoice": "legal_other",
+          "backgroundChoiceLabel": "其他法律相关人员（法学生、法务、法学研究人员等）",
+          "legalIndustry": "yes",
+          "legalOccupation": "other",
+          "practicingLawyer": "no"
+        },
+        "backgroundGroup": "public",
+        "backgroundChoice": "legal_other",
+        "backgroundChoiceLabel": "其他法律相关人员（法学生、法务、法学研究人员等）",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "roleAssignment": "randomized_perspective",
+        "consent": {
+          "version": "central-research-2026-09-27-v1",
+          "acceptedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "responsibilityAllocationTotal": 100,
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "ratingStatus": {
+          "fairness": "answered",
+          "control": "answered",
+          "clarity": "answered",
+          "judgeOwnership": "answered",
+          "aiTrust": "answered",
+          "legitimacy": "answered",
+          "acceptance": "answered",
+          "unease": "answered",
+          "perceivedHarm": "answered"
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "substantive",
+        "finalSigner": "judge",
+        "openResponse": "中文😀",
+        "replayCompleted": true,
+        "replayExposureMs": 15000,
+        "retained": true,
+        "prototype": false
+      },
+      "digest": "195b30d020bbeb3e32646734bcdeee462939b6cf6cb91dd9a7fe89988fc83846"
+    },
+    {
+      "session": {
+        "id": "JR-0000000000000005",
+        "background": "legal_other",
+        "role": "litigant",
+        "condition": "substantive",
+        "first_case": "statutory",
+        "test": 1,
+        "created_at": "2026-10-08T08:00:00.000Z"
+      },
+      "input": {
+        "sessionId": "JR-0000000000000005",
+        "role": "litigant",
+        "condition": "substantive",
+        "caseType": "statutory",
+        "preview": false,
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "substantive",
+        "finalSigner": "judge",
+        "replayCompleted": true,
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "openResponse": "中文😀",
+        "replayExposureMs": 15000
+      },
+      "assignment": {
+        "version": "2.2.0",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "backgroundGroup": "public",
+        "sessionId": "JR-0000000000000005",
+        "background": {
+          "backgroundChoice": "legal_other",
+          "backgroundChoiceLabel": "其他法律相关人员（法学生、法务、法学研究人员等）",
+          "legalIndustry": "yes",
+          "legalOccupation": "other",
+          "practicingLawyer": "no"
+        },
+        "role": "litigant",
+        "condition": "substantive",
+        "caseType": "statutory",
+        "caseOrder": [
+          "statutory",
+          "natural"
+        ],
+        "roleAssignment": "randomized_perspective",
+        "preview": false,
+        "serverAssigned": true,
+        "assignmentProtocol": "server-blocks-2026-09-28-v1",
+        "test": true,
+        "assignedAt": "2026-10-08T08:00:00.000Z"
+      },
+      "normalized": {
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "sessionId": "JR-0000000000000005",
+        "caseType": "statutory",
+        "role": "litigant",
+        "condition": "substantive",
+        "preview": false,
+        "test": true,
+        "assignment": {
+          "version": "2.2.0",
+          "screeningVersion": "four-choice-background-2026-09-20-v1",
+          "backgroundGroup": "public",
+          "sessionId": "JR-0000000000000005",
+          "background": {
+            "backgroundChoice": "legal_other",
+            "backgroundChoiceLabel": "其他法律相关人员（法学生、法务、法学研究人员等）",
+            "legalIndustry": "yes",
+            "legalOccupation": "other",
+            "practicingLawyer": "no"
+          },
+          "role": "litigant",
+          "condition": "substantive",
+          "caseType": "statutory",
+          "caseOrder": [
+            "statutory",
+            "natural"
+          ],
+          "roleAssignment": "randomized_perspective",
+          "preview": false,
+          "serverAssigned": true,
+          "assignmentProtocol": "server-blocks-2026-09-28-v1",
+          "test": true,
+          "assignedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "background": {
+          "backgroundChoice": "legal_other",
+          "backgroundChoiceLabel": "其他法律相关人员（法学生、法务、法学研究人员等）",
+          "legalIndustry": "yes",
+          "legalOccupation": "other",
+          "practicingLawyer": "no"
+        },
+        "backgroundGroup": "public",
+        "backgroundChoice": "legal_other",
+        "backgroundChoiceLabel": "其他法律相关人员（法学生、法务、法学研究人员等）",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "roleAssignment": "randomized_perspective",
+        "consent": {
+          "version": "central-research-2026-09-27-v1",
+          "acceptedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "responsibilityAllocationTotal": 100,
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "ratingStatus": {
+          "fairness": "answered",
+          "control": "answered",
+          "clarity": "answered",
+          "judgeOwnership": "answered",
+          "aiTrust": "answered",
+          "legitimacy": "answered",
+          "acceptance": "answered",
+          "unease": "answered",
+          "perceivedHarm": "answered"
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "substantive",
+        "finalSigner": "judge",
+        "openResponse": "中文😀",
+        "replayCompleted": true,
+        "replayExposureMs": 15000,
+        "retained": true,
+        "prototype": false
+      },
+      "digest": "b58c19406b86dd3a570ed1bf1405d6dcda0e4a2aeb80e99527c9046bb12d2b30"
+    },
+    {
+      "session": {
+        "id": "JR-0000000000000006",
+        "background": "other",
+        "role": "public",
+        "condition": "decisional",
+        "first_case": "natural",
+        "test": 0,
+        "created_at": "2026-10-08T08:00:00.000Z"
+      },
+      "input": {
+        "sessionId": "JR-0000000000000006",
+        "role": "public",
+        "condition": "decisional",
+        "caseType": "natural",
+        "preview": false,
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "decisional",
+        "finalSigner": "judge",
+        "replayCompleted": true,
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "openResponse": "中文😀",
+        "replayExposureMs": 15000
+      },
+      "assignment": {
+        "version": "2.2.0",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "backgroundGroup": "public",
+        "sessionId": "JR-0000000000000006",
+        "background": {
+          "backgroundChoice": "other",
+          "backgroundChoiceLabel": "其他",
+          "legalIndustry": "no",
+          "legalOccupation": null,
+          "practicingLawyer": "no"
+        },
+        "role": "public",
+        "condition": "decisional",
+        "caseType": "natural",
+        "caseOrder": [
+          "natural",
+          "statutory"
+        ],
+        "roleAssignment": "randomized_perspective",
+        "preview": false,
+        "serverAssigned": true,
+        "assignmentProtocol": "server-blocks-2026-09-28-v1",
+        "test": false,
+        "assignedAt": "2026-10-08T08:00:00.000Z"
+      },
+      "normalized": {
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "sessionId": "JR-0000000000000006",
+        "caseType": "natural",
+        "role": "public",
+        "condition": "decisional",
+        "preview": false,
+        "test": false,
+        "assignment": {
+          "version": "2.2.0",
+          "screeningVersion": "four-choice-background-2026-09-20-v1",
+          "backgroundGroup": "public",
+          "sessionId": "JR-0000000000000006",
+          "background": {
+            "backgroundChoice": "other",
+            "backgroundChoiceLabel": "其他",
+            "legalIndustry": "no",
+            "legalOccupation": null,
+            "practicingLawyer": "no"
+          },
+          "role": "public",
+          "condition": "decisional",
+          "caseType": "natural",
+          "caseOrder": [
+            "natural",
+            "statutory"
+          ],
+          "roleAssignment": "randomized_perspective",
+          "preview": false,
+          "serverAssigned": true,
+          "assignmentProtocol": "server-blocks-2026-09-28-v1",
+          "test": false,
+          "assignedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "background": {
+          "backgroundChoice": "other",
+          "backgroundChoiceLabel": "其他",
+          "legalIndustry": "no",
+          "legalOccupation": null,
+          "practicingLawyer": "no"
+        },
+        "backgroundGroup": "public",
+        "backgroundChoice": "other",
+        "backgroundChoiceLabel": "其他",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "roleAssignment": "randomized_perspective",
+        "consent": {
+          "version": "central-research-2026-09-27-v1",
+          "acceptedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "responsibilityAllocationTotal": 100,
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "ratingStatus": {
+          "fairness": "answered",
+          "control": "answered",
+          "clarity": "answered",
+          "judgeOwnership": "answered",
+          "aiTrust": "answered",
+          "legitimacy": "answered",
+          "acceptance": "answered",
+          "unease": "answered",
+          "perceivedHarm": "answered"
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "decisional",
+        "finalSigner": "judge",
+        "openResponse": "中文😀",
+        "replayCompleted": true,
+        "replayExposureMs": 15000,
+        "retained": true,
+        "prototype": false
+      },
+      "digest": "e59a88ff805f72307c60276ae3454391aa03c6cde8855b311040d333732f7ba0"
+    },
+    {
+      "session": {
+        "id": "JR-0000000000000007",
+        "background": "other",
+        "role": "public",
+        "condition": "decisional",
+        "first_case": "natural",
+        "test": 1,
+        "created_at": "2026-10-08T08:00:00.000Z"
+      },
+      "input": {
+        "sessionId": "JR-0000000000000007",
+        "role": "public",
+        "condition": "decisional",
+        "caseType": "natural",
+        "preview": false,
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "decisional",
+        "finalSigner": "judge",
+        "replayCompleted": true,
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "openResponse": "中文😀",
+        "replayExposureMs": 15000
+      },
+      "assignment": {
+        "version": "2.2.0",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "backgroundGroup": "public",
+        "sessionId": "JR-0000000000000007",
+        "background": {
+          "backgroundChoice": "other",
+          "backgroundChoiceLabel": "其他",
+          "legalIndustry": "no",
+          "legalOccupation": null,
+          "practicingLawyer": "no"
+        },
+        "role": "public",
+        "condition": "decisional",
+        "caseType": "natural",
+        "caseOrder": [
+          "natural",
+          "statutory"
+        ],
+        "roleAssignment": "randomized_perspective",
+        "preview": false,
+        "serverAssigned": true,
+        "assignmentProtocol": "server-blocks-2026-09-28-v1",
+        "test": true,
+        "assignedAt": "2026-10-08T08:00:00.000Z"
+      },
+      "normalized": {
+        "version": "2.2.0",
+        "caseVersion": "cases-presentation-2026-09-17",
+        "narrationVersion": "condition-narration-2026-09-23-v1",
+        "participationPresentation": "stage-disclosure-2026-09-27-v1",
+        "conditionLine": "test",
+        "presentation": "condition_audio_fast_text",
+        "responsibilityMeasure": "independent-and-allocation-2026-09-16-v1",
+        "ratingPresentation": "required-seven-point-slider-2026-09-25-v1",
+        "reading": {
+          "overview": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "evidence": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          },
+          "task": {
+            "confirmed": true,
+            "reachedEnd": true,
+            "visibleMs": 8000
+          }
+        },
+        "orientation": {
+          "completed": true,
+          "visibleMs": 3000
+        },
+        "playback": {
+          "completed": true,
+          "textVisibleMs": 15000,
+          "textReachedEnd": true,
+          "textRevealCompleted": true
+        },
+        "audio": {
+          "1": 0,
+          "2": 2,
+          "note": "记录",
+          "small": 0.000001,
+          "smaller": 1e-7,
+          "large": 1e+21
+        },
+        "speech": {
+          "inputMethod": "text"
+        },
+        "sessionId": "JR-0000000000000007",
+        "caseType": "natural",
+        "role": "public",
+        "condition": "decisional",
+        "preview": false,
+        "test": true,
+        "assignment": {
+          "version": "2.2.0",
+          "screeningVersion": "four-choice-background-2026-09-20-v1",
+          "backgroundGroup": "public",
+          "sessionId": "JR-0000000000000007",
+          "background": {
+            "backgroundChoice": "other",
+            "backgroundChoiceLabel": "其他",
+            "legalIndustry": "no",
+            "legalOccupation": null,
+            "practicingLawyer": "no"
+          },
+          "role": "public",
+          "condition": "decisional",
+          "caseType": "natural",
+          "caseOrder": [
+            "natural",
+            "statutory"
+          ],
+          "roleAssignment": "randomized_perspective",
+          "preview": false,
+          "serverAssigned": true,
+          "assignmentProtocol": "server-blocks-2026-09-28-v1",
+          "test": true,
+          "assignedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "background": {
+          "backgroundChoice": "other",
+          "backgroundChoiceLabel": "其他",
+          "legalIndustry": "no",
+          "legalOccupation": null,
+          "practicingLawyer": "no"
+        },
+        "backgroundGroup": "public",
+        "backgroundChoice": "other",
+        "backgroundChoiceLabel": "其他",
+        "screeningVersion": "four-choice-background-2026-09-20-v1",
+        "roleAssignment": "randomized_perspective",
+        "consent": {
+          "version": "central-research-2026-09-27-v1",
+          "acceptedAt": "2026-10-08T08:00:00.000Z"
+        },
+        "responsibilityScores": {
+          "judge": 80,
+          "court": 60,
+          "provider": 40,
+          "system": 20
+        },
+        "responsibilityAllocation": {
+          "judge": 50,
+          "court": 30,
+          "provider": 15,
+          "system": 5
+        },
+        "responsibilityAllocationTotal": 100,
+        "responsibilityOrder": [
+          "judge",
+          "court",
+          "provider",
+          "system"
+        ],
+        "ratings": {
+          "fairness": 5,
+          "control": 5,
+          "clarity": 5,
+          "judgeOwnership": 5,
+          "aiTrust": 5,
+          "legitimacy": 5,
+          "acceptance": 5,
+          "unease": 5
+        },
+        "ratingStatus": {
+          "fairness": "answered",
+          "control": "answered",
+          "clarity": "answered",
+          "judgeOwnership": "answered",
+          "aiTrust": "answered",
+          "legitimacy": "answered",
+          "acceptance": "answered",
+          "unease": "answered",
+          "perceivedHarm": "answered"
+        },
+        "perceivedHarm": 3,
+        "involvement": 5,
+        "manipulationCheck": "decisional",
+        "finalSigner": "judge",
+        "openResponse": "中文😀",
+        "replayCompleted": true,
+        "replayExposureMs": 15000,
+        "retained": true,
+        "prototype": false
+      },
+      "digest": "6ec22318bba8d13634d7151f0afac773f371fe6d09fdc5b6ee61003955df652f"
+    }
+  ]
+}
