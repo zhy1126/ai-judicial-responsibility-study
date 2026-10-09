@@ -411,6 +411,9 @@ def create_app(db_path, public_dir, config_path):
 
     @app.after_request
     def headers(response):
+        # The route's database context has committed before this hook runs.
+        if request.method == 'POST' and request.path in ['/api/study/answer', '/api/study/withdraw'] and 200 <= response.status_code < 300:
+            refresh_owner_exports()
         response.headers['X-Content-Type-Options'] = 'nosniff'
         if request.path.startswith('/api/study'):
             response.headers['Cache-Control'] = 'no-store'
@@ -492,4 +495,14 @@ def create_app(db_path, public_dir, config_path):
                     return jsonify(ok=True)
             fail('接口不存在。', 404)
 
+    def refresh_owner_exports():
+        try:
+            from study_admin import refresh_live_exports
+            refresh_live_exports(db_path)
+        except Exception as exc:
+            # An export is a derived view; never turn a committed answer into a
+            # reported submission failure. Avoid logging participant contents.
+            app.logger.error('Owner export refresh failed: %s', type(exc).__name__)
+
+    refresh_owner_exports()  # Backfill existing answers on deployment/restart.
     return app

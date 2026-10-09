@@ -2,6 +2,7 @@
 import base64
 import concurrent.futures
 import copy
+import csv
 import hashlib
 import importlib
 import json
@@ -11,6 +12,7 @@ import secrets
 import sqlite3
 import tempfile
 import unittest
+from unittest import mock
 
 CONSENT = 'central-research-2026-09-27-v1'
 SUBJECTS = ['judge', 'court', 'provider', 'system']
@@ -312,6 +314,92 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(dest.stat().st_mode & 0o777, 0o600)
         with sqlite3.connect(dest) as db:
             self.assertEqual(db.execute('SELECT COUNT(*) FROM answers').fetchone()[0], 2)
+
+    def latest_rows(self, test=False):
+        path = self.root / ('test-latest.csv' if test else 'formal-latest.csv')
+        with path.open(encoding='utf-8-sig', newline='') as stream:
+            return list(csv.DictReader(stream))
+
+    def test_live_exports_follow_both_cases_and_separate_pilot(self):
+        self.assertEqual(self.latest_rows(), [])
+        self.assertEqual(self.latest_rows(test=True), [])
+        t, r = self.start(test=False)
+        a = r.json['assignment']
+        p = answer(a)
+        p['openResponse'] = '=FORMULA()'
+        self.assertEqual(self.call('answer', 'POST', p, t).status_code, 201)
+        rows = self.latest_rows()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['study_completed'], 'false')
+        self.assertEqual(rows[0]['open_response'], "'=FORMULA()")
+        self.assertEqual(self.call('answer', 'POST', p, t).status_code, 200)
+        self.assertEqual(len(self.latest_rows()), 1)
+        self.assertEqual(self.call('answer', 'POST', answer(a, a['caseOrder'][1]), t).status_code, 201)
+        self.assertEqual([row['study_completed'] for row in self.latest_rows()], ['true', 'true'])
+        t2, r2 = self.start()
+        self.call('answer', 'POST', answer(r2.json['assignment']), t2)
+        self.assertEqual(len(self.latest_rows()), 2)
+        self.assertEqual(len(self.latest_rows(test=True)), 1)
+        status = (self.root / 'data-status.txt').read_text()
+        self.assertIn('北京时间', status)
+        self.assertIn('正式：2 条案件回答，1 人完成两个案件，0 人仅完成一个案件', status)
+        for name in ['formal-latest.csv', 'test-latest.csv', 'data-status.txt']:
+            self.assertEqual((self.root / name).stat().st_mode & 0o777, 0o600)
+            self.assertEqual(self.client.get('/study/' + name).status_code, 404)
+
+    def test_live_exports_backfill_and_withdraw_without_touching_manual_snapshot(self):
+        t, r = self.start(test=False)
+        self.call('answer', 'POST', answer(r.json['assignment']), t)
+        saved = self.sql('SELECT payload,digest FROM answers')
+        old = self.root / 'formal-20261008.csv'
+        old.write_text('historical snapshot')
+        (self.root / 'formal-latest.csv').unlink()
+        self.mod.create_app(self.db, self.public, self.config)
+        self.assertEqual(len(self.latest_rows()), 1)
+        self.assertEqual(self.sql('SELECT payload,digest FROM answers'), saved)
+        self.assertEqual(self.call('withdraw', 'POST', {}, t).status_code, 200)
+        self.assertEqual(self.latest_rows(), [])
+        self.assertEqual(old.read_text(), 'historical snapshot')
+        self.assertIn('正式：0 条案件回答', (self.root / 'data-status.txt').read_text())
+
+    def test_live_export_failure_does_not_lose_answer_and_retry_repairs(self):
+        admin = importlib.import_module('study_admin')
+        t, r = self.start(test=False)
+        p = answer(r.json['assignment'])
+        original = admin.atomic_private_output
+        def broken(path, content):
+            if Path(path).suffix == '.csv':
+                raise OSError('synthetic export failure')
+            return original(path, content)
+        with mock.patch.object(admin, 'atomic_private_output', side_effect=broken), self.assertLogs(self.app.logger, level='ERROR'):
+            self.assertEqual(self.call('answer', 'POST', p, t).status_code, 201)
+        self.assertEqual(len(self.sql('SELECT * FROM answers')), 1)
+        self.assertFalse((self.root / 'formal-latest.csv').exists())
+        self.assertFalse((self.root / 'test-latest.csv').exists())
+        self.assertIn('导出暂未更新', (self.root / 'data-status.txt').read_text())
+        self.assertEqual(self.call('answer', 'POST', p, t).status_code, 200)
+        self.assertEqual(len(self.latest_rows()), 1)
+        # A failed export after a withdrawal must not leave an obsolete live CSV.
+        with mock.patch.object(admin, 'atomic_private_output', side_effect=broken), self.assertLogs(self.app.logger, level='ERROR'):
+            self.assertEqual(self.call('withdraw', 'POST', {}, t).status_code, 200)
+        self.assertFalse((self.root / 'formal-latest.csv').exists())
+        self.assertEqual(self.sql('SELECT * FROM answers'), [])
+
+    def test_live_exports_concurrent_workers_match_database(self):
+        second_app = self.mod.create_app(self.db, self.public, self.config)
+        participants = [self.start(test=False) for _ in range(12)]
+        def submit(item):
+            i, (t, r) = item
+            client = (self.app if i % 2 else second_app).test_client()
+            self.assertEqual(self.call('answer', 'POST', answer(r.json['assignment']), t, client=client).status_code, 201)
+            if i % 3 == 0:
+                self.assertEqual(self.call('withdraw', 'POST', {}, t, client=client).status_code, 200)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+            list(pool.map(submit, enumerate(participants)))
+        ids = {r['session_id'] for r in self.sql('SELECT session_id FROM answers')}
+        self.assertEqual(len(ids), 8)
+        self.assertEqual({r['session_id'] for r in self.latest_rows()}, ids)
+        self.assertEqual(list(self.root.glob('.live-export-*.tmp')), [])
 
 
 if __name__ == '__main__':
