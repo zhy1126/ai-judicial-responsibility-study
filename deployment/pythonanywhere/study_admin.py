@@ -1,12 +1,15 @@
 """Owner-only commands. No HTTP route exposes these exports or database files."""
 import argparse
 import csv
+from datetime import datetime, timedelta, timezone
+import fcntl
 import io
 import json
 import os
 from pathlib import Path
 import re
 import sqlite3
+import tempfile
 
 from study_app import RATINGS, SUBJECTS, database, js_dumps, now, page_records
 
@@ -24,13 +27,18 @@ def summary(db_path, test=False):
 
 
 def export_records(db_path, test=False):
-    records, cursor = [], ''
     with database(db_path) as db:
-        while True:
-            page, cursor = page_records(db, test=test, cursor=cursor)
-            records.extend(record for _, record in page)
-            if cursor is None:
-                break
+        return records_snapshot(db, test)
+
+
+def records_snapshot(db, test=False):
+    """Read all pages inside the caller's single consistent transaction."""
+    records, cursor = [], ''
+    while True:
+        page, cursor = page_records(db, test=test, cursor=cursor)
+        records.extend(record for _, record in page)
+        if cursor is None:
+            break
     return dict(exportedAt=now(), test=bool(test), records=records, nextCursor=None)
 
 
@@ -64,6 +72,63 @@ def private_output(path, content):
         stream.write(content)
 
 
+def atomic_private_output(path, content):
+    """Replace a managed export without ever exposing a partly-written CSV."""
+    path = Path(path)
+    fd, temporary = tempfile.mkstemp(prefix='.live-export-', suffix='.tmp', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8', errors='backslashreplace', newline='') as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
+
+
+def refresh_live_exports(db_path):
+    """Owner-only current CSVs, serialized across threads and WSGI workers.
+
+    Take the export lock BEFORE reading SQLite, after the submission committed.
+    A delayed request therefore cannot replace a newer export with older data.
+    These managed files are replaceable views; SQLite remains authoritative.
+    """
+    folder = Path(db_path).resolve().parent
+    names = ['formal-latest.csv', 'test-latest.csv']
+    flags = os.O_CREAT | os.O_RDWR | getattr(os, 'O_NOFOLLOW', 0)
+    fd = os.open(folder / '.live-exports.lock', flags, 0o600)
+    with os.fdopen(fd, 'a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            with database(db_path) as db:
+                data = [records_snapshot(db, test=False), records_snapshot(db, test=True)]
+            timestamp = datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d %H:%M:%S')
+            lines = ['最新数据文件已更新', '北京时间：' + timestamp]
+            for name, label, snapshot in zip(names, ['正式', '试填'], data):
+                atomic_private_output(folder / name, to_csv(snapshot))
+                records = snapshot['records']
+                cases = sum(len(r['responses']) for r in records)
+                complete = sum(r['completed'] for r in records)
+                lines.append(f'{label}：{cases} 条案件回答，{complete} 人完成两个案件，{len(records) - complete} 人仅完成一个案件（{name}）')
+            lines += [
+                '', '每次提交案件回答或撤回后自动更新；一人完成两个案件会有两行。',
+                '只分析完整答卷时，筛选 study_completed=true。试填数据与正式数据分开。',
+                '通过 PythonAnywhere 登录后的 Files 页面查看或重新下载最新文件。',
+                '已下载到电脑、或已在 Excel 中打开的副本不会自动刷新；请重新下载。',
+                '带日期的旧导出文件是历史快照，不会更新。撤回后应另行清理旧快照及下载副本。',
+            ]
+            # Publish the status last, after both complete files were replaced.
+            atomic_private_output(folder / 'data-status.txt', '\n'.join(lines) + '\n')
+        except Exception:
+            # Do not leave a misleading old view (especially after withdrawal).
+            # Historical, explicitly created snapshots are never touched here.
+            for name in names + ['data-status.txt']:
+                (folder / name).unlink(missing_ok=True)
+            atomic_private_output(folder / 'data-status.txt',
+                                  '导出暂未更新。答卷仍保存在数据库中，请研究者检查后台并刷新导出。\n')
+            raise
+
+
 def sqlite_backup(db_path, output_path):
     """Explicit manual snapshot only; do not automate plaintext/key retention."""
     source, destination = Path(db_path).resolve(), Path(output_path).resolve()
@@ -87,6 +152,7 @@ def main():
     parser.add_argument('--test', action='store_true', help='Export test participants instead of formal participants')
     sub = parser.add_subparsers(dest='command', required=True)
     sub.add_parser('summary')
+    sub.add_parser('refresh-exports', help='Refresh both owner-only latest CSV files from the database')
     export = sub.add_parser('export')
     export.add_argument('--format', choices=['json', 'csv'], default='json')
     export.add_argument('--out', required=True, type=Path)
@@ -97,6 +163,9 @@ def main():
         parser.error('Existing private database required')
     if args.command == 'summary':
         print(json.dumps(summary(args.db, args.test), ensure_ascii=False, indent=2))
+    elif args.command == 'refresh-exports':
+        refresh_live_exports(args.db)
+        print('Owner-only latest CSV exports refreshed.')
     elif args.command == 'export':
         data = export_records(args.db, args.test)
         private_output(args.out, to_csv(data) if args.format == 'csv' else js_dumps(data))
