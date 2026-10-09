@@ -173,7 +173,7 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(record['caseIndex'], 1)
         self.assertTrue(self.sql('SELECT completed_at FROM sessions')[0]['completed_at'])
 
-    def test_validation_and_eight_second_reading(self):
+    def test_validation_five_second_dossier_and_eight_second_narration(self):
         t, r = self.start()
         a = r.json['assignment']
         changes = [({'responsibilityAllocation': dict.fromkeys(SUBJECTS, 0)}), {'ratings': dict.fromkeys(RATINGS, True)},
@@ -188,6 +188,12 @@ class StudyTests(unittest.TestCase):
             self.assertEqual(self.call('answer', 'POST', p, t).status_code, 400, change)
         for case in a['caseOrder']:
             p = answer(a, case)
+            for section in p['reading'].values():
+                section['visibleMs'] = 5000
+            for tab in p['reading']:
+                too_short = copy.deepcopy(p)
+                too_short['reading'][tab]['visibleMs'] = 4999
+                self.assertEqual(self.call('answer', 'POST', too_short, t).status_code, 400)
             p['playback']['textVisibleMs'] = 8000
             p['audio']['completed'] = False
             self.assertEqual(self.call('answer', 'POST', p, t).status_code, 201)

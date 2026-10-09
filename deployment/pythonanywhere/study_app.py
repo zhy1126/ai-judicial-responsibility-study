@@ -217,7 +217,7 @@ def checked_answer(data, a):
     if data.get('manipulationCheck') not in CONDITIONS + ['unsure'] or data.get('finalSigner') not in ['judge', 'ai', 'vendor', 'unsure']:
         fail('请完成材料理解题。')
     reading = data.get('reading')
-    if data.get('replayCompleted') is not True or not all(prop(prop(reading, k), 'confirmed') is True and prop(prop(reading, k), 'reachedEnd') is True and duration(prop(prop(reading, k), 'visibleMs'), 8000) for k in ['overview', 'evidence', 'task']):
+    if data.get('replayCompleted') is not True or not all(prop(prop(reading, k), 'confirmed') is True and prop(prop(reading, k), 'reachedEnd') is True and duration(prop(prop(reading, k), 'visibleMs'), 5000) for k in ['overview', 'evidence', 'task']):
         fail('请完成三部分材料阅读。')
     if prop(data.get('orientation'), 'completed') is not True or not duration(prop(data.get('orientation'), 'visibleMs'), 3000) or prop(data.get('playback'), 'textReachedEnd') is not True or not duration(prop(data.get('playback'), 'textVisibleMs'), 8000):
         fail('请完成情境及裁判形成记录的阅读。')

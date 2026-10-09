@@ -42,10 +42,14 @@ test('four-choice screening maps legal backgrounds and randomizes only the publi
  assert.throws(()=>core.assignParticipant({backgroundChoice:'unknown'},{sessionId:'BAD'}));
 });
 
-test('new dossier reading gate is eight seconds',()=>{
- assert.equal(core.MIN_READING_MS,8000);
- const progress=Object.fromEntries(core.DOSSIER_TABS.map(k=>[k,{reachedEnd:true,confirmed:true,visibleMs:7999}]));
+test('both cases use a five-second gate for every dossier section',()=>{
+ assert.equal(core.MIN_READING_MS,5000);
+ const progress=Object.fromEntries(core.DOSSIER_TABS.map(k=>[k,{reachedEnd:true,confirmed:true,visibleMs:4999}]));
  assert.equal(core.readingComplete(progress),false);
- for(const tab of core.DOSSIER_TABS)progress[tab].visibleMs=8000;
+ for(const tab of core.DOSSIER_TABS)progress[tab].visibleMs=5000;
  assert.equal(core.readingComplete(progress),true);
+ for(const tab of core.DOSSIER_TABS){
+  assert.equal(core.readingComplete({...progress,[tab]:{...progress[tab],visibleMs:4999}}),false);
+  assert.equal(core.readingComplete({...progress,[tab]:{...progress[tab],reachedEnd:false}}),false);
+ }
 });
