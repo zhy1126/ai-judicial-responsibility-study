@@ -7,7 +7,7 @@
   'use strict';
   const VERSION = '2.2.0';
   const RESPONSIBILITY_VERSION = 'independent-and-allocation-2026-09-16-v1';
-  const MIN_READING_MS = 8000;
+  const MIN_READING_MS = 5000;
   const DOSSIER_TABS = ['overview','evidence','task'];
   const SCREENING_VERSION = 'four-choice-background-2026-09-20-v1';
   const SCREENING_CHOICES = [
